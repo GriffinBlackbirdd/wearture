@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEARXTURE Admin - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/admin/css/admin.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #e25822;
+            --secondary-color: #9b4dca;
+            --accent-color: #f8b400;
+            --text-color: #333;
+            --light-text: #777;
+            --white: #fff;
+            --light-bg: #f9f9f9;
+            --border-color: #eee;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --font-body: 'Poppins', sans-serif;
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--light-bg);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .login-container {
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-logo {
+            max-width: 180px;
+            margin-bottom: 20px;
+        }
+
+        .login-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .login-form {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: var(--font-body);
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(226, 88, 34, 0.2);
+            outline: none;
+        }
+
+        .login-btn {
+            background-color: var(--primary-color);
+            color: var(--white);
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: var(--transition);
+            font-family: var(--font-body);
+            font-size: 16px;
+        }
+
+        .login-btn:hover {
+            background-color: #c24d1e;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            background-color: rgba(220, 53, 69, 0.1);
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .back-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <img src="{{ url_for('static', path='/images/WEARXTURE LOGOai.png') }}" alt="WEARXTURE Logo" class="login-logo">
+            <h1>Admin Login</h1>
+        </div>
+        
+        <div id="error-message" class="error-message"></div>
+        
+        <!-- Updated form with direct HTML submission -->
+        <form id="login-form" class="login-form" action="/admin/login" method="post">
+            <div class="form-group">
+                <label for="username">Email</label>
+                <input type="email" id="username" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+        
+        <div class="back-link">
+            <a href="/">&larr; Back to Website</a>
+        </div>
+    </div>
+
+    <script>
+        // Add this if you want to show custom error messages for failed logins
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+        
+        if (error) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = 'Invalid email or password';
+            errorMessage.classList.add('show');
+        }
+    </script>
+</body>
+</html>

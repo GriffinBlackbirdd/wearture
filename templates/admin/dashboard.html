@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEARXTURE Admin - Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/admin/css/admin.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', path='/images/WEARXTURE LOGOai.png') }}" alt="WEARXTURE Logo" class="sidebar-logo">
+                <p>Admin Panel</p>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="/admin/dashboard" class="menu-item active">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="/admin/products" class="menu-item">
+                    <i class="fas fa-tshirt"></i> Products
+                </a>
+                <a href="/admin/categories" class="menu-item">
+                    <i class="fas fa-tags"></i> Categories
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-shopping-cart"></i> Orders
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-image"></i> Media Library
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <button id="toggle-sidebar" class="toggle-sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="user-menu">
+                    <div class="user-info">
+                        {{ user_email if user_email else "Admin User" }}
+                    </div>
+                    <a href="/admin/logout" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content">
+                <div class="dashboard-title">
+                    <h1>Dashboard</h1>
+                </div>
+                
+                <div class="dashboard-cards">
+                    <div class="card card-products">
+                        <div class="card-icon">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <div class="card-title">Total Products</div>
+                        <div class="card-value">{{ product_count if product_count is defined else 0 }}</div>
+                        <div class="card-change positive">
+                            <i class="fas fa-arrow-up"></i> Real-time data
+                        </div>
+                    </div>
+                    
+                    <div class="card card-categories">
+                        <div class="card-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <div class="card-title">Categories</div>
+                        <div class="card-value">{{ category_count if category_count is defined else 0 }}</div>
+                        <div class="card-change positive">
+                            <i class="fas fa-arrow-up"></i> Real-time data
+                        </div>
+                    </div>
+                    
+                    <div class="card card-orders">
+                        <div class="card-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="card-title">Orders</div>
+                        <div class="card-value">0</div>
+                        <div class="card-change positive">
+                            <i class="fas fa-arrow-up"></i> Coming soon
+                        </div>
+                    </div>
+                    
+                    <div class="card card-users">
+                        <div class="card-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="card-title">Users</div>
+                        <div class="card-value">1</div>
+                        <div class="card-change positive">
+                            <i class="fas fa-arrow-up"></i> Admin active
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="quick-links">
+                    <h2 class="section-title">Quick Links</h2>
+                    <div class="links-grid">
+                        <a href="/admin/products" class="link-item">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Add Product</span>
+                        </a>
+                        <a href="/admin/categories" class="link-item">
+                            <i class="fas fa-folder-plus"></i>
+                            <span>Add Category</span>
+                        </a>
+                        <a href="#" class="link-item">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload Images</span>
+                        </a>
+                        <a href="#" class="link-item">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>View Analytics</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 class="section-title">Recent Products</h2>
+                    <div class="recent-products" id="recent-products">
+                        <div class="loading-indicator">
+                            <i class="fas fa-spinner fa-spin"></i> Loading recent products...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', path='/admin/js/admin.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle sidebar on mobile
+            const sidebar = document.getElementById('sidebar');
+            const toggleSidebar = document.getElementById('toggle-sidebar');
+            
+            if (toggleSidebar) {
+                toggleSidebar.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+            }
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                if (sidebar.classList.contains('show') && 
+                    !sidebar.contains(e.target) && 
+                    e.target !== toggleSidebar) {
+                    sidebar.classList.remove('show');
+                }
+            });
+            
+            // Load recent products
+            async function loadRecentProducts() {
+                try {
+                    const response = await fetch('/api/products');
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error: ${response.status}`);
+                    }
+                    
+                    const products = await response.json();
+                    const recentProductsContainer = document.getElementById('recent-products');
+                    
+                    if (products.length === 0) {
+                        recentProductsContainer.innerHTML = '<p>No products found. Add your first product!</p>';
+                        return;
+                    }
+                    
+                    // Sort by created_at date (newest first)
+                    products.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    
+                    // Take only the first 5 most recent products
+                    const recentProducts = products.slice(0, 5);
+                    
+                    // Create HTML
+                    let html = '<ul class="product-list">';
+                    
+                    recentProducts.forEach(product => {
+                        html += `
+                        <li class="product-item">
+                            <img src="${product.image_url}" alt="${product.name}" class="product-thumbnail">
+                            <div class="product-details">
+                                <div class="product-name">${product.name}</div>
+                                <div class="product-meta">
+                                    <span class="product-category">${product.category_name || 'Uncategorized'}</span>
+                                    <span class="product-price">₹${product.price}</span>
+                                </div>
+                            </div>
+                        </li>
+                        `;
+                    });
+                    
+                    html += '</ul>';
+                    
+                    // Update container
+                    recentProductsContainer.innerHTML = html;
+                    
+                } catch (error) {
+                    console.error('Error loading recent products:', error);
+                    document.getElementById('recent-products').innerHTML = 
+                        '<p>Error loading recent products. Please try again later.</p>';
+                }
+            }
+            
+            // Load recent products
+            loadRecentProducts();
+        });
+    </script>
+    <style>
+        /* Additional styles for the dashboard */
+        .product-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .product-item {
+            display: flex;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .product-item:last-child {
+            border-bottom: none;
+        }
+        
+        .product-thumbnail {
+            width: 60px;
+            height: 60px;
+            border-radius: 4px;
+            object-fit: cover;
+            margin-right: 15px;
+        }
+        
+        .product-details {
+            flex: 1;
+        }
+        
+        .product-name {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .product-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--light-text);
+        }
+        
+        .product-price {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .loading-indicator {
+            padding: 20px;
+            text-align: center;
+            color: var(--light-text);
+        }
+        
+        .loading-indicator i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+    </style>
+</body>
+</html>

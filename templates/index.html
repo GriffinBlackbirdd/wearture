@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEARXTURE - Modern Ethnic Wear Collection</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Announcement Banner -->
+    <div class="announcement-banner">
+        <div class="marquee-container">
+            <div class="marquee-content">
+                <p>🚚 Free Shipping + Easy Returns on All Ethnic Wear Orders! &nbsp;&nbsp;&nbsp; 🚚 Free Shipping + Easy Returns on All Ethnic Wear Orders! &nbsp;&nbsp;&nbsp; 🚚 Free Shipping + Easy Returns on All Ethnic Wear Orders!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <a href="/">
+                    <img src="{{ url_for('static', path='/images/WEARXTURE LOGOai.png') }}" alt="WEARXTURE Logo" class="logo-img">
+                </a>
+            </div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/" class="active">Home</a></li>
+                    <li><a href="#">New Arrivals</a></li>
+                    <li><a href="/products">All Products</a></li>
+                    <li><a href="#">Collections</a></li>
+                    <li><a href="#">Sale</a></li>
+                </ul>
+            </nav>
+            <div class="nav-icons">
+                <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                <a href="#" class="icon-link"><i class="fas fa-user"></i></a>
+                <a href="#" class="icon-link cart"><i class="fas fa-shopping-bag"></i><span class="cart-count">0</span></a>
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h2>Special Deal</h2>
+                <h1>NEW STYLE</h1>
+                <div class="discount-badge">
+                    <span>60% OFF</span>
+                </div>
+                <p class="hero-description">Discover our exclusive collection of handcrafted ethnic wear - perfect for every celebration.</p>
+                <div class="hero-buttons">
+                    <a href="#new-arrivals" class="btn-shop-now">Shop Now</a>
+                    <a href="#categories" class="btn-explore">Explore Collection</a>
+                </div>
+            </div>
+        </div>
+        <div class="hero-scroll-indicator">
+            <span>Scroll Down</span>
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
+
+    <!-- Featured Categories -->
+    <section class="featured-categories" id="categories">
+        <div class="section-title">
+            <h2>Explore Our Collections</h2>
+            <p>Handcrafted with love, designed for elegance</p>
+        </div>
+        <div class="category-grid">
+            {% if categories %}
+                {% for category in categories[:4] %}
+                    <div class="category-card">
+                        <div class="category-img">
+                            <img src="{{ category.image_url }}" alt="{{ category.name }}">
+                            <div class="category-overlay">
+                                <a href="/category/{{ category.id }}" class="category-btn">{{ category.name }}</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <!-- Default categories if none in database -->
+                <div class="category-card">
+                    <div class="category-img">
+                        <img src="{{ url_for('static', path='/images/categories/anarkali.jpg') }}" alt="Anarkali Suits">
+                        <div class="category-overlay">
+                            <a href="#" class="category-btn">Anarkali Suits</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <div class="category-img">
+                        <img src="{{ url_for('static', path='/images/categories/sarees.jpg') }}" alt="Sarees">
+                        <div class="category-overlay">
+                            <a href="#" class="category-btn">Sarees</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <div class="category-img">
+                        <img src="{{ url_for('static', path='/images/categories/lehengas.jpg') }}" alt="Lehengas">
+                        <div class="category-overlay">
+                            <a href="#" class="category-btn">Lehengas</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <div class="category-img">
+                        <img src="{{ url_for('static', path='/images/categories/kurtis.jpg') }}" alt="Kurtis">
+                        <div class="category-overlay">
+                            <a href="#" class="category-btn">Kurtis</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- New Arrivals -->
+    <section class="new-arrivals" id="new-arrivals">
+        <div class="section-title">
+            <h2>New Arrivals</h2>
+            <p>Fresh styles for the season</p>
+        </div>
+        <div class="product-slider">
+            {% if new_products %}
+                {% for product in new_products %}
+                    <div class="product-card">
+                        <div class="product-badge">New</div>
+                        <div class="product-img">
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                            <div class="product-actions">
+                                <button class="action-btn"><i class="far fa-heart"></i></button>
+                                <button class="action-btn"><i class="fas fa-shopping-cart"></i></button>
+                                <a href="/product/{{ product.id }}" class="action-btn"><i class="fas fa-eye"></i></a>
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <h3>{{ product.name }}</h3>
+                            <div class="product-price">
+                                <span class="current-price">₹{{ product.sale_price if product.sale_price else product.price }}</span>
+                                {% if product.sale_price %}
+                                    <span class="original-price">₹{{ product.price }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <!-- Default products if none in database -->
+                <div class="product-card">
+                    <div class="product-badge">New</div>
+                    <div class="product-img">
+                        <img src="{{ url_for('static', path='/images/products/placeholder.jpg') }}" alt="Embroidered Anarkali">
+                        <div class="product-actions">
+                            <button class="action-btn"><i class="far fa-heart"></i></button>
+                            <button class="action-btn"><i class="fas fa-shopping-cart"></i></button>
+                            <button class="action-btn"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3>Embroidered Anarkali Set</h3>
+                        <div class="product-price">
+                            <span class="current-price">₹3,999</span>
+                            <span class="original-price">₹9,999</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-badge">New</div>
+                    <div class="product-img">
+                        <img src="{{ url_for('static', path='/images/products/placeholder.jpg') }}" alt="Lavender Gown">
+                        <div class="product-actions">
+                            <button class="action-btn"><i class="far fa-heart"></i></button>
+                            <button class="action-btn"><i class="fas fa-shopping-cart"></i></button>
+                            <button class="action-btn"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3>Lavender Embellished Gown</h3>
+                        <div class="product-price">
+                            <span class="current-price">₹4,599</span>
+                            <span class="original-price">₹11,499</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-badge">New</div>
+                    <div class="product-img">
+                        <img src="{{ url_for('static', path='/images/products/placeholder.jpg') }}" alt="Red Anarkali">
+                        <div class="product-actions">
+                            <button class="action-btn"><i class="far fa-heart"></i></button>
+                            <button class="action-btn"><i class="fas fa-shopping-cart"></i></button>
+                            <button class="action-btn"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3>Red Floral Anarkali</h3>
+                        <div class="product-price">
+                            <span class="current-price">₹3,799</span>
+                            <span class="original-price">₹9,499</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-badge">New</div>
+                    <div class="product-img">
+                        <img src="{{ url_for('static', path='/images/products/placeholder.jpg') }}" alt="Designer Saree">
+                        <div class="product-actions">
+                            <button class="action-btn"><i class="far fa-heart"></i></button>
+                            <button class="action-btn"><i class="fas fa-shopping-cart"></i></button>
+                            <button class="action-btn"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <h3>Designer Embroidered Saree</h3>
+                        <div class="product-price">
+                            <span class="current-price">₹5,299</span>
+                            <span class="original-price">₹13,249</span>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="slider-controls">
+            <button class="prev-btn"><i class="fas fa-chevron-left"></i></button>
+            <button class="next-btn"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="text-center" style="margin-top: 30px;">
+            <a href="/products" class="btn-explore">View All Products</a>
+        </div>
+    </section>
+
+    <!-- Special Offer Banner -->
+    <section class="special-offer">
+        <div class="offer-container">
+            <div class="offer-content">
+                <span class="offer-label">Limited Time</span>
+                <h2>Festival Collection</h2>
+                <h3>Ready to Shine this Season</h3>
+                <p>Explore our exclusive festival designs with intricate embroidery and premium fabrics</p>
+                <div class="offer-features">
+                    <div class="offer-feature">
+                        <i class="fas fa-award"></i>
+                        <span>Premium Quality</span>
+                    </div>
+                    <div class="offer-feature">
+                        <i class="fas fa-shipping-fast"></i>
+                        <span>Express Shipping</span>
+                    </div>
+                    <div class="offer-feature">
+                        <i class="fas fa-percent"></i>
+                        <span>Extra Discounts</span>
+                    </div>
+                </div>
+                <div class="offer-buttons">
+                    <a href="/products" class="btn-shop-collection">View Collection</a>
+                    <a href="#" class="btn-view-lookbook">View Lookbook</a>
+                </div>
+                <div class="offer-timer">
+                    <p>Offer ends in</p>
+                    <div class="countdown">
+                        <div class="countdown-item">
+                            <span class="countdown-number" id="countdown-days">03</span>
+                            <span class="countdown-label">Days</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-number" id="countdown-hours">12</span>
+                            <span class="countdown-label">Hours</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-number" id="countdown-minutes">45</span>
+                            <span class="countdown-label">Minutes</span>
+                        </div>
+                        <div class="countdown-item">
+                            <span class="countdown-number" id="countdown-seconds">22</span>
+                            <span class="countdown-label">Seconds</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="section-title">
+            <h2>Customer Love</h2>
+            <p>What our customers say about us</p>
+        </div>
+        <div class="testimonial-slider">
+            <div class="testimonial-card">
+                <div class="testimonial-rating">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="testimonial-text">"The quality of the fabric and embroidery exceeded my expectations. Got so many compliments at my sister's wedding!"</p>
+                <div class="testimonial-author">- Priya S.</div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-rating">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="testimonial-text">"Fast delivery and the outfit looked exactly like the pictures. The sizing guide was very helpful!"</p>
+                <div class="testimonial-author">- Meera P.</div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-rating">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star-half-alt"></i>
+                </div>
+                <p class="testimonial-text">"Beautiful collection and excellent customer service. They helped me find the perfect outfit for my engagement."</p>
+                <div class="testimonial-author">- Anjali R.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <div class="feature">
+            <div class="feature-icon">
+                <i class="fas fa-truck"></i>
+            </div>
+            <h3>Free Shipping</h3>
+            <p>On all orders above ₹1999</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">
+                <i class="fas fa-undo"></i>
+            </div>
+            <h3>Easy Returns</h3>
+            <p>30-day return policy</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>Secure Payment</h3>
+            <p>100% secure checkout</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">
+                <i class="fas fa-headset"></i>
+            </div>
+            <h3>24/7 Support</h3>
+            <p>Dedicated customer service</p>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h2>Join Our Newsletter</h2>
+            <p>Subscribe and get ₹500 off on your first order!</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="Enter your email address" required>
+                <button type="submit">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-column">
+                <div class="footer-logo">
+                    <img src="{{ url_for('static', path='/images/no bg white logo.png') }}" alt="WEARXTURE Logo" class="footer-logo-img">
+                </div>
+                <p>Discover the perfect blend of tradition and modernity with our exclusive ethnic wear collection.</p>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-pinterest"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">New Arrivals</a></li>
+                    <li><a href="/products">All Products</a></li>
+                    <li><a href="#">Sale</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Customer Service</h3>
+                <ul>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Track Order</a></li>
+                    <li><a href="#">Return & Exchange</a></li>
+                    <li><a href="#">Shipping Policy</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Contact Info</h3>
+                <ul class="contact-info">
+                    <li><i class="fas fa-map-marker-alt"></i> 123 Fashion Street, Delhi, India</li>
+                    <li><i class="fas fa-phone"></i> +91 98765 43210</li>
+                    <li><i class="fas fa-envelope"></i> info@wearxture.com</li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 WEARXTURE. All Rights Reserved.</p>
+            <div class="payment-icons">
+                <i class="fab fa-cc-visa"></i>
+                <i class="fab fa-cc-mastercard"></i>
+                <i class="fab fa-cc-paypal"></i>
+                <i class="fab fa-cc-apple-pay"></i>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', path='/js/script.js') }}"></script>
+    <script>
+        // Add to cart functionality for new products
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add to Cart
+            const addToCartButtons = document.querySelectorAll('.product-actions .action-btn:nth-child(2)');
+            const cartCount = document.querySelector('.cart-count');
+            
+            if (addToCartButtons.length && cartCount) {
+                addToCartButtons.forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const currentCount = parseInt(cartCount.textContent);
+                        cartCount.textContent = currentCount + 1;
+                        
+                        const productCard = this.closest('.product-card');
+                        const productName = productCard.querySelector('h3').textContent;
+                        
+                        // Show notification
+                        showNotification(`${productName} added to cart!`);
+                        
+                        // Animation effect
+                        this.classList.add('added');
+                        setTimeout(() => {
+                            this.classList.remove('added');
+                        }, 1000);
+                    });
+                });
+            }
+            
+            // Wishlist functionality
+            const wishlistButtons = document.querySelectorAll('.product-actions .action-btn:first-child');
+            
+            if (wishlistButtons.length) {
+                wishlistButtons.forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const icon = this.querySelector('i');
+                        const productCard = this.closest('.product-card');
+                        const productName = productCard.querySelector('h3').textContent;
+                        
+                        if (icon.classList.contains('fas')) {
+                            icon.classList.remove('fas');
+                            icon.classList.add('far');
+                            showNotification(`${productName} removed from wishlist!`);
+                        } else {
+                            icon.classList.remove('far');
+                            icon.classList.add('fas');
+                            showNotification(`${productName} added to wishlist!`);
+                        }
+                    });
+                });
+            }
+            
+            // Notification function
+            function showNotification(message) {
+                // Remove existing notification
+                const existingNotification = document.querySelector('.notification');
+                if (existingNotification) {
+                    existingNotification.remove();
+                }
+                
+                // Create notification
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <i class="fas fa-check-circle"></i>
+                        <p>${message}</p>
+                        <button class="close-notification"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+                
+                // Append to body
+                document.body.appendChild(notification);
+                
+                // Show notification
+                setTimeout(() => notification.classList.add('show'), 10);
+                
+                // Auto hide after 3 seconds
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+                
+                // Close button functionality
+                const closeButton = notification.querySelector('.close-notification');
+                closeButton.addEventListener('click', () => {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                });
+            }
+            
+            // Smooth scroll for category and new arrivals links
+            const categoryLink = document.querySelector('a[href="#categories"]');
+            const newArrivalsLink = document.querySelector('a[href="#new-arrivals"]');
+            
+            if (categoryLink) {
+                categoryLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelector('#categories').scrollIntoView({ 
+                        behavior: 'smooth' 
+                    });
+                });
+            }
+            
+            if (newArrivalsLink) {
+                newArrivalsLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelector('#new-arrivals').scrollIntoView({ 
+                        behavior: 'smooth' 
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

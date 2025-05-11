@@ -196,110 +196,60 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
     }
     
-    // Add CSS for notifications
-    const notificationStyles = document.createElement('style');
-    notificationStyles.textContent = `
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background-color: #fff;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            padding: 15px;
-            transform: translateX(100%);
-            opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            z-index: 1000;
-        }
+    // Countdown Timer Function
+    function initCountdownTimer() {
+        // Set the date we're counting down to (7 days from now)
+        const countDownDate = new Date();
+        countDownDate.setDate(countDownDate.getDate() + 7);
         
-        .notification.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        
-        .notification-content {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .notification .fa-check-circle {
-            color: #28a745;
-            font-size: 18px;
-        }
-        
-        .notification p {
-            margin: 0;
-            color: #333;
-        }
-        
-        .close-notification {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 5px;
-            color: #777;
-        }
-        
-        .close-notification:hover {
-            color: #333;
-        }
-        
-        .action-btn.added {
-            background-color: #28a745;
-            color: #fff;
-            border-color: #28a745;
-            animation: pulse 0.5s;
-        }
-        
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.2);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-        
-        /* Mobile menu styles */
-        @media (max-width: 992px) {
-            .nav-links {
-                position: absolute;
-                top: 70px;
-                left: 0;
-                width: 100%;
-                background-color: #fff;
-                flex-direction: column;
-                padding: 20px;
-                box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-                display: none;
-                opacity: 0;
-                transform: translateY(-10px);
-                transition: opacity 0.3s ease, transform 0.3s ease;
-                z-index: 99;
+        // Update the countdown every 1 second
+        const countdownTimer = setInterval(function() {
+            // Get current date and time
+            const now = new Date().getTime();
+            
+            // Find the distance between now and the countdown date
+            const distance = countDownDate - now;
+            
+            // Time calculations for days, hours, minutes and seconds
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            // Display the result with leading zeros where needed
+            if (document.getElementById("countdown-days")) {
+                document.getElementById("countdown-days").textContent = days < 10 ? '0' + days : days;
+                document.getElementById("countdown-hours").textContent = hours < 10 ? '0' + hours : hours;
+                document.getElementById("countdown-minutes").textContent = minutes < 10 ? '0' + minutes : minutes;
+                document.getElementById("countdown-seconds").textContent = seconds < 10 ? '0' + seconds : seconds;
             }
             
-            .nav-links.show {
-                display: flex;
-                opacity: 1;
-                transform: translateY(0);
+            // If the countdown is finished, display message
+            if (distance < 0) {
+                clearInterval(countdownTimer);
+                document.querySelector(".offer-timer").innerHTML = "<p>This offer has expired!</p>";
             }
-            
-            .nav-links li {
-                margin: 10px 0;
-            }
-            
-            .mobile-menu-toggle.active i:before {
-                content: '\\f00d';
-            }
-        }
-    `;
+        }, 1000);
+    }
     
-    document.head.appendChild(notificationStyles);
+    // Initialize countdown timer if it exists on the page
+    if (document.querySelector('.countdown')) {
+        initCountdownTimer();
+    }
+    
+    // Smooth scrolling for hero scroll indicator
+    const scrollIndicator = document.querySelector('.hero-scroll-indicator');
+    if (scrollIndicator) {
+        scrollIndicator.addEventListener('click', () => {
+            const featuredSection = document.querySelector('.featured-categories');
+            if (featuredSection) {
+                window.scrollTo({
+                    top: featuredSection.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    }
     
     // Newsletter form submission
     const newsletterForm = document.querySelector('.newsletter-form');
