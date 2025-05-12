@@ -449,9 +449,8 @@ header {
 }
 
 .category-img {
-    position: relative;
-    height: 300px;
-    overflow: hidden;
+    height: auto;
+    min-height: 300px;
 }
 
 .category-img img {
@@ -542,9 +541,8 @@ header {
 }
 
 .product-img {
-    position: relative;
-    height: 300px;
-    overflow: hidden;
+    height: auto;
+    min-height: 300px;
 }
 
 .product-img img {

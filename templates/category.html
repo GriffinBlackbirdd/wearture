@@ -1,3 +1,4 @@
+<!-- templates/category.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,412 +8,265 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Category Page Specific Styles */
-        .category-header {
+        /* Additional styles specific to category page */
+        .category-banner {
+            background-color: #f9f9f9;
+            padding: 60px 20px;
+            text-align: center;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url('{{ category.image_url }}');
             background-size: cover;
             background-position: center;
-            position: relative;
-            height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
             color: white;
-            margin-bottom: 40px;
-        }
-        
-        .category-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-        }
-        
-        .category-header-content {
             position: relative;
-            z-index: 1;
-            max-width: 800px;
-            padding: 0 20px;
         }
         
-        .category-header h1 {
-            font-size: 42px;
-            font-weight: 700;
-            margin-bottom: 15px;
+        .category-banner h1 {
             font-family: var(--font-heading);
+            font-size: 48px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         
-        .category-header p {
+        .category-banner p {
             font-size: 18px;
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
-            line-height: 1.6;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
         
-        .shop-container {
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            padding: 40px 20px;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
         }
         
-        .shop-filters {
+        .filter-bar {
+            background-color: #f9f9f9;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
         }
         
         .filter-options {
             display: flex;
-            gap: 15px;
+            gap: 20px;
             align-items: center;
         }
         
-        .filter-select {
-            padding: 10px 15px;
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-group label {
+            font-size: 14px;
+            color: var(--light-text);
+        }
+        
+        .filter-group select {
+            padding: 8px 12px;
             border: 1px solid var(--border-color);
             border-radius: 4px;
             font-family: var(--font-body);
             font-size: 14px;
-            background-color: white;
         }
         
-        .filter-label {
+        .product-count {
             font-size: 14px;
-            font-weight: 500;
+            color: var(--light-text);
         }
         
-        .view-options {
-            display: flex;
-            gap: 10px;
+        .no-products {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
         }
         
-        .view-option {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: white;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .no-products h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--text-color);
         }
         
-        .view-option:hover,
-        .view-option.active {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-        
-        .product-card {
-            margin-bottom: 0;
-        }
-        
-        .products-grid.list-view {
-            grid-template-columns: 1fr;
-        }
-        
-        .products-grid.list-view .product-card {
-            display: flex;
-            height: auto;
-        }
-        
-        .products-grid.list-view .product-img {
-            flex: 0 0 300px;
-            height: 300px;
-        }
-        
-        .products-grid.list-view .product-info {
-            flex: 1;
-            text-align: left;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .products-grid.list-view .product-info h3 {
-            font-size: 20px;
-            margin-bottom: 15px;
-            height: auto;
-        }
-        
-        .products-grid.list-view .product-price {
-            justify-content: flex-start;
-            margin-bottom: 15px;
-        }
-        
-        .products-grid.list-view .product-description {
-            display: block;
+        .no-products p {
+            font-size: 16px;
+            color: var(--light-text);
             margin-bottom: 20px;
-        }
-        
-        .products-grid:not(.list-view) .product-description {
-            display: none;
-        }
-        
-        .products-grid.list-view .product-actions {
-            position: static;
-            background-color: transparent;
-            padding: 0;
-            opacity: 1;
-            margin-top: auto;
         }
         
         .pagination {
             display: flex;
             justify-content: center;
-            gap: 5px;
             margin: 40px 0;
+            gap: 5px;
         }
         
-        .pagination-item {
+        .page-item {
             width: 40px;
             height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 4px;
             border: 1px solid var(--border-color);
-            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         
-        .pagination-item:hover,
-        .pagination-item.active {
+        .page-item:hover, .page-item.active {
             background-color: var(--primary-color);
             color: white;
             border-color: var(--primary-color);
         }
         
-        .breadcrumb {
-            background-color: var(--light-bg);
-            padding: 15px 0;
+        .page-arrow {
+            color: var(--light-text);
         }
-        
-        .breadcrumb-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+
+        .breadcrumbs {
+        padding: 15px 20px;
+        background-color: #f9f9f9;
+        margin-bottom: 30px;
         }
         
         .breadcrumb-list {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
         
-        .breadcrumb-item {
+        .breadcrumb-list li {
             font-size: 14px;
             color: var(--light-text);
         }
         
-        .breadcrumb-item a:hover {
+        .breadcrumb-list li:not(:last-child)::after {
+            content: '/';
+            margin: 0 8px;
+            color: #ddd;
+        }
+        
+        .breadcrumb-list li:last-child {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+        
+        .breadcrumb-list a {
+            color: var(--light-text);
+            transition: color 0.3s ease;
+        }
+        
+        .breadcrumb-list a:hover {
             color: var(--primary-color);
         }
-        
-        .breadcrumb-divider {
-            color: var(--light-text);
-            margin: 0 5px;
+
+            /* Subcategories section */
+        .subcategories-section {
+            padding: 30px 20px;
+            margin-bottom: 30px;
         }
         
-        .no-products {
-            text-align: center;
-            padding: 40px 0;
-            grid-column: 1 / -1;
+        .subcategory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
         }
         
-        .no-products h3 {
-            font-size: 24px;
-            margin-bottom: 15px;
-            color: var(--text-color);
-        }
-        
-        .no-products p {
-            color: var(--light-text);
-            margin-bottom: 20px;
-        }
-        
-        .category-sidebar {
-            display: flex;
-            margin-bottom: 40px;
-        }
-        
-        .sidebar {
-            width: 250px;
-            flex-shrink: 0;
-        }
-        
-        .sidebar-widget {
-            background-color: white;
+        .subcategory-card {
+            background-color: #f9f9f9;
             border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-        
-        .sidebar-widget h3 {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .category-list {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .category-list li {
-            margin-bottom: 10px;
-        }
-        
-        .category-list li a {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            color: var(--text-color);
+            overflow: hidden;
             transition: all 0.3s ease;
-        }
-        
-        .category-list li a:hover,
-        .category-list li a.active {
-            color: var(--primary-color);
-            padding-left: 5px;
-        }
-        
-        .category-count {
-            background-color: #f5f5f5;
-            border-radius: 20px;
-            padding: 2px 8px;
-            font-size: 12px;
-            color: var(--light-text);
-        }
-        
-        .price-filter label {
-            display: block;
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
-        
-        .price-slider {
-            margin-bottom: 20px;
-        }
-        
-        .price-inputs {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .price-input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-family: var(--font-body);
-        }
-        
-        .filter-btn {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: var(--font-body);
-            font-weight: 500;
-            width: 100%;
-            transition: all 0.3s ease;
-        }
-        
-        .filter-btn:hover {
-            background-color: #c24d1e;
-        }
-        
-        .clear-filters {
-            background-color: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
             text-align: center;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: var(--font-body);
+        }
+        
+        .subcategory-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .subcategory-img {
+            height: 150px;
+            overflow: hidden;
+        }
+        
+        .subcategory-img img {
             width: 100%;
-            margin-top: 10px;
-            transition: all 0.3s ease;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
         }
         
-        .clear-filters:hover {
-            background-color: #f5f5f5;
+        .subcategory-card:hover .subcategory-img img {
+            transform: scale(1.05);
         }
         
-        .products-container {
-            flex: 1;
-            padding-left: 30px;
+        .subcategory-name {
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-color);
+            margin: 0;
         }
         
-        /* Responsive styles */
         @media (max-width: 1200px) {
-            .products-grid {
+            .subcategory-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
         }
         
         @media (max-width: 992px) {
-            .category-sidebar {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                margin-bottom: 30px;
-            }
-            
-            .products-container {
-                padding-left: 0;
-            }
-            
-            .products-grid {
+            .subcategory-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
         
         @media (max-width: 576px) {
-            .shop-filters {
-                flex-direction: column;
-                align-items: flex-start;
+            .subcategory-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .product-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
             
-            .products-grid {
+            .filter-options {
+                flex-wrap: wrap;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .product-grid {
                 grid-template-columns: 1fr;
             }
             
-            .category-header {
-                height: 200px;
-            }
-            
-            .category-header h1 {
-                font-size: 32px;
+            .filter-bar {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
             }
         }
-        </style>
+    </style>
 </head>
 <body>
     <!-- Announcement Banner -->
@@ -436,7 +290,7 @@
                 <ul class="nav-links">
                     <li><a href="/">Home</a></li>
                     <li><a href="#">New Arrivals</a></li>
-                    <li><a href="#">Best Sellers</a></li>
+                    <li><a href="/products">All Products</a></li>
                     <li><a href="#">Collections</a></li>
                     <li><a href="#">Sale</a></li>
                 </ul>
@@ -452,130 +306,134 @@
         </div>
     </header>
 
-    <!-- Breadcrumb -->
-    <div class="breadcrumb">
-        <div class="breadcrumb-container">
-            <div class="breadcrumb-list">
-                <div class="breadcrumb-item"><a href="/">Home</a></div>
-                <div class="breadcrumb-divider">/</div>
-                <div class="breadcrumb-item">{{ category.name }}</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Category Header -->
-    <div class="category-header" style="background-image: url('{{ category.image_url }}');">
-        <div class="category-header-content">
+    <!-- Category Banner -->
+    <section class="category-banner">
+        <div class="container">
             <h1>{{ category.name }}</h1>
             <p>{{ category.description }}</p>
         </div>
+    </section>
+
+    <div class="breadcrumbs">
+        <div class="container">
+            <ul class="breadcrumb-list">
+                <li><a href="/">Home</a></li>
+                <li><a href="/products">Products</a></li>
+                {% if parent_category %}
+                <li><a href="/category/{{ parent_category.id }}">{{ parent_category.name }}</a></li>
+                {% endif %}
+                <li>{{ category.name }}</li>
+            </ul>
+        </div>
     </div>
 
-    <!-- Shop Section -->
-    <div class="shop-container">
-        <div class="category-sidebar">
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <!-- Categories Widget -->
-                <div class="sidebar-widget">
-                    <h3>Categories</h3>
-                    <ul class="category-list">
-                        {% for cat in all_categories %}
-                        <li>
-                            <a href="/category/{{ cat.id }}" {% if cat.id == category.id %}class="active"{% endif %}>
-                                {{ cat.name }}
-                                <span class="category-count">{{ cat.product_count }}</span>
-                            </a>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <!-- Price Filter Widget -->
-                <div class="sidebar-widget">
-                    <h3>Filter by Price</h3>
-                    <div class="price-filter">
-                        <div class="price-inputs">
-                            <input type="number" id="min-price" class="price-input" placeholder="Min" min="0">
-                            <input type="number" id="max-price" class="price-input" placeholder="Max" min="0">
-                        </div>
-                        <button class="filter-btn" id="price-filter-btn">Apply Filter</button>
-                        <button class="clear-filters" id="clear-filters-btn">Clear All Filters</button>
+    {% if subcategories and subcategories|length > 0 %}
+    <div class="subcategories-section">
+        <div class="container">
+            <h2 class="section-title">Browse {{ category.name }} Subcategories</h2>
+            <div class="subcategory-grid">
+                {% for subcategory in subcategories %}
+                <a href="/category/{{ subcategory.id }}" class="subcategory-card">
+                    <div class="subcategory-img">
+                        <img src="{{ subcategory.image_url }}" alt="{{ subcategory.name }}">
                     </div>
-                </div>
-            </div>
-
-            <!-- Main Products Area -->
-            <div class="products-container">
-                <!-- Filters -->
-                <div class="shop-filters">
-                    <div class="filter-options">
-                        <span class="filter-label">Sort by:</span>
-                        <select class="filter-select" id="sort-options">
-                            <option value="default">Default</option>
-                            <option value="price-low">Price: Low to High</option>
-                            <option value="price-high">Price: High to Low</option>
-                            <option value="newest">Newest First</option>
-                        </select>
-                    </div>
-                    <div class="view-options">
-                        <button class="view-option active" id="grid-view"><i class="fas fa-th"></i></button>
-                        <button class="view-option" id="list-view"><i class="fas fa-list"></i></button>
-                    </div>
-                </div>
-
-                <!-- Products Grid -->
-                <div class="products-grid" id="products-grid">
-                    {% if products %}
-                        {% for product in products %}
-                        <div class="product-card" data-price="{{ product.sale_price if product.sale_price else product.price }}">
-                            {% if product.sale_price %}
-                            <div class="product-badge">Sale</div>
-                            {% elif loop.index <= 4 %}
-                            <div class="product-badge">New</div>
-                            {% endif %}
-                            <div class="product-img">
-                                <img src="{{ product.image_url }}" alt="{{ product.name }}">
-                                <div class="product-actions">
-                                    <button class="action-btn"><i class="fas fa-heart"></i></button>
-                                    <button class="action-btn"><i class="fas fa-shopping-cart"></i></button>
-                                    <a href="/product/{{ product.id }}" class="action-btn"><i class="fas fa-eye"></i></a>
-                                </div>
-                            </div>
-                            <div class="product-info">
-                                <h3>{{ product.name }}</h3>
-                                <div class="product-price">
-                                    <span class="current-price">₹{{ product.sale_price if product.sale_price else product.price }}</span>
-                                    {% if product.sale_price %}
-                                    <span class="original-price">₹{{ product.price }}</span>
-                                    {% endif %}
-                                </div>
-                                <p class="product-description">{{ product.description|truncate(150) }}</p>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="no-products">
-                            <h3>No Products Found</h3>
-                            <p>There are no products in this category yet. Please check back later.</p>
-                            <a href="/" class="btn-shop-now">Continue Shopping</a>
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Pagination (if needed) -->
-                {% if products|length > 12 %}
-                <div class="pagination">
-                    <div class="pagination-item"><i class="fas fa-chevron-left"></i></div>
-                    <div class="pagination-item active">1</div>
-                    <div class="pagination-item">2</div>
-                    <div class="pagination-item">3</div>
-                    <div class="pagination-item"><i class="fas fa-chevron-right"></i></div>
-                </div>
-                {% endif %}
+                    <h3 class="subcategory-name">{{ subcategory.name }}</h3>
+                </a>
+                {% endfor %}
             </div>
         </div>
     </div>
+    {% endif %}
+
+    <!-- Product Listing -->
+    <div class="container">
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-options">
+                <div class="filter-group">
+                    <label for="sort-by">Sort By:</label>
+                    <select id="sort-by" class="filter-select">
+                        <option value="newest">Newest</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="popular">Popularity</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-price">Price Range:</label>
+                    <select id="filter-price" class="filter-select">
+                        <option value="all">All Prices</option>
+                        <option value="0-1000">Under ₹1,000</option>
+                        <option value="1000-3000">₹1,000 - ₹3,000</option>
+                        <option value="3000-5000">₹3,000 - ₹5,000</option>
+                        <option value="5000+">Above ₹5,000</option>
+                    </select>
+                </div>
+            </div>
+            <div class="product-count">
+                {{ category_products|length }} Products
+            </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="product-grid">
+            {% if category_products %}
+                {% for product in category_products %}
+                    <div class="product-card" data-price="{{ product.price }}" data-date="{{ product.created_at }}">
+                        {% if product.sale_price %}
+                            <div class="product-badge">Sale</div>
+                        {% endif %}
+                        <div class="product-img">
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                            <div class="product-actions">
+                                <button class="action-btn"><i class="far fa-heart"></i></button>
+                                <button class="action-btn"><i class="fas fa-shopping-cart"></i></button>
+                                <a href="/product/{{ product.id }}" class="action-btn"><i class="fas fa-eye"></i></a>
+                            </div>
+                        </div>
+                        <div class="product-info">
+                            <h3>{{ product.name }}</h3>
+                            <div class="product-price">
+                                <span class="current-price">₹{{ product.sale_price if product.sale_price else product.price }}</span>
+                                {% if product.sale_price %}
+                                    <span class="original-price">₹{{ product.price }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-products">
+                    <h3>No products found in this category</h3>
+                    <p>Please check back later or explore other categories.</p>
+                    <a href="/products" class="btn-explore">Browse All Products</a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Pagination (only shown if there are products) -->
+        {% if category_products and category_products|length > 12 %}
+            <div class="pagination">
+                <div class="page-item page-arrow"><i class="fas fa-chevron-left"></i></div>
+                <div class="page-item active">1</div>
+                <div class="page-item">2</div>
+                <div class="page-item">3</div>
+                <div class="page-item page-arrow"><i class="fas fa-chevron-right"></i></div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h2>Join Our Newsletter</h2>
+            <p>Subscribe and get ₹500 off on your first order!</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="Enter your email address" required>
+                <button type="submit">Subscribe</button>
+            </form>
+        </div>
+    </section>
 
     <!-- Footer -->
     <footer>
@@ -595,10 +453,10 @@
             <div class="footer-column">
                 <h3>Quick Links</h3>
                 <ul>
-                    <li><a href="#">Home</a></li>
+                    <li><a href="/">Home</a></li>
                     <li><a href="#">About Us</a></li>
                     <li><a href="#">New Arrivals</a></li>
-                    <li><a href="#">Best Sellers</a></li>
+                    <li><a href="/products">All Products</a></li>
                     <li><a href="#">Sale</a></li>
                 </ul>
             </div>
@@ -635,98 +493,94 @@
     <script src="{{ url_for('static', path='/js/script.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Grid/List View Toggle
-            const gridViewBtn = document.getElementById('grid-view');
-            const listViewBtn = document.getElementById('list-view');
-            const productsGrid = document.getElementById('products-grid');
-            
-            if (gridViewBtn && listViewBtn && productsGrid) {
-                gridViewBtn.addEventListener('click', function() {
-                    productsGrid.classList.remove('list-view');
-                    gridViewBtn.classList.add('active');
-                    listViewBtn.classList.remove('active');
-                });
-                
-                listViewBtn.addEventListener('click', function() {
-                    productsGrid.classList.add('list-view');
-                    listViewBtn.classList.add('active');
-                    gridViewBtn.classList.remove('active');
-                });
-            }
-            
-            // Sort Products
-            const sortOptions = document.getElementById('sort-options');
-            
-            if (sortOptions && productsGrid) {
-                sortOptions.addEventListener('change', function() {
-                    const value = this.value;
-                    const products = Array.from(productsGrid.querySelectorAll('.product-card'));
-                    
-                    products.sort(function(a, b) {
-                        const priceA = parseFloat(a.getAttribute('data-price'));
-                        const priceB = parseFloat(b.getAttribute('data-price'));
-                        
-                        if (value === 'price-low') {
-                            return priceA - priceB;
-                        } else if (value === 'price-high') {
-                            return priceB - priceA;
-                        } else {
-                            // For 'default' and 'newest', we would typically use the original order or date
-                            // For demo purposes, just use the DOM order
-                            return 0;
-                        }
-                    });
-                    
-                    // Remove all products
-                    products.forEach(function(product) {
-                        product.remove();
-                    });
-                    
-                    // Add sorted products back
-                    products.forEach(function(product) {
-                        productsGrid.appendChild(product);
-                    });
-                });
-            }
-            
-            // Price Filter
-            const minPriceInput = document.getElementById('min-price');
-            const maxPriceInput = document.getElementById('max-price');
-            const priceFilterBtn = document.getElementById('price-filter-btn');
-            const clearFiltersBtn = document.getElementById('clear-filters-btn');
+            // Filter and Sort functionality
             const productCards = document.querySelectorAll('.product-card');
+            const sortBySelect = document.getElementById('sort-by');
+            const filterPriceSelect = document.getElementById('filter-price');
             
-            if (priceFilterBtn && productCards.length) {
-                priceFilterBtn.addEventListener('click', function() {
-                    const minPrice = minPriceInput.value ? parseFloat(minPriceInput.value) : 0;
-                    const maxPrice = maxPriceInput.value ? parseFloat(maxPriceInput.value) : Infinity;
-                    
-                    productCards.forEach(function(card) {
-                        const price = parseFloat(card.getAttribute('data-price'));
-                        
-                        if (price >= minPrice && price <= maxPrice) {
-                            card.style.display = '';
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
-                });
+            // Sort products
+            function sortProducts() {
+                const sortValue = sortBySelect.value;
+                const productGrid = document.querySelector('.product-grid');
+                const productsArray = Array.from(productCards);
                 
-                if (clearFiltersBtn) {
-                    clearFiltersBtn.addEventListener('click', function() {
-                        minPriceInput.value = '';
-                        maxPriceInput.value = '';
-                        
-                        productCards.forEach(function(card) {
-                            card.style.display = '';
+                switch (sortValue) {
+                    case 'price-low':
+                        productsArray.sort((a, b) => {
+                            const priceA = parseFloat(a.dataset.price);
+                            const priceB = parseFloat(b.dataset.price);
+                            return priceA - priceB;
                         });
-                        
-                        sortOptions.selectedIndex = 0;
-                    });
+                        break;
+                    case 'price-high':
+                        productsArray.sort((a, b) => {
+                            const priceA = parseFloat(a.dataset.price);
+                            const priceB = parseFloat(b.dataset.price);
+                            return priceB - priceA;
+                        });
+                        break;
+                    case 'newest':
+                        productsArray.sort((a, b) => {
+                            const dateA = new Date(a.dataset.date);
+                            const dateB = new Date(b.dataset.date);
+                            return dateB - dateA;
+                        });
+                        break;
+                    // Add other sort options as needed
                 }
+                
+                // Re-append sorted items
+                productsArray.forEach(product => {
+                    productGrid.appendChild(product);
+                });
             }
             
-            // Add to Cart
+            // Filter products by price
+            function filterProducts() {
+                const filterValue = filterPriceSelect.value;
+                
+                productCards.forEach(card => {
+                    const price = parseFloat(card.dataset.price);
+                    
+                    switch (filterValue) {
+                        case 'all':
+                            card.style.display = 'block';
+                            break;
+                        case '0-1000':
+                            card.style.display = price <= 1000 ? 'block' : 'none';
+                            break;
+                        case '1000-3000':
+                            card.style.display = price > 1000 && price <= 3000 ? 'block' : 'none';
+                            break;
+                        case '3000-5000':
+                            card.style.display = price > 3000 && price <= 5000 ? 'block' : 'none';
+                            break;
+                        case '5000+':
+                            card.style.display = price > 5000 ? 'block' : 'none';
+                            break;
+                    }
+                });
+                
+                // Update product count
+                const visibleProducts = document.querySelectorAll('.product-card[style="display: block"]');
+                document.querySelector('.product-count').textContent = `${visibleProducts.length} Products`;
+            }
+            
+            // Add event listeners
+            if (sortBySelect) {
+                sortBySelect.addEventListener('change', sortProducts);
+            }
+            
+            if (filterPriceSelect) {
+                filterPriceSelect.addEventListener('change', filterProducts);
+            }
+            
+            // Initialize sorting
+            if (sortBySelect && productCards.length > 0) {
+                sortProducts();
+            }
+            
+            // Add to cart functionality
             const addToCartButtons = document.querySelectorAll('.product-actions .action-btn:nth-child(2)');
             const cartCount = document.querySelector('.cart-count');
             
@@ -739,8 +593,11 @@
                         const currentCount = parseInt(cartCount.textContent);
                         cartCount.textContent = currentCount + 1;
                         
+                        const productCard = this.closest('.product-card');
+                        const productName = productCard.querySelector('h3').textContent;
+                        
                         // Show notification
-                        showNotification('Product added to cart!');
+                        showNotification(`${productName} added to cart!`);
                         
                         // Animation effect
                         this.classList.add('added');
@@ -751,7 +608,7 @@
                 });
             }
             
-            // Wishlist
+            // Wishlist functionality
             const wishlistButtons = document.querySelectorAll('.product-actions .action-btn:first-child');
             
             if (wishlistButtons.length) {
@@ -761,17 +618,35 @@
                         e.stopPropagation();
                         
                         const icon = this.querySelector('i');
+                        const productCard = this.closest('.product-card');
+                        const productName = productCard.querySelector('h3').textContent;
                         
                         if (icon.classList.contains('fas')) {
                             icon.classList.remove('fas');
                             icon.classList.add('far');
-                            showNotification('Product removed from wishlist!');
+                            showNotification(`${productName} removed from wishlist!`);
                         } else {
                             icon.classList.remove('far');
                             icon.classList.add('fas');
-                            showNotification('Product added to wishlist!');
+                            showNotification(`${productName} added to wishlist!`);
                         }
                     });
+                });
+            }
+            
+            // Pagination functionality (simple implementation)
+            const pageItems = document.querySelectorAll('.pagination .page-item');
+            
+            if (pageItems.length) {
+                pageItems.forEach(item => {
+                    if (!item.classList.contains('page-arrow')) {
+                        item.addEventListener('click', function() {
+                            document.querySelector('.page-item.active').classList.remove('active');
+                            this.classList.add('active');
+                            // In a real implementation, this would fetch different page of products
+                            // For now, it's just a UI element
+                        });
+                    }
                 });
             }
             

@@ -43,6 +43,31 @@ def get_product(product_id: int) -> Optional[Dict[str, Any]]:
         print(f"Error getting product {product_id}: {e}")
         return None
 
+def get_products_by_category(category_id: int) -> List[Dict[str, Any]]:
+    """
+    Get all products that belong to a specific category
+    """
+    try:
+        response = supabase.table('products').select('*, categories(name)').eq('category_id', category_id).execute()
+        return response.data
+    except Exception as e:
+        print(f"Error getting products by category {category_id}: {e}")
+        return []
+
+
+
+
+def get_subcategories(parent_id: int) -> List[Dict[str, Any]]:
+    """
+    Get all subcategories that belong to a parent category
+    """
+    try:
+        response = supabase.table('categories').select('*').eq('parent_id', parent_id).execute()
+        return response.data
+    except Exception as e:
+        print(f"Error getting subcategories for parent {parent_id}: {e}")
+        return []
+
 def create_product(product_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Create a new product

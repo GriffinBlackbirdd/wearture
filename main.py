@@ -12,11 +12,12 @@ import json
 from datetime import datetime, timedelta
 from jose import jwt
 
+
 # Import Supabase client
 from db.supabase_client import (
     get_all_products, get_product, create_product, update_product, delete_product,
     get_all_categories, get_category, create_category, update_category, delete_category,
-    upload_product_image, upload_category_image, verify_admin_credentials, supabase
+    upload_product_image, upload_category_image, verify_admin_credentials, supabase, get_products_by_category, get_subcategories
 )
 
 # Load environment variables
@@ -79,6 +80,7 @@ class ProductResponse(ProductBase):
     attributes: Dict[str, Any] = {}
     created_at: datetime
     updated_at: datetime
+    additional_images: List[str] = []  # Add this field
 # Category Models
 class CategoryBase(BaseModel):
     name: str
@@ -703,6 +705,214 @@ async def get_admin_product_by_id(
     if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product_from_db(db_product)
+
+# Category page
+@app.get("/category/{category_id}", response_class=HTMLResponse, tags=["Pages"])
+async def category_page(request: Request, category_id: int):
+    """
+    Render the category page with all products in that category
+    """
+    # Get category from database
+    db_category = get_category(category_id)
+    if not db_category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    category = category_from_db(db_category)
+    
+    # Get products from database for this specific category
+    db_products = get_products_by_category(category_id)
+    category_products = [product_from_db(p) for p in db_products]
+    
+    # Sort by newest first (created_at descending)
+    category_products.sort(key=lambda x: x.created_at, reverse=True)
+    
+    # Get subcategories if any
+    db_subcategories = get_subcategories(category_id)
+    subcategories = [category_from_db(c) for c in db_subcategories]
+    
+    # Get parent category if this is a subcategory
+    parent_category = None
+    if category.parent_id:
+        db_parent = get_category(category.parent_id)
+        if db_parent:
+            parent_category = category_from_db(db_parent)
+    
+    return templates.TemplateResponse(
+        "category.html", 
+        {
+            "request": request, 
+            "category": category,
+            "category_products": category_products,
+            "subcategories": subcategories,
+            "parent_category": parent_category
+        }
+    )
+
+# API endpoint to get products by category
+@app.get("/api/categories/{category_id}/products", response_model=List[ProductResponse], tags=["API"])
+async def get_products_by_category_id(category_id: int):
+    """
+    Get all products that belong to a specific category via API
+    """
+    # Check if category exists
+    db_category = get_category(category_id)
+    if not db_category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    # Get products from database for this specific category
+    db_products = get_products_by_category(category_id)
+    
+    # Convert to response model
+    products = [product_from_db(p) for p in db_products]
+    
+    return products
+
+@app.get("/products", response_class=HTMLResponse, tags=["Pages"])
+async def all_products_page(request: Request):
+    """
+    Render the all products page with category filters
+    """
+    # Get all products
+    db_products = get_all_products()
+    products = [product_from_db(p) for p in db_products]
+    
+    # Sort by newest first (created_at descending)
+    products.sort(key=lambda x: x.created_at, reverse=True)
+    
+    # Get all categories for the filter
+    db_categories = get_all_categories()
+    categories = [category_from_db(c) for c in db_categories]
+    
+    # Organize categories into parent and child categories
+    parent_categories = [c for c in categories if c.parent_id is None]
+    child_categories = [c for c in categories if c.parent_id is not None]
+    
+    return templates.TemplateResponse(
+        "products.html",  # You'll need to create this template
+        {
+            "request": request,
+            "products": products,
+            "categories": categories,
+            "parent_categories": parent_categories,
+            "child_categories": child_categories
+        }
+    )
+
+# Add this function to db/supabase_client.py to fetch related products
+
+def get_related_products(product_id: int, category_id: int, limit: int = 4) -> List[Dict[str, Any]]:
+    """
+    Get related products based on category, excluding the current product
+    """
+    try:
+        # First try to get products from the same category, excluding the current product
+        response = supabase.table('products') \
+            .select('*, categories(name)') \
+            .eq('category_id', category_id) \
+            .neq('id', product_id) \
+            .limit(limit) \
+            .execute()
+        
+        result = response.data
+        
+        # If we don't have enough related products, get some popular/recent products
+        if len(result) < limit:
+            needed = limit - len(result)
+            existing_ids = [product_id] + [p['id'] for p in result]
+            
+            # Filter out already included products
+            additional_response = supabase.table('products') \
+                .select('*, categories(name)') \
+                .not_in('id', existing_ids) \
+                .limit(needed) \
+                .execute()
+            
+            result.extend(additional_response.data)
+        
+        return result
+    except Exception as e:
+        print(f"Error getting related products for product {product_id}: {e}")
+        return []
+
+# Add this route to main.py
+
+@app.get("/product/{product_id}", response_class=HTMLResponse, tags=["Pages"])
+async def product_detail_page(request: Request, product_id: int):
+    """
+    Render a simplified product detail page with only essential information
+    """
+    # Get the product from database
+    db_product = get_product(product_id)
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    product = product_from_db(db_product)
+    
+    # Get the category
+    category = None
+    if product.category_id:
+        db_category = get_category(product.category_id)
+        if db_category:
+            category = category_from_db(db_category)
+    
+    # Get related products
+    db_related = get_related_products(product_id, product.category_id)
+    related_products = [product_from_db(p) for p in db_related]
+    
+    # Extract additional images from attributes if they exist
+    additional_images = []
+    if hasattr(product, 'attributes') and product.attributes and 'additional_images' in product.attributes:
+        try:
+            additional_images = product.attributes['additional_images']
+        except (TypeError, KeyError):
+            additional_images = []
+    
+    # Set up default colors if none are provided
+    colors = []
+    if hasattr(product, 'attributes') and product.attributes and 'colors' in product.attributes:
+        colors = product.attributes.get('colors', [])
+    
+    # If colors are not in the right format or are empty, add some defaults
+    if not colors:
+        # Default colors based on different categories
+        if category and category.name:
+            if "saree" in category.name.lower() or "sarees" in category.name.lower():
+                colors = [
+                    {"name": "Red", "code": "#e74c3c"},
+                    {"name": "Purple", "code": "#8e44ad"},
+                    {"name": "Navy Blue", "code": "#2c3e50"}
+                ]
+            elif "lehenga" in category.name.lower():
+                colors = [
+                    {"name": "Maroon", "code": "#800000"},
+                    {"name": "Gold", "code": "#ffd700"},
+                    {"name": "Pink", "code": "#ff69b4"}
+                ]
+            elif "anarkali" in category.name.lower():
+                colors = [
+                    {"name": "Teal", "code": "#1abc9c"},
+                    {"name": "Royal Blue", "code": "#3498db"},
+                    {"name": "Coral", "code": "#ff7f50"}
+                ]
+            else:
+                # Generic default colors
+                colors = [
+                    {"name": "Black", "code": "#000000"},
+                    {"name": "Navy Blue", "code": "#2c3e50"},
+                    {"name": "Olive Green", "code": "#556b2f"}
+                ]
+    
+    # Create context with all template variables
+    context = {
+        "request": request,
+        "product": product,
+        "category": category,
+        "related_products": related_products,
+        "additional_images": additional_images,
+        "colors": colors
+    }
+    
+    return templates.TemplateResponse("product_detail.html", context)
 # Run the application
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
