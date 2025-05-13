@@ -45,6 +45,8 @@ def create_user_token(user_id: str, email: str, remember: bool = False):
     return encoded_jwt
 
 # Register endpoint
+# In your user_auth.py file, update the register function:
+
 @router.post("/register")
 async def register(user_data: UserRegister):
     """Register a new user"""
@@ -80,11 +82,32 @@ async def register(user_data: UserRegister):
             "id": auth_response.user.id,
             "email": user_data.email,
             "name": user_data.name,
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
+            "role": "customer",
+            "is_active": True
         }
         
-        supabase.table('users').insert(user_profile).execute()
+        try:
+            # Use supabase client with service role key for inserting
+            result = supabase.table('users').insert(user_profile).execute()
+            
+            if not result.data:
+                # If database insert fails, delete the auth user
+                supabase.auth.admin.delete_user(auth_response.user.id)
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to create user profile"
+                )
+                
+        except Exception as db_error:
+            # If database insert fails, delete the auth user
+            try:
+                supabase.auth.admin.delete_user(auth_response.user.id)
+            except:
+                pass
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to create user profile: {str(db_error)}"
+            )
         
         return {"success": True, "message": "Registration successful. Please login."}
         
@@ -95,7 +118,6 @@ async def register(user_data: UserRegister):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Registration failed: {str(e)}"
         )
-
 # Login endpoint
 @router.post("/login")
 async def login(response: Response, credentials: UserLogin):

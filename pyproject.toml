@@ -11,6 +11,8 @@ dependencies = [
     "python-dotenv>=1.1.0",
     "python-jose>=3.4.0",
     "python-multipart>=0.0.20",
+    "razorpay>=1.4.2",
+    "setuptools>=80.4.0",
     "supabase>=2.15.1",
     "uvicorn>=0.34.2",
 ]

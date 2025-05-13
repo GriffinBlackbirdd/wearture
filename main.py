@@ -13,6 +13,13 @@ from datetime import datetime, timedelta
 from jose import jwt
 from admin.user_auth import router as user_auth_router
 
+from db.razorpay_client import (
+    create_razorpay_order, 
+    verify_payment_signature,
+    capture_payment,
+    get_payment_details,
+    RAZORPAY_KEY_ID
+)
 
 # Import Supabase client
 from db.supabase_client import (
@@ -20,6 +27,11 @@ from db.supabase_client import (
     get_all_categories, get_category, create_category, update_category, delete_category,
     upload_product_image, upload_category_image, verify_admin_credentials, supabase, 
     get_products_by_category, get_subcategories, update_product_images, get_related_products
+)
+
+from db.order_management import (
+    create_order, get_order, update_order_payment_status,
+    get_user_orders, get_pending_orders, update_order_status
 )
 # Load environment variables
 load_dotenv()
@@ -107,7 +119,503 @@ class CategoryResponse(CategoryBase):
 async def login_page(request: Request):
     """Serve the user login/register page"""
     return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+@app.get("/checkout", response_class=HTMLResponse)
+async def checkout_page(request: Request):
+    """Serve the checkout page"""
+    return templates.TemplateResponse("checkout.html", {"request": request})
+
+# Create order endpoint (placeholder for now)
+# Create order endpoint with Razorpay integration
+@app.post("/api/orders")
+async def create_order_endpoint(order_data: dict, request: Request):
+    """Create a new order with Razorpay integration"""
+    try:
+        # Extract order details
+        cart = order_data.get("cart", [])
+        email = order_data.get("email")
+        phone = order_data.get("phone")
+        delivery_address = {
+            "address": order_data.get("address"),
+            "city": order_data.get("city"),
+            "state": order_data.get("state"),
+            "pincode": order_data.get("pincode"),
+            "country": order_data.get("country")
+        }
+        
+        is_cod = order_data.get("payment") == "cod"
+        
+        # Calculate total amount
+        total_amount = 0
+        if is_cod:
+            total_amount = 80
+        else:
+            subtotal = order_data.get("subtotal", 0)
+            delivery_charge = order_data.get("deliveryCharge", 0)
+            tax = order_data.get("tax", 0)
+            total_amount = subtotal + delivery_charge + tax
+        
+        # Generate order ID
+        order_id = "ORD" + datetime.now().strftime("%Y%m%d%H%M%S")
+        
+        # Prepare order record
+        order_record = {
+            "order_id": order_id,
+            "user_email": email,
+            "phone": phone,
+            "delivery_address": delivery_address,
+            "items": cart,
+            "subtotal": order_data.get("subtotal", 0),
+            "delivery_charge": order_data.get("deliveryCharge", 0),
+            "tax": order_data.get("tax", 0),
+            "total_amount": total_amount,
+            "payment_method": order_data.get("payment"),
+            "payment_status": "pending",
+            "order_status": "pending"
+        }
+        
+        print(f"Order data to save: {order_record}")
+        
+        # Create Razorpay order only for non-COD orders
+        if not is_cod:
+            try:
+                # Check if Razorpay is configured
+                if not RAZORPAY_KEY_ID or not razorpay_client:
+                    print("Razorpay not configured. Using demo mode.")
+                    
+                    # Save order to database even in demo mode
+                    saved_order = create_order(order_record)
+                    
+                    if not saved_order:
+                        raise Exception("Failed to save order to database")
+                    
+                    return {
+                        "success": True,
+                        "order_id": order_id,
+                        "demo_mode": True,
+                        "message": "Demo order created successfully.",
+                        "amount": int(total_amount * 100)
+                    }
+                
+                # Create Razorpay order
+                razorpay_order = create_razorpay_order(
+                    amount=total_amount,
+                    order_info={
+                        "receipt": order_id,
+                        "notes": {
+                            "customer_email": email,
+                            "customer_phone": phone
+                        }
+                    }
+                )
+                
+                # Save Razorpay order ID
+                order_record["razorpay_order_id"] = razorpay_order["id"]
+                
+                # Save order to database
+                saved_order = create_order(order_record)
+                
+                if not saved_order:
+                    raise Exception("Failed to save order to database")
+                
+                print(f"Order saved successfully: {order_id}")
+                
+                return {
+                    "success": True,
+                    "order_id": order_id,
+                    "razorpay_order_id": razorpay_order["id"],
+                    "razorpay_key": RAZORPAY_KEY_ID,
+                    "amount": int(total_amount * 100),
+                    "currency": "INR",
+                    "company_name": "WEARXTURE",
+                    "company_logo": "/static/images/WEARXTURE LOGOai.png"
+                }
+            except Exception as e:
+                print(f"Razorpay order creation failed: {str(e)}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Payment gateway error: {str(e)}"
+                )
+        else:
+            # For COD orders, save directly
+            order_record["payment_status"] = "cod_pending"
+            saved_order = create_order(order_record)
+            
+            if not saved_order:
+                raise Exception("Failed to save order to database")
+            
+            return {
+                "success": True,
+                "order_id": order_id,
+                "message": "COD order placed successfully",
+                "amount": total_amount
+            }
+            
+    except Exception as e:
+        print(f"Order creation error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Order creation failed: {str(e)}"
+        )
+# Verify payment endpoint
+@app.post("/api/verify-payment")
+async def verify_payment(payment_data: dict):
+    """Verify Razorpay payment signature"""
+    try:
+        order_id = payment_data.get("razorpay_order_id")
+        payment_id = payment_data.get("razorpay_payment_id")
+        signature = payment_data.get("razorpay_signature")
+        
+        # Verify signature
+        is_valid = verify_payment_signature(order_id, payment_id, signature)
+        
+        if is_valid:
+            # Get payment details
+            payment_details = get_payment_details(payment_id)
+            
+            # Update order status in database
+            # In production, update your order status
+            
+            return {
+                "success": True,
+                "payment_id": payment_id,
+                "status": payment_details.get("status"),
+                "message": "Payment verified successfully"
+            }
+        else:
+            return {
+                "success": False,
+                "message": "Payment verification failed"
+            }
+            
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Payment verification failed: {str(e)}"
+        )
+
+# Order confirmation page
+@app.get("/order-confirmation", response_class=HTMLResponse)
+async def order_confirmation_page(request: Request):
+    """Enhanced order confirmation page with styling"""
+    return HTMLResponse("""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Order Confirmed - WEARXTURE</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <style>
+                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+                
+                :root {
+                    --primary-color: #e25822;
+                    --success-color: #28a745;
+                    --text-color: #333;
+                    --light-text: #777;
+                    --font-heading: 'Playfair Display', serif;
+                    --font-body: 'Poppins', sans-serif;
+                }
+                
+                body {
+                    font-family: var(--font-body);
+                    text-align: center;
+                    padding: 50px;
+                    background-color: #f9f9f9;
+                    margin: 0;
+                }
+                
+                .confirmation-container {
+                    max-width: 600px;
+                    margin: 0 auto;
+                    background: white;
+                    border-radius: 20px;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                    padding: 40px;
+                    animation: fadeIn 0.8s ease;
+                }
+                
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                .success-icon {
+                    color: var(--success-color);
+                    font-size: 80px;
+                    margin-bottom: 20px;
+                    animation: checkmark 0.8s ease 0.2s both;
+                }
+                
+                @keyframes checkmark {
+                    0% {
+                        transform: scale(0);
+                        opacity: 0;
+                    }
+                    50% {
+                        transform: scale(1.2);
+                    }
+                    100% {
+                        transform: scale(1);
+                        opacity: 1;
+                    }
+                }
+                
+                h1 {
+                    font-family: var(--font-heading);
+                    color: var(--text-color);
+                    margin-bottom: 10px;
+                    font-size: 36px;
+                    font-weight: 700;
+                }
+                
+                .order-message {
+                    color: var(--light-text);
+                    margin-bottom: 30px;
+                    font-size: 18px;
+                    line-height: 1.6;
+                }
+                
+                .order-details {
+                    background: #f9f9f9;
+                    border-radius: 12px;
+                    padding: 20px;
+                    margin: 30px 0;
+                    text-align: left;
+                }
+                
+                .order-details h3 {
+                    font-size: 20px;
+                    margin-bottom: 15px;
+                    color: var(--text-color);
+                }
+                
+                .detail-row {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 10px;
+                    font-size: 16px;
+                }
+                
+                .detail-label {
+                    color: var(--light-text);
+                }
+                
+                .detail-value {
+                    font-weight: 500;
+                    color: var(--text-color);
+                }
+                
+                .btn {
+                    background: var(--primary-color);
+                    color: white;
+                    padding: 14px 35px;
+                    text-decoration: none;
+                    border-radius: 50px;
+                    display: inline-block;
+                    margin: 10px;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    box-shadow: 0 4px 15px rgba(226, 88, 34, 0.3);
+                }
+                
+                .btn:hover {
+                    background: #c24d1e;
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 20px rgba(226, 88, 34, 0.4);
+                }
+                
+                .btn-secondary {
+                    background: white;
+                    color: var(--text-color);
+                    border: 2px solid var(--primary-color);
+                    box-shadow: none;
+                }
+                
+                .btn-secondary:hover {
+                    background: var(--primary-color);
+                    color: white;
+                }
+                
+                .delivery-info {
+                    margin-top: 30px;
+                    padding: 20px;
+                    background: #f0f8ff;
+                    border-radius: 12px;
+                    border-left: 4px solid #3498db;
+                }
+                
+                .delivery-info i {
+                    color: #3498db;
+                    margin-right: 10px;
+                }
+                
+                .social-share {
+                    margin-top: 30px;
+                    padding-top: 30px;
+                    border-top: 1px solid #eee;
+                }
+                
+                .social-share h4 {
+                    margin-bottom: 15px;
+                    color: var(--light-text);
+                }
+                
+                .social-icons {
+                    display: flex;
+                    justify-content: center;
+                    gap: 15px;
+                }
+                
+                .social-icon {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: #f1f1f1;
+                    color: var(--text-color);
+                    transition: all 0.3s ease;
+                }
+                
+                .social-icon:hover {
+                    background: var(--primary-color);
+                    color: white;
+                    transform: translateY(-3px);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="confirmation-container">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h1>Order Confirmed!</h1>
+                <p class="order-message">
+                    Thank you for your order! We're excited to get your items to you.
+                    You'll receive a confirmation email shortly with your order details.
+                </p>
+                
+                <div class="order-details">
+                    <h3>Order Summary</h3>
+                    <div class="detail-row">
+                        <span class="detail-label">Order Number:</span>
+                        <span class="detail-value">#ORD20250117093412</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Payment Status:</span>
+                        <span class="detail-value">Confirmed</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Estimated Delivery:</span>
+                        <span class="detail-value">3-5 Business Days</span>
+                    </div>
+                </div>
+                
+                <div class="delivery-info">
+                    <i class="fas fa-truck"></i>
+                    <strong>Track Your Order:</strong>
+                    <p>You can track your order status in your email or by visiting our tracking page.</p>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <a href="/" class="btn">Continue Shopping</a>
+                    <a href="#" class="btn btn-secondary">View Order Details</a>
+                </div>
+                
+                <div class="social-share">
+                    <h4>Share the love</h4>
+                    <div class="social-icons">
+                        <a href="#" class="social-icon">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-icon">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+    """)
+# Order confirmation page (placeholder)
+@app.get("/order-confirmation", response_class=HTMLResponse)
+async def order_confirmation_page(request: Request):
+    """Order confirmation page"""
+    # In a real app, this would show order details
+    return HTMLResponse("""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Order Confirmed - WEARXTURE</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                    padding: 50px;
+                }
+                .success-icon {
+                    color: #28a745;
+                    font-size: 72px;
+                    margin-bottom: 20px;
+                }
+                h1 {
+                    color: #333;
+                    margin-bottom: 10px;
+                }
+                p {
+                    color: #666;
+                    margin-bottom: 30px;
+                }
+                .btn {
+                    background: #e25822;
+                    color: white;
+                    padding: 12px 30px;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    display: inline-block;
+                }
+                .btn:hover {
+                    background: #c24d1e;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="success-icon">✓</div>
+            <h1>Order Confirmed!</h1>
+            <p>Thank you for your order. We'll send you a confirmation email shortly.</p>
+            <a href="/" class="btn">Continue Shopping</a>
+        </body>
+        </html>
+    """)
     
+
+# User orders page
+@app.get("/orders", response_class=HTMLResponse)
+async def orders_page(request: Request):
+    """Display user orders page"""
+    return templates.TemplateResponse("orders.html", {"request": request})
+
 # Helper for converting Supabase data to Pydantic models
 def product_from_db(db_product: Dict[str, Any]) -> ProductResponse:
     """Convert a database product to a ProductResponse model with proper parsing"""
