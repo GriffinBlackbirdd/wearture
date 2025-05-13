@@ -1,5 +1,5 @@
 """
-Supabase client integration for WEARXTURE
+Updated Supabase client integration for WEARXTURE with multiple image support
 """
 import os
 from supabase import create_client, Client
@@ -54,9 +54,6 @@ def get_products_by_category(category_id: int) -> List[Dict[str, Any]]:
         print(f"Error getting products by category {category_id}: {e}")
         return []
 
-
-
-
 def get_subcategories(parent_id: int) -> List[Dict[str, Any]]:
     """
     Get all subcategories that belong to a parent category
@@ -97,8 +94,19 @@ def update_product(product_id: int, product_data: Dict[str, Any]) -> Optional[Di
         # Set updated_at
         product_data['updated_at'] = datetime.now().isoformat()
         
+        # Get existing product to preserve additional_images if not updating
+        existing_product = get_product(product_id)
+        
         # Handle any JSON fields
         if 'attributes' in product_data and isinstance(product_data['attributes'], dict):
+            # Preserve existing additional_images in attributes if they exist
+            if existing_product and 'attributes' in existing_product:
+                try:
+                    existing_attrs = json.loads(existing_product['attributes']) if isinstance(existing_product['attributes'], str) else existing_product['attributes']
+                    if 'additional_images' in existing_attrs and 'additional_images' not in product_data['attributes']:
+                        product_data['attributes']['additional_images'] = existing_attrs['additional_images']
+                except:
+                    pass
             product_data['attributes'] = json.dumps(product_data['attributes'])
         
         # Update in database
@@ -106,6 +114,45 @@ def update_product(product_id: int, product_data: Dict[str, Any]) -> Optional[Di
         return response.data[0] if response.data else None
     except Exception as e:
         print(f"Error updating product {product_id}: {e}")
+        return None
+
+def update_product_images(product_id: int, image_urls: List[str]) -> Optional[Dict[str, Any]]:
+    """
+    Update product with multiple images
+    First image becomes the main image, rest are stored as additional images
+    """
+    try:
+        # Get existing product
+        product = get_product(product_id)
+        if not product:
+            return None
+        
+        # Parse existing attributes
+        attributes = {}
+        if 'attributes' in product and product['attributes']:
+            try:
+                attributes = json.loads(product['attributes']) if isinstance(product['attributes'], str) else product['attributes']
+            except:
+                attributes = {}
+        
+        # Update images
+        update_data = {}
+        if image_urls:
+            # First image is the main image
+            update_data['image_url'] = image_urls[0]
+            
+            # Rest are additional images
+            if len(image_urls) > 1:
+                attributes['additional_images'] = image_urls[1:]
+            else:
+                attributes['additional_images'] = []
+            
+            update_data['attributes'] = json.dumps(attributes)
+        
+        # Update product
+        return update_product(product_id, update_data)
+    except Exception as e:
+        print(f"Error updating product images for {product_id}: {e}")
         return None
 
 def delete_product(product_id: int) -> bool:
@@ -266,3 +313,38 @@ def verify_admin_credentials(email: str, password: str) -> Optional[Dict[str, An
     except Exception as e:
         print(f"Error verifying credentials: {e}")
         return None
+
+# Related products function
+def get_related_products(product_id: int, category_id: int, limit: int = 4) -> List[Dict[str, Any]]:
+    """
+    Get related products based on category, excluding the current product
+    """
+    try:
+        # First try to get products from the same category, excluding the current product
+        response = supabase.table('products') \
+            .select('*, categories(name)') \
+            .eq('category_id', category_id) \
+            .neq('id', product_id) \
+            .limit(limit) \
+            .execute()
+        
+        result = response.data
+        
+        # If we don't have enough related products, get some popular/recent products
+        if len(result) < limit:
+            needed = limit - len(result)
+            existing_ids = [product_id] + [p['id'] for p in result]
+            
+            # Filter out already included products
+            additional_response = supabase.table('products') \
+                .select('*, categories(name)') \
+                .not_in('id', existing_ids) \
+                .limit(needed) \
+                .execute()
+            
+            result.extend(additional_response.data)
+        
+        return result
+    except Exception as e:
+        print(f"Error getting related products for product {product_id}: {e}")
+        return []

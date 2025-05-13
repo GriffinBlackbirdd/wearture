@@ -190,8 +190,8 @@ header {
 
 /* Enhanced Hero Section */
 .hero {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('models-in-indian-ethnic-wear-abhishek-singh.jpg');
-    background-size: cover;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('../images/hero.png');
+    background-size: contain;
     background-position: center;
     height: 650px;
     display: flex;
@@ -1421,3 +1421,4 @@ footer {
         margin-bottom: 5px;
     }
 }
+

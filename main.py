@@ -11,15 +11,16 @@ import os
 import json
 from datetime import datetime, timedelta
 from jose import jwt
+from admin.user_auth import router as user_auth_router
 
 
 # Import Supabase client
 from db.supabase_client import (
     get_all_products, get_product, create_product, update_product, delete_product,
     get_all_categories, get_category, create_category, update_category, delete_category,
-    upload_product_image, upload_category_image, verify_admin_credentials, supabase, get_products_by_category, get_subcategories
+    upload_product_image, upload_category_image, verify_admin_credentials, supabase, 
+    get_products_by_category, get_subcategories, update_product_images, get_related_products
 )
-
 # Load environment variables
 load_dotenv()
 
@@ -45,6 +46,7 @@ app.add_middleware(
 
 # Mount static files directory
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.include_router(user_auth_router)
 
 # Configure Jinja2 templates
 templates = Jinja2Templates(directory="templates")
@@ -81,6 +83,7 @@ class ProductResponse(ProductBase):
     created_at: datetime
     updated_at: datetime
     additional_images: List[str] = []  # Add this field
+
 # Category Models
 class CategoryBase(BaseModel):
     name: str
@@ -99,6 +102,12 @@ class CategoryResponse(CategoryBase):
     created_at: datetime
     updated_at: datetime
     
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    """Serve the user login/register page"""
+    return templates.TemplateResponse("login.html", {"request": request})
+    
 # Helper for converting Supabase data to Pydantic models
 def product_from_db(db_product: Dict[str, Any]) -> ProductResponse:
     """Convert a database product to a ProductResponse model with proper parsing"""
@@ -116,6 +125,11 @@ def product_from_db(db_product: Dict[str, Any]) -> ProductResponse:
         except json.JSONDecodeError:
             print(f"Error decoding JSON attributes: {attributes}")
             attributes = {}
+    
+    # Extract additional images from attributes
+    additional_images = []
+    if isinstance(attributes, dict) and 'additional_images' in attributes:
+        additional_images = attributes.get('additional_images', [])
     
     # Parse tags from JSON string or handle as array
     tags = db_product.get("tags", [])
@@ -141,8 +155,10 @@ def product_from_db(db_product: Dict[str, Any]) -> ProductResponse:
         tags=tags,
         attributes=attributes,
         created_at=db_product["created_at"],
-        updated_at=db_product["updated_at"]
+        updated_at=db_product["updated_at"],
+        additional_images=additional_images  # Add this field
     )
+
 
 def category_from_db(db_category: Dict[str, Any]) -> CategoryResponse:
     """Convert a database category to a CategoryResponse model"""
@@ -633,11 +649,24 @@ async def upload_multiple_product_images(
             
             await file.close()
         
-        # Set the first image as the product's main image if there are uploads
-        if uploaded_urls and len(uploaded_urls) > 0:
-            update_product(product_id, {"image_url": uploaded_urls[0]})
+        if uploaded_urls:
+            # Update product with all images using the new function
+            result = update_product_images(product_id, uploaded_urls)
+            if not result:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to update product images"
+                )
             
-        return {"success": True, "image_urls": uploaded_urls}
+            # Get the updated product to return
+            updated_product = get_product(product_id)
+            
+        return {
+            "success": True, 
+            "image_urls": uploaded_urls,
+            "main_image": uploaded_urls[0] if uploaded_urls else None,
+            "additional_images": uploaded_urls[1:] if len(uploaded_urls) > 1 else []
+        }
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -836,6 +865,8 @@ def get_related_products(product_id: int, category_id: int, limit: int = 4) -> L
 
 # Add this route to main.py
 
+# This goes in your main.py file, inside the product detail route
+
 @app.get("/product/{product_id}", response_class=HTMLResponse, tags=["Pages"])
 async def product_detail_page(request: Request, product_id: int):
     """
@@ -861,7 +892,9 @@ async def product_detail_page(request: Request, product_id: int):
     
     # Extract additional images from attributes if they exist
     additional_images = []
-    if hasattr(product, 'attributes') and product.attributes and 'additional_images' in product.attributes:
+    if hasattr(product, 'additional_images') and product.additional_images:
+        additional_images = product.additional_images
+    elif hasattr(product, 'attributes') and product.attributes and 'additional_images' in product.attributes:
         try:
             additional_images = product.attributes['additional_images']
         except (TypeError, KeyError):
