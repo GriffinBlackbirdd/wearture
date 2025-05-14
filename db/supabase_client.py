@@ -75,6 +75,10 @@ def create_product(product_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         product_data['created_at'] = now
         product_data['updated_at'] = now
         
+        # Ensure filter is set
+        if 'filter' not in product_data:
+            product_data['filter'] = 'all'
+        
         # Handle any JSON fields
         if 'attributes' in product_data and isinstance(product_data['attributes'], dict):
             product_data['attributes'] = json.dumps(product_data['attributes'])
@@ -85,7 +89,6 @@ def create_product(product_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     except Exception as e:
         print(f"Error creating product: {e}")
         return None
-
 def update_product(product_id: int, product_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Update an existing product
@@ -200,6 +203,10 @@ def create_category(category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         now = datetime.now().isoformat()
         category_data['created_at'] = now
         category_data['updated_at'] = now
+        
+        # Ensure filter is set
+        if 'filter' not in category_data:
+            category_data['filter'] = 'all'
         
         # Insert into database
         response = supabase.table('categories').insert(category_data).execute()
@@ -348,3 +355,140 @@ def get_related_products(product_id: int, category_id: int, limit: int = 4) -> L
     except Exception as e:
         print(f"Error getting related products for product {product_id}: {e}")
         return []
+
+# Reels functions
+def get_all_reels() -> List[Dict[str, Any]]:
+    """
+    Get all reels from the database
+    """
+    try:
+        response = supabase.table('reels').select('*, categories(name)').order('display_order').execute()
+        return response.data
+    except Exception as e:
+        print(f"Error getting reels: {e}")
+        return []
+
+def get_active_reels() -> List[Dict[str, Any]]:
+    """
+    Get only active reels for display
+    """
+    try:
+        response = supabase.table('reels').select('*, categories(name)').eq('is_active', True).order('display_order').execute()
+        return response.data
+    except Exception as e:
+        print(f"Error getting active reels: {e}")
+        return []
+
+def get_reel(reel_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Get a specific reel by ID
+    """
+    try:
+        response = supabase.table('reels').select('*, categories(name)').eq('id', reel_id).execute()
+        if response.data:
+            return response.data[0]
+        return None
+    except Exception as e:
+        print(f"Error getting reel {reel_id}: {e}")
+        return None
+
+def create_reel(reel_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Create a new reel
+    """
+    try:
+        # Set created_at and updated_at
+        now = datetime.now().isoformat()
+        reel_data['created_at'] = now
+        reel_data['updated_at'] = now
+        
+        # Insert into database
+        response = supabase.table('reels').insert(reel_data).execute()
+        return response.data[0] if response.data else None
+    except Exception as e:
+        print(f"Error creating reel: {e}")
+        return None
+
+def update_reel(reel_id: int, reel_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Update an existing reel
+    """
+    try:
+        # Set updated_at
+        reel_data['updated_at'] = datetime.now().isoformat()
+        
+        # Update in database
+        response = supabase.table('reels').update(reel_data).eq('id', reel_id).execute()
+        return response.data[0] if response.data else None
+    except Exception as e:
+        print(f"Error updating reel {reel_id}: {e}")
+        print(f"Update data: {reel_data}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+def update_reel_video_url(reel_id: int, video_url: str) -> bool:
+    """
+    Update reel video URL using direct SQL to bypass any RLS issues
+    """
+    try:
+        # Try using the regular update method first
+        response = supabase.table('reels').update({
+            'video_url': video_url,
+            'updated_at': datetime.now().isoformat()
+        }).eq('id', reel_id).execute()
+        
+        print(f"Update response: {response}")
+        return bool(response.data)
+    except Exception as e:
+        print(f"Error updating reel video URL: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+        
+def delete_reel(reel_id: int) -> bool:
+    """
+    Delete a reel
+    """
+    try:
+        response = supabase.table('reels').delete().eq('id', reel_id).execute()
+        return True if response.data else False
+    except Exception as e:
+        print(f"Error deleting reel {reel_id}: {e}")
+        return False
+
+def upload_reel_video(file_content: bytes, file_name: str) -> Optional[str]:
+    """
+    Upload a reel video to Supabase Storage
+    Returns the public URL of the uploaded video
+    """
+    try:
+        # Create a unique file name
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        unique_filename = f"{timestamp}_{file_name}"
+        
+        print(f"Attempting to upload file: {unique_filename}")
+        
+        # Upload to Supabase Storage
+        response = supabase.storage.from_("reels").upload(
+            path=unique_filename,
+            file=file_content,
+            file_options={"content-type": "video/mp4"}  # Adjust based on file type
+        )
+        
+        print(f"Storage upload response: {response}")
+        
+        # Get the public URL
+        if response:
+            print("File uploaded successfully to storage, getting public URL")
+            public_url = supabase.storage.from_("reels").get_public_url(unique_filename)
+            print(f"Public URL: {public_url}")
+            return public_url
+        else:
+            print("Storage upload failed")
+            return None
+    except Exception as e:
+        print(f"Error in upload_reel_video: {e}")
+        import traceback
+        traceback.print_exc()
+        return None

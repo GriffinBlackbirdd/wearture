@@ -918,7 +918,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             let cart = [];
             let user = null;
-            const taxRate = 0.12; // 12% GST
+            const taxRate = 0.05; // 12% GST
             
             // Load cart from localStorage
             function loadCart() {
@@ -1144,8 +1144,8 @@
                 }, 3000);
             }
             
-            // Form submission
-            document.getElementById('checkout-form').addEventListener('submit', async function(e) {
+// Form submission
+document.getElementById('checkout-form').addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
                 if (!validateForm()) {
@@ -1158,6 +1158,12 @@
                 // Collect form data
                 const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
                 const isCOD = paymentMethod === 'cod';
+                
+                // Calculate actual order total (for COD, this is the amount to be collected on delivery)
+                const cartSubtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const actualDeliveryCharge = document.querySelector('input[name="delivery"]:checked').value === 'express' ? 299 : 0;
+                const actualTax = cartSubtotal * taxRate;
+                const actualOrderTotal = cartSubtotal + actualDeliveryCharge + actualTax;
                 
                 const formData = {
                     email: document.getElementById('email').value,
@@ -1173,15 +1179,19 @@
                     payment: paymentMethod,
                     cart: cart,
                     
-                    // For COD, only include the handling charge
-                    subtotal: isCOD ? 0 : cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                    deliveryCharge: isCOD ? 0 : (document.querySelector('input[name="delivery"]:checked').value === 'express' ? 299 : 0),
-                    codCharge: isCOD ? 80 : 0,
-                    tax: isCOD ? 0 : (cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * taxRate),
-                    total: calculateFinalTotal(),
+                    // For COD, we still calculate the actual totals
+                    subtotal: cartSubtotal,
+                    deliveryCharge: actualDeliveryCharge,
+                    tax: actualTax,
+                    actualOrderTotal: actualOrderTotal, // The total amount for the actual order
                     
-                    // Add flag to indicate this is a COD order with only handling charge
-                    isCODHandlingOnly: isCOD
+                    // For COD, we charge only ₹80 upfront
+                    razorpayAmount: isCOD ? 80 : actualOrderTotal,
+                    codCharge: isCOD ? 80 : 0,
+                    remainingAmount: isCOD ? (actualOrderTotal - 80) : 0, // Amount to collect on delivery
+                    
+                    // Flags
+                    isCOD: isCOD
                 };
                 
                 try {
@@ -1197,24 +1207,66 @@
                     const result = await response.json();
                     
                     if (response.ok && result.success) {
-                        if (isCOD) {
-                            // For COD orders, show success and redirect
-                            document.querySelector('.loading-overlay').style.display = 'none';
-                            document.getElementById('success-message').classList.add('show');
+                        document.querySelector('.loading-overlay').style.display = 'none';
+                        
+                        if (result.demo_mode) {
+                            // Demo mode without Razorpay
+                            showNotification('Demo mode: Order created successfully! In production, you would be redirected to Razorpay.');
                             
-                            setTimeout(() => {
-                                window.location.href = '/order-confirmation';
-                            }, 2000);
+                            // Simulate payment verification for demo
+                            setTimeout(async () => {
+                                try {
+                                    const verifyResponse = await fetch('/api/verify-payment', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            order_id: result.order_id,
+                                            demo_mode: true,
+                                            is_cod: isCOD
+                                        })
+                                    });
+                                    
+                                    const verifyResult = await verifyResponse.json();
+                                    
+                                    if (verifyResult.success) {
+                                        // Clear cart
+                                        localStorage.removeItem('wearxture_cart');
+                                        
+                                        // Show success message
+                                        let message = isCOD 
+                                            ? `COD fee of ₹80 paid! Remaining ₹${formData.remainingAmount} to be paid on delivery.`
+                                            : 'Order placed successfully!';
+                                        
+                                        document.getElementById('success-message').innerHTML = `
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>${message}</span>
+                                        `;
+                                        document.getElementById('success-message').classList.add('show');
+                                        
+                                        // Redirect to order confirmation
+                                        setTimeout(() => {
+                                            window.location.href = '/order-confirmation';
+                                        }, 3000);
+                                    }
+                                } catch (error) {
+                                    showError('Demo payment simulation failed.');
+                                    console.error('Demo error:', error);
+                                }
+                            }, 1000);
                         } else {
-                            // For Razorpay payments, handle based on response
-                            document.querySelector('.loading-overlay').style.display = 'none';
-                            
-                            if (result.demo_mode) {
-                                // Demo mode without Razorpay
-                                showNotification('Demo mode: Order created successfully! In production, you would be redirected to Razorpay.');
-                                
-                                // Simulate payment verification for demo
-                                setTimeout(async () => {
+                            // Real Razorpay integration - for both COD (₹80) and full payment
+                            const options = {
+                                key: result.razorpay_key,
+                                amount: result.amount,
+                                currency: result.currency,
+                                name: result.company_name,
+                                description: isCOD ? 'COD Handling Charge' : `Order #${result.order_id}`,
+                                image: result.company_logo,
+                                order_id: result.razorpay_order_id,
+                                handler: async function(response) {
+                                    // Payment successful, verify on backend
                                     try {
                                         const verifyResponse = await fetch('/api/verify-payment', {
                                             method: 'POST',
@@ -1223,7 +1275,10 @@
                                             },
                                             body: JSON.stringify({
                                                 order_id: result.order_id,
-                                                demo_mode: true
+                                                razorpay_order_id: response.razorpay_order_id,
+                                                razorpay_payment_id: response.razorpay_payment_id,
+                                                razorpay_signature: response.razorpay_signature,
+                                                is_cod: isCOD
                                             })
                                         });
                                         
@@ -1234,86 +1289,54 @@
                                             localStorage.removeItem('wearxture_cart');
                                             
                                             // Show success message
+                                            let message = isCOD 
+                                                ? `COD fee of ₹80 paid! Remaining ₹${formData.remainingAmount} to be paid on delivery.`
+                                                : 'Payment successful!';
+                                            
+                                            document.getElementById('success-message').innerHTML = `
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>${message}</span>
+                                            `;
                                             document.getElementById('success-message').classList.add('show');
                                             
                                             // Redirect to order confirmation
                                             setTimeout(() => {
                                                 window.location.href = '/order-confirmation';
-                                            }, 2000);
+                                            }, 3000);
+                                        } else {
+                                            showError('Payment verification failed. Please contact support.');
                                         }
                                     } catch (error) {
-                                        showError('Demo payment simulation failed.');
-                                        console.error('Demo error:', error);
+                                        showError('Error verifying payment. Please contact support.');
+                                        console.error('Verification error:', error);
                                     }
-                                }, 1000);
-                            } else {
-                                // Real Razorpay integration
-                                const options = {
-                                    key: result.razorpay_key,
-                                    amount: result.amount,
-                                    currency: result.currency,
-                                    name: result.company_name,
-                                    description: `Order #${result.order_id}`,
-                                    image: result.company_logo,
-                                    order_id: result.razorpay_order_id,
-                                    handler: async function(response) {
-                                        // Payment successful, verify on backend
-                                        try {
-                                            const verifyResponse = await fetch('/api/verify-payment', {
-                                                method: 'POST',
-                                                headers: {
-                                                    'Content-Type': 'application/json'
-                                                },
-                                                body: JSON.stringify({
-                                                    order_id: result.order_id,
-                                                    razorpay_order_id: response.razorpay_order_id,
-                                                    razorpay_payment_id: response.razorpay_payment_id,
-                                                    razorpay_signature: response.razorpay_signature
-                                                })
-                                            });
-                                            
-                                            const verifyResult = await verifyResponse.json();
-                                            
-                                            if (verifyResult.success) {
-                                                // Clear cart
-                                                localStorage.removeItem('wearxture_cart');
-                                                
-                                                // Show success message
-                                                document.getElementById('success-message').classList.add('show');
-                                                
-                                                // Redirect to order confirmation
-                                                setTimeout(() => {
-                                                    window.location.href = '/order-confirmation';
-                                                }, 2000);
-                                            } else {
-                                                showError('Payment verification failed. Please contact support.');
-                                            }
-                                        } catch (error) {
-                                            showError('Error verifying payment. Please contact support.');
-                                            console.error('Verification error:', error);
-                                        }
-                                    },
-                                    prefill: {
-                                        name: formData.firstName + ' ' + formData.lastName,
-                                        email: formData.email,
-                                        contact: formData.phone
-                                    },
-                                    notes: {
-                                        address: formData.address + ', ' + formData.city + ', ' + formData.state
-                                    },
-                                    theme: {
-                                        color: '#e25822'
-                                    },
-                                    modal: {
-                                        ondismiss: function() {
+                                },
+                                prefill: {
+                                    name: formData.firstName + ' ' + formData.lastName,
+                                    email: formData.email,
+                                    contact: formData.phone
+                                },
+                                notes: {
+                                    address: formData.address + ', ' + formData.city + ', ' + formData.state,
+                                    is_cod: isCOD ? 'true' : 'false',
+                                    actual_order_total: actualOrderTotal
+                                },
+                                theme: {
+                                    color: '#e25822'
+                                },
+                                modal: {
+                                    ondismiss: function() {
+                                        if (isCOD) {
+                                            showError('COD fee payment cancelled. Your order has not been placed.');
+                                        } else {
                                             showError('Payment cancelled. Please try again.');
                                         }
                                     }
-                                };
-                                
-                                const razorpay = new Razorpay(options);
-                                razorpay.open();
-                            }
+                                }
+                            };
+                            
+                            const razorpay = new Razorpay(options);
+                            razorpay.open();
                         }
                     } else {
                         throw new Error(result.detail || 'Order submission failed');
@@ -1474,6 +1497,114 @@
             checkAuth();
             loadCart();
         });
+
+        async function handleOrderSubmission() {
+    try {
+        const response = await fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // All payments (including COD) now go through Razorpay
+            if (result.razorpay_order_id) {
+                // Initialize Razorpay for all payment types
+                const options = {
+                    key: result.razorpay_key,
+                    amount: result.amount,
+                    currency: result.currency || "INR",
+                    name: result.company_name,
+                    description: result.is_cod ? 'COD Collection Fee' : `Order #${result.order_id}`,
+                    image: result.company_logo,
+                    order_id: result.razorpay_order_id,
+                    handler: async function(response) {
+                        // Payment successful
+                        try {
+                            const verifyResult = await fetch('/api/verify-payment', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                    order_id: result.order_id,
+                                    is_cod: result.is_cod
+                                })
+                            });
+
+                            const verifyData = await verifyResult.json();
+                            
+                            if (verifyData.success) {
+                                // Clear cart
+                                localStorage.removeItem('wearxture_cart');
+                                
+                                // Show success message
+                                let message = result.is_cod 
+                                    ? `COD fee paid successfully! Your order total of ₹${result.actual_order_total} will be collected on delivery.`
+                                    : 'Payment successful! Redirecting to order confirmation...';
+                                
+                                showNotification(message, 'success');
+                                
+                                // Redirect to order confirmation
+                                setTimeout(() => {
+                                    window.location.href = `/order-confirmation?order_id=${result.order_id}`;
+                                }, 2000);
+                            } else {
+                                showNotification('Payment verification failed. Please contact support.', 'error');
+                            }
+                        } catch (error) {
+                            console.error('Verification error:', error);
+                            showNotification('Payment verification error. Please contact support.', 'error');
+                        }
+                    },
+                    prefill: {
+                        name: orderData.name || '',
+                        email: orderData.email,
+                        contact: orderData.phone
+                    },
+                    notes: {
+                        address: orderData.address,
+                        order_id: result.order_id,
+                        payment_type: result.is_cod ? 'cod_fee' : 'full_payment'
+                    },
+                    theme: {
+                        color: '#e25822'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            if (result.is_cod) {
+                                showNotification('COD fee payment cancelled. Please complete payment to confirm your order.', 'error');
+                            } else {
+                                showNotification('Payment cancelled. Your order has not been placed.', 'error');
+                            }
+                        }
+                    }
+                };
+
+                const razorpay = new Razorpay(options);
+                razorpay.open();
+            } else if (result.demo_mode) {
+                // Demo mode
+                showNotification('Demo order created successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = `/order-confirmation?order_id=${result.order_id}`;
+                }, 2000);
+            }
+        } else {
+            showNotification(result.detail || 'Order creation failed', 'error');
+        }
+    } catch (error) {
+        console.error('Order submission error:', error);
+        showNotification('Error processing order. Please try again.', 'error');
+    }
+}
     </script>
 </body>
 </html>

@@ -470,10 +470,16 @@
                         </div>
                     </div>
                     
-                    <div class="order-footer">
+<div class="order-footer">
                         <div class="order-total">
                             <div class="total-label">Total Amount</div>
                             <div class="total-amount">₹${order.total_amount.toFixed(0)}</div>
+                            ${order.payment_method === 'cod' && order.payment_status === 'cod_fee_paid' ? `
+                                <div style="margin-top: 8px;">
+                                    <div style="font-size: 12px; color: var(--success-color);">COD Fee Paid: ₹80</div>
+                                    <div style="font-size: 13px; color: var(--light-text);">Due on Delivery: ₹${(order.total_amount - 80).toFixed(0)}</div>
+                                </div>
+                            ` : ''}
                         </div>
                         <div class="order-actions">
                             <a href="/order/${order.order_id}" class="btn btn-primary">

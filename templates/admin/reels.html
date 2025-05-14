@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEARXTURE Admin - Reels</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/admin/css/admin.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="{{ url_for('static', path='/images/WEARXTURE LOGOai.png') }}" alt="WEARXTURE Logo" class="sidebar-logo">
+                <p>Admin Panel</p>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="/admin/dashboard" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="/admin/products" class="menu-item">
+                    <i class="fas fa-tshirt"></i> Products
+                </a>
+                <a href="/admin/categories" class="menu-item">
+                    <i class="fas fa-tags"></i> Categories
+                </a>
+                <a href="/admin/reels" class="menu-item active">
+                    <i class="fas fa-video"></i> Reels
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-shopping-cart"></i> Orders
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-image"></i> Media Library
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <button id="toggle-sidebar" class="toggle-sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="user-menu">
+                    <div class="user-info">
+                        {{ user_email if user_email else "Admin User" }}
+                    </div>
+                    <a href="/admin/logout" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content">
+                <div class="dashboard-title">
+                    <h1>Reels</h1>
+                </div>
+                
+                <!-- Reel Management -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Reel Management</h2>
+                        <button class="btn btn-primary" id="add-reel-btn">
+                            <i class="fas fa-plus"></i> Add New Reel
+                        </button>
+                    </div>
+                    
+                    <div class="reel-grid">
+                        {% if reels %}
+                            {% for reel in reels %}
+                            <div class="reel-card" data-id="{{ reel.id }}">
+                                <div class="reel-video">
+                                    {% if reel.video_url %}
+                                        <video src="{{ reel.video_url }}" preload="metadata"></video>
+                                    {% else %}
+                                        <div class="reel-placeholder">
+                                            <i class="fas fa-video"></i>
+                                            <p>No video uploaded</p>
+                                        </div>
+                                    {% endif %}
+                                    <div class="reel-actions">
+                                        <div class="reel-action edit" data-id="{{ reel.id }}" title="Edit Reel">
+                                            <i class="fas fa-edit"></i>
+                                        </div>
+                                        <div class="reel-action delete" data-id="{{ reel.id }}" title="Delete Reel">
+                                            <i class="fas fa-trash"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="reel-content">
+                                    <h3 class="reel-title">{{ reel.title }}</h3>
+                                    <p class="reel-description">{{ reel.description or 'No description' }}</p>
+                                    <div class="reel-meta">
+                                        <div class="reel-category">
+                                            <i class="fas fa-tag"></i>
+                                            <span>{{ reel.category_name or 'No category' }}</span>
+                                        </div>
+                                        <div class="reel-status">
+                                            {% if reel.is_active %}
+                                                <span class="status-badge active">Active</span>
+                                            {% else %}
+                                                <span class="status-badge inactive">Inactive</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center" style="grid-column: 1 / -1; padding: 40px 0;">
+                                <p>No reels found. Add your first reel!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Reel Modal -->
+    <div class="modal-backdrop" id="reel-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Reel</h2>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="reel-form">
+                    <input type="hidden" id="reel-id" name="id">
+                    
+                    <div class="form-group">
+                        <label for="reel-title">Reel Title</label>
+                        <input type="text" id="reel-title" name="title" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reel-description">Description</label>
+                        <textarea id="reel-description" name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reel-category">Category</label>
+                        <select id="reel-category" name="category_id" class="form-control">
+                            <option value="">Select Category</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reel-product-url">Product URL</label>
+                        <input type="text" id="reel-product-url" name="product_url" class="form-control" placeholder="e.g. /product/123">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reel-order">Display Order</label>
+                        <input type="number" id="reel-order" name="display_order" class="form-control" value="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Status</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" id="reel-active" name="is_active" checked> Active
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Video upload section -->
+                    <div class="form-group">
+                        <label>Reel Video</label>
+                        <input type="file" id="reel-video" name="reel_video" accept="video/*">
+                        <button type="button" id="clearReelVideoBtn" class="btn btn-outline">Clear Video</button>
+                        <div id="reel-video-preview-container" class="video-preview-container">
+                            <div id="preview-placeholder" class="preview-placeholder">
+                                <span>No video selected</span>
+                            </div>
+                            <!-- Video preview will be added here -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline modal-close">Cancel</button>
+                <button class="btn btn-primary" id="save-reel-btn">Save Reel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-backdrop" id="delete-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirm Delete</h2>
+                <button class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this reel? This action cannot be undone.</p>
+                <p class="reel-to-delete"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline modal-close">Cancel</button>
+                <button class="btn btn-danger" id="confirm-delete-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', path='/admin/js/admin.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle sidebar on mobile
+            const sidebar = document.getElementById('sidebar');
+            const toggleSidebar = document.getElementById('toggle-sidebar');
+            
+            if (toggleSidebar) {
+                toggleSidebar.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+            }
+            
+            // Reel Modal
+            const addReelBtn = document.getElementById('add-reel-btn');
+            const reelModal = document.getElementById('reel-modal');
+            const closeButtons = document.querySelectorAll('.modal-close');
+            const modalTitle = document.querySelector('#reel-modal .modal-title');
+            
+            // Form elements
+            const reelForm = document.getElementById('reel-form');
+            const reelId = document.getElementById('reel-id');
+            const reelTitle = document.getElementById('reel-title');
+            const reelDescription = document.getElementById('reel-description');
+            const reelCategory = document.getElementById('reel-category');
+            const reelProductUrl = document.getElementById('reel-product-url');
+            const reelOrder = document.getElementById('reel-order');
+            const reelActive = document.getElementById('reel-active');
+            const saveButton = document.getElementById('save-reel-btn');
+            
+            // Add reel button
+            if (addReelBtn && reelModal) {
+                addReelBtn.addEventListener('click', function() {
+                    resetReelForm();
+                    modalTitle.textContent = 'Add New Reel';
+                    reelModal.classList.add('show');
+                });
+            }
+            
+            // Close modal buttons
+            if (closeButtons) {
+                closeButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const modal = this.closest('.modal-backdrop');
+                        if (modal) {
+                            modal.classList.remove('show');
+                        }
+                    });
+                });
+            }
+            
+            // Video upload handling
+            const reelVideoInput = document.getElementById('reel-video');
+            const videoPreviewContainer = document.getElementById('reel-video-preview-container');
+            const videoPreviewPlaceholder = document.getElementById('preview-placeholder');
+            const clearReelVideoBtn = document.getElementById('clearReelVideoBtn');
+            
+            if (reelVideoInput && videoPreviewContainer) {
+                console.log('Reel video upload elements found');
+                
+                reelVideoInput.addEventListener('change', function() {
+                    console.log('Reel video input changed, files:', this.files.length);
+                    
+                    if (!this.files || this.files.length === 0) {
+                        console.log('No video selected');
+                        return;
+                    }
+                    
+                    const file = this.files[0];
+                    
+                    if (!file.type.match('video.*')) {
+                        console.log('Not a video file:', file.name);
+                        alert('Please select a valid video file (MP4, WebM, etc.)');
+                        return;
+                    }
+                    
+                    console.log('Processing video:', file.name);
+                    
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        console.log('Video loaded successfully');
+                        
+                        // Clear existing preview
+                        if (videoPreviewPlaceholder) {
+                            videoPreviewPlaceholder.style.display = 'none';
+                        }
+                        
+                        // Remove any existing video preview
+                        const existingPreviews = videoPreviewContainer.querySelectorAll('.reel-video-preview');
+                        existingPreviews.forEach(preview => preview.remove());
+                        
+                        // Create preview element
+                        const preview = document.createElement('div');
+                        preview.className = 'reel-video-preview';
+                        
+                        const video = document.createElement('video');
+                        video.src = e.target.result;
+                        video.controls = true;
+                        video.style.width = '100%';
+                        video.style.maxHeight = '300px';
+                        
+                        // Add remove button
+                        const removeBtn = document.createElement('div');
+                        removeBtn.className = 'remove-video';
+                        removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                        removeBtn.addEventListener('click', function() {
+                            preview.remove();
+                            reelVideoInput.value = ''; // Reset file input
+                            if (videoPreviewPlaceholder) {
+                                videoPreviewPlaceholder.style.display = 'flex';
+                            }
+                        });
+                        
+                        preview.appendChild(video);
+                        preview.appendChild(removeBtn);
+                        videoPreviewContainer.appendChild(preview);
+                    };
+                    
+                    reader.onerror = function() {
+                        console.error('Error reading video file');
+                        alert('Error reading the video file. Please try another video.');
+                    };
+                    
+                    reader.readAsDataURL(file);
+                });
+                
+                if (clearReelVideoBtn) {
+                    clearReelVideoBtn.addEventListener('click', function() {
+                        // Remove any existing video preview
+                        const existingPreviews = videoPreviewContainer.querySelectorAll('.reel-video-preview');
+                        existingPreviews.forEach(preview => preview.remove());
+                        
+                        // Reset file input
+                        reelVideoInput.value = '';
+                        
+                        // Show placeholder
+                        if (videoPreviewPlaceholder) {
+                            videoPreviewPlaceholder.style.display = 'flex';
+                        }
+                    });
+                }
+            }
+            
+            // Function to load existing reel video
+            function loadExistingReelVideo(videoUrl) {
+                if (!videoUrl) return;
+                
+                console.log('Loading existing reel video:', videoUrl);
+                
+                if (videoPreviewPlaceholder) {
+                    videoPreviewPlaceholder.style.display = 'none';
+                }
+                
+                // Remove any existing video preview
+                const existingPreviews = videoPreviewContainer.querySelectorAll('.reel-video-preview');
+                existingPreviews.forEach(preview => preview.remove());
+                
+                // Create preview element
+                const preview = document.createElement('div');
+                preview.className = 'reel-video-preview';
+                
+                const video = document.createElement('video');
+                video.src = videoUrl;
+                video.controls = true;
+                video.style.width = '100%';
+                video.style.maxHeight = '300px';
+                
+                // Add remove button
+                const removeBtn = document.createElement('div');
+                removeBtn.className = 'remove-video';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.addEventListener('click', function() {
+                    preview.remove();
+                    reelVideoInput.value = ''; // Reset file input
+                    if (videoPreviewPlaceholder) {
+                        videoPreviewPlaceholder.style.display = 'flex';
+                    }
+                });
+                
+                preview.appendChild(video);
+                preview.appendChild(removeBtn);
+                videoPreviewContainer.appendChild(preview);
+            }
+            
+            // Make this function available globally
+            window.loadExistingReelVideo = loadExistingReelVideo;
+            
+            // Edit reel buttons
+            const editButtons = document.querySelectorAll('.reel-action.edit');
+            
+            if (editButtons.length) {
+                editButtons.forEach(button => {
+                    button.addEventListener('click', async function() {
+                        const reelId = this.getAttribute('data-id');
+                        await loadReelForEdit(reelId);
+                    });
+                });
+            }
+            
+            // Delete reel functionality
+            const deleteButtons = document.querySelectorAll('.reel-action.delete');
+            const deleteModal = document.getElementById('delete-modal');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+            const reelToDeleteElement = document.querySelector('.reel-to-delete');
+            let reelToDelete = null;
+            
+            if (deleteButtons.length && deleteModal && confirmDeleteBtn) {
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        reelToDelete = this.getAttribute('data-id');
+                        const reelTitle = this.closest('.reel-card').querySelector('.reel-title').textContent;
+                        if (reelToDeleteElement) {
+                            reelToDeleteElement.textContent = `Reel: "${reelTitle}"`;
+                        }
+                        deleteModal.classList.add('show');
+                    });
+                });
+                
+                confirmDeleteBtn.addEventListener('click', async function() {
+                    if (reelToDelete) {
+                        try {
+                            const response = await fetch(`/admin/api/reels/${reelToDelete}`, {
+                                method: 'DELETE'
+                            });
+                            
+                            if (!response.ok) {
+                                throw new Error(`Error: ${response.status}`);
+                            }
+                            
+                            // Show success message
+                            showNotification('Reel deleted successfully!', 'success');
+                            
+                            // Remove card from grid
+                            const card = document.querySelector(`.reel-card[data-id="${reelToDelete}"]`);
+                            if (card) {
+                                card.remove();
+                            }
+                            
+                            // Close modal
+                            deleteModal.classList.remove('show');
+                            reelToDelete = null;
+                            
+                            // Check if there are no more reels
+                            const remainingCards = document.querySelectorAll('.reel-card');
+                            if (remainingCards.length === 0) {
+                                const reelGrid = document.querySelector('.reel-grid');
+                                reelGrid.innerHTML = `
+                                    <div class="text-center" style="grid-column: 1 / -1; padding: 40px 0;">
+                                        <p>No reels found. Add your first reel!</p>
+                                    </div>
+                                `;
+                            }
+                            
+                        } catch (error) {
+                            console.error('Error deleting reel:', error);
+                            showNotification('Failed to delete reel: ' + error.message, 'error');
+                        }
+                    }
+                });
+            }
+            
+            // Save reel functionality
+            if (saveButton && reelForm) {
+                saveButton.addEventListener('click', async function() {
+                    if (validateReelForm()) {
+                        try {
+                            // Show processing notification
+                            showNotification('Processing, please wait...', 'info');
+                            
+                            const reelId = document.getElementById('reel-id').value;
+                            const isEdit = !!reelId;
+                            
+                            // First, collect form data for the reel itself
+                            const formData = new FormData(reelForm);
+                            
+                            // Convert form data to JSON for the reel API
+                            const reelData = {};
+                            formData.forEach((value, key) => {
+                                // Skip the file input
+                                if (key === 'reel_video') return;
+                                
+                                // Handle category_id as integer or null
+                                if (key === 'category_id') {
+                                    reelData[key] = value !== '' ? parseInt(value) : null;
+                                } else if (key === 'display_order') {
+                                    reelData[key] = parseInt(value) || 0;
+                                } else if (key === 'is_active') {
+                                    // Handle checkbox
+                                    reelData[key] = document.getElementById('reel-active').checked;
+                                } else {
+                                    reelData[key] = value;
+                                }
+                            });
+                            
+                            // Ensure is_active is set properly
+                            reelData.is_active = document.getElementById('reel-active').checked;
+                            
+                            console.log('Submitting reel data:', reelData);
+                            
+                            // Step 1: Save reel data
+                            let response;
+                            
+                            if (isEdit) {
+                                // Update existing reel
+                                response = await fetch(`/admin/api/reels/${reelId}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(reelData)
+                                });
+                            } else {
+                                // Create new reel
+                                response = await fetch('/admin/api/reels', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(reelData)
+                                });
+                            }
+                            
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.detail || `Error: ${response.status}`);
+                            }
+                            
+                            const result = await response.json();
+                            console.log('Reel saved:', result);
+                            
+                            // Step 2: Handle video upload if a video was selected
+                            if (reelVideoInput && reelVideoInput.files && reelVideoInput.files.length > 0) {
+                                // Create a new FormData for the video upload
+                                const videoFormData = new FormData();
+                                videoFormData.append('reel_id', result.id);
+                                videoFormData.append('file', reelVideoInput.files[0]);
+                                
+                                console.log('Uploading video for reel ID:', result.id);
+                                
+                                try {
+                                    const uploadResponse = await fetch('/admin/api/upload/reel-video', {
+                                        method: 'POST',
+                                        body: videoFormData
+                                    });
+                                    
+                                    if (!uploadResponse.ok) {
+                                        throw new Error(`Video upload failed: ${uploadResponse.status}`);
+                                    }
+                                    
+                                    const uploadResult = await uploadResponse.json();
+                                    console.log('Video upload success:', uploadResult);
+                                } catch (uploadError) {
+                                    console.error('Error uploading reel video:', uploadError);
+                                    showNotification('Reel saved but video upload failed. Please try again.', 'warning');
+                                    setTimeout(() => window.location.reload(), 2500);
+                                    return;
+                                }
+                            }
+                            
+                            // Show success message and reload
+                            showNotification(isEdit ? 'Reel updated successfully!' : 'Reel created successfully!', 'success');
+                            setTimeout(() => window.location.reload(), 1500);
+                            
+                        } catch (error) {
+                            console.error('Error saving reel:', error);
+                            showNotification('Failed to save reel: ' + error.message, 'error');
+                        }
+                    }
+                });
+            }
+            
+            // Reel form validation
+            function validateReelForm() {
+                if (!reelForm) return false;
+                
+                let isValid = true;
+                const requiredFields = reelForm.querySelectorAll('[required]');
+                
+                // Clear previous errors
+                document.querySelectorAll('.error-message').forEach(el => el.remove());
+                document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+                
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        isValid = false;
+                        field.classList.add('error');
+                        
+                        // Add error message
+                        const errorMsg = document.createElement('div');
+                        errorMsg.className = 'error-message';
+                        errorMsg.textContent = 'This field is required';
+                        field.parentNode.insertBefore(errorMsg, field.nextSibling);
+                    }
+                });
+                
+                return isValid;
+            }
+            
+            // Load reel for editing
+            async function loadReelForEdit(reelId) {
+                try {
+                    resetReelForm();
+                    
+                    const response = await fetch(`/admin/api/reels/${reelId}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error: ${response.status}`);
+                    }
+                    
+                    const reel = await response.json();
+                    
+                    // Populate the form
+                    document.getElementById('reel-id').value = reel.id;
+                    document.getElementById('reel-title').value = reel.title;
+                    document.getElementById('reel-description').value = reel.description || '';
+                    document.getElementById('reel-category').value = reel.category_id || '';
+                    document.getElementById('reel-product-url').value = reel.product_url || '';
+                    document.getElementById('reel-order').value = reel.display_order || 0;
+                    document.getElementById('reel-active').checked = reel.is_active;
+                    
+                    // Show reel video if available using our function
+                    if (reel.video_url) {
+                        loadExistingReelVideo(reel.video_url);
+                    }
+                    
+                    // Update modal title
+                    modalTitle.textContent = 'Edit Reel';
+                    
+                    // Show modal
+                    reelModal.classList.add('show');
+                    
+                } catch (error) {
+                    console.error('Error loading reel:', error);
+                    showNotification('Failed to load reel: ' + error.message, 'error');
+                }
+            }
+            
+            // Reset reel form
+            function resetReelForm() {
+                if (reelForm) {
+                    reelForm.reset();
+                    reelId.value = '';
+                    
+                    // Reset video preview
+                    const existingPreviews = document.querySelectorAll('.reel-video-preview');
+                    existingPreviews.forEach(preview => preview.remove());
+                    
+                    // Show placeholder
+                    if (videoPreviewPlaceholder) {
+                        videoPreviewPlaceholder.style.display = 'flex';
+                    }
+                    
+                    // Clear file input
+                    if (reelVideoInput) {
+                        reelVideoInput.value = '';
+                    }
+                    
+                    // Reset checkbox
+                    document.getElementById('reel-active').checked = true;
+                    
+                    // Clear error messages
+                    document.querySelectorAll('.error-message').forEach(el => el.remove());
+                    document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+                }
+            }
+            
+            // Notification function if not defined in admin.js
+            if (typeof showNotification !== 'function') {
+                window.showNotification = function(message, type = 'success') {
+                    const notification = document.createElement('div');
+                    notification.className = `notification ${type}`;
+                    notification.innerHTML = `
+                        <div class="notification-content">
+                            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : type === 'info' ? 'fa-info-circle' : 'fa-exclamation-circle'}"></i>
+                            <p>${message}</p>
+                            <button class="close-notification"><i class="fas fa-times"></i></button>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => notification.classList.add('show'), 10);
+                    
+                    const closeButton = notification.querySelector('.close-notification');
+                    closeButton.addEventListener('click', () => {
+                        notification.classList.remove('show');
+                        setTimeout(() => notification.remove(), 300);
+                    });
+                    
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                        setTimeout(() => notification.remove(), 300);
+                    }, 4000);
+                };
+            }
+        });
+    </script>
+    
+    <style>
+        /* Reel specific styles */
+        .reel-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .reel-card {
+            background-color: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .reel-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .reel-video {
+            height: 300px;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reel-video video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .reel-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #888;
+        }
+
+        .reel-placeholder i {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .reel-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .reel-card:hover .reel-actions {
+            opacity: 1;
+        }
+
+        .reel-action {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .reel-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .reel-action.edit:hover {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .reel-action.delete:hover {
+            background-color: var(--error-color);
+            color: white;
+        }
+
+        .reel-content {
+            padding: 15px;
+        }
+
+        .reel-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .reel-description {
+            color: var(--light-text);
+            font-size: 14px;
+            margin-bottom: 15px;
+            height: 40px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .reel-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .reel-category {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--light-text);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.active {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-badge.inactive {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--error-color);
+        }
+
+        /* Video upload styles */
+        #reel-video {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        .video-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            min-height: 150px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .preview-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-style: italic;
+        }
+
+        .reel-video-preview {
+            width: 100%;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .reel-video-preview video {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .remove-video {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #dc3545;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .remove-video:hover {
+            background-color: #c82333;
+        }
+
+        #clearReelVideoBtn {
+            margin-top: 10px;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 991px) {
+            .reel-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 767px) {
+            .reel-grid {
+                grid-template-columns: repeat(1, 1fr);
+            }
+
+            .reel-video {
+                height: 250px;
+            }
+        }
+    </style>
+</body>
+</html>

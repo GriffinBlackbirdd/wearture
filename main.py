@@ -18,7 +18,8 @@ from db.razorpay_client import (
     verify_payment_signature,
     capture_payment,
     get_payment_details,
-    RAZORPAY_KEY_ID
+    RAZORPAY_KEY_ID,
+    razorpay_client
 )
 
 # Import Supabase client
@@ -26,12 +27,12 @@ from db.supabase_client import (
     get_all_products, get_product, create_product, update_product, delete_product,
     get_all_categories, get_category, create_category, update_category, delete_category,
     upload_product_image, upload_category_image, verify_admin_credentials, supabase, 
-    get_products_by_category, get_subcategories, update_product_images, get_related_products
+    get_products_by_category, get_subcategories, update_product_images, get_related_products,
+    get_all_reels, get_active_reels, get_reel, create_reel, update_reel, delete_reel, upload_reel_video
 )
-
 from db.order_management import (
     create_order, get_order, update_order_payment_status,
-    get_user_orders, get_pending_orders, update_order_status
+    get_user_orders, get_pending_orders, update_order_status, get_all_orders
 )
 # Load environment variables
 load_dotenv()
@@ -73,7 +74,8 @@ class ProductBase(BaseModel):
     category_id: int
     in_stock: bool = True
     sku: Optional[str] = None
-    
+    filter: Optional[str] = None  # Add this field
+
 class ProductCreate(ProductBase):
     sale_price: Optional[float] = None
     tags: Optional[List[str]] = []
@@ -94,13 +96,15 @@ class ProductResponse(ProductBase):
     attributes: Dict[str, Any] = {}
     created_at: datetime
     updated_at: datetime
-    additional_images: List[str] = []  # Add this field
+    additional_images: List[str] = []
+    filter: str = 'all'  # Add this field
 
 # Category Models
 class CategoryBase(BaseModel):
     name: str
     description: Optional[str] = None
     parent_id: Optional[int] = None
+    filter: Optional[str] = 'all'  # Add this field
 
 class CategoryCreate(CategoryBase):
     pass
@@ -111,6 +115,30 @@ class CategoryUpdate(CategoryBase):
 class CategoryResponse(CategoryBase):
     id: int
     image_url: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    filter: str = 'all'  # Add this field
+
+
+# Reels Models
+class ReelBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    category_id: Optional[int] = None
+    product_url: Optional[str] = None
+    is_active: bool = True
+    display_order: int = 0
+
+class ReelCreate(ReelBase):
+    pass
+
+class ReelUpdate(ReelBase):
+    id: int
+
+class ReelResponse(ReelBase):
+    id: int
+    video_url: Optional[str] = None
+    category_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     
@@ -130,10 +158,9 @@ async def checkout_page(request: Request):
     return templates.TemplateResponse("checkout.html", {"request": request})
 
 # Create order endpoint (placeholder for now)
-# Create order endpoint with Razorpay integration
 @app.post("/api/orders")
 async def create_order_endpoint(order_data: dict, request: Request):
-    """Create a new order with Razorpay integration"""
+    """Create a new order with Razorpay integration for all payments including COD"""
     try:
         # Extract order details
         cart = order_data.get("cart", [])
@@ -147,22 +174,17 @@ async def create_order_endpoint(order_data: dict, request: Request):
             "country": order_data.get("country")
         }
         
-        is_cod = order_data.get("payment") == "cod"
+        is_cod = order_data.get("isCOD", False)
         
-        # Calculate total amount
-        total_amount = 0
-        if is_cod:
-            total_amount = 80
-        else:
-            subtotal = order_data.get("subtotal", 0)
-            delivery_charge = order_data.get("deliveryCharge", 0)
-            tax = order_data.get("tax", 0)
-            total_amount = subtotal + delivery_charge + tax
+        # Get the actual order total and the amount to charge on Razorpay
+        actual_order_total = order_data.get("actualOrderTotal", 0)
+        razorpay_amount = order_data.get("razorpayAmount", 0)  # This is 80 for COD, full amount otherwise
+        remaining_amount = order_data.get("remainingAmount", 0)  # For COD only
         
         # Generate order ID
         order_id = "ORD" + datetime.now().strftime("%Y%m%d%H%M%S")
         
-        # Prepare order record
+        # Prepare order record with actual totals
         order_record = {
             "order_id": order_id,
             "user_email": email,
@@ -172,88 +194,87 @@ async def create_order_endpoint(order_data: dict, request: Request):
             "subtotal": order_data.get("subtotal", 0),
             "delivery_charge": order_data.get("deliveryCharge", 0),
             "tax": order_data.get("tax", 0),
-            "total_amount": total_amount,
+            "total_amount": actual_order_total,  # The actual order total
             "payment_method": order_data.get("payment"),
             "payment_status": "pending",
             "order_status": "pending"
         }
         
+        # Add COD-specific fields (we'll handle these differently if they don't exist in DB)
+        if is_cod:
+            # Store COD info in the order record
+            # These will be handled appropriately by the create_order function
+            order_record["cod_fee"] = 80
+            order_record["cod_remaining"] = remaining_amount
+            order_record["cod_status"] = "fee_pending"
+        
         print(f"Order data to save: {order_record}")
         
-        # Create Razorpay order only for non-COD orders
-        if not is_cod:
-            try:
-                # Check if Razorpay is configured
-                if not RAZORPAY_KEY_ID or not razorpay_client:
-                    print("Razorpay not configured. Using demo mode.")
-                    
-                    # Save order to database even in demo mode
-                    saved_order = create_order(order_record)
-                    
-                    if not saved_order:
-                        raise Exception("Failed to save order to database")
-                    
-                    return {
-                        "success": True,
-                        "order_id": order_id,
-                        "demo_mode": True,
-                        "message": "Demo order created successfully.",
-                        "amount": int(total_amount * 100)
-                    }
+        # Create Razorpay order for all payment types (including COD fee)
+        try:
+            # Check if Razorpay is configured
+            if not RAZORPAY_KEY_ID or not razorpay_client:
+                print("Razorpay not configured. Using demo mode.")
                 
-                # Create Razorpay order
-                razorpay_order = create_razorpay_order(
-                    amount=total_amount,
-                    order_info={
-                        "receipt": order_id,
-                        "notes": {
-                            "customer_email": email,
-                            "customer_phone": phone
-                        }
-                    }
-                )
-                
-                # Save Razorpay order ID
-                order_record["razorpay_order_id"] = razorpay_order["id"]
-                
-                # Save order to database
+                # Save order to database even in demo mode
                 saved_order = create_order(order_record)
                 
                 if not saved_order:
                     raise Exception("Failed to save order to database")
                 
-                print(f"Order saved successfully: {order_id}")
-                
                 return {
                     "success": True,
                     "order_id": order_id,
-                    "razorpay_order_id": razorpay_order["id"],
-                    "razorpay_key": RAZORPAY_KEY_ID,
-                    "amount": int(total_amount * 100),
-                    "currency": "INR",
-                    "company_name": "WEARXTURE",
-                    "company_logo": "/static/images/WEARXTURE LOGOai.png"
+                    "demo_mode": True,
+                    "message": "Demo order created successfully.",
+                    "amount": int(razorpay_amount * 100),
+                    "is_cod": is_cod
                 }
-            except Exception as e:
-                print(f"Razorpay order creation failed: {str(e)}")
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=f"Payment gateway error: {str(e)}"
-                )
-        else:
-            # For COD orders, save directly
-            order_record["payment_status"] = "cod_pending"
+            
+            # Create Razorpay order
+            razorpay_order = create_razorpay_order(
+                amount=razorpay_amount,  # COD: 80, Otherwise: full amount
+                order_info={
+                    "receipt": order_id,
+                    "notes": {
+                        "customer_email": email,
+                        "customer_phone": phone,
+                        "is_cod": "true" if is_cod else "false",
+                        "actual_order_total": str(actual_order_total)
+                    }
+                }
+            )
+            
+            # Save Razorpay order ID
+            order_record["razorpay_order_id"] = razorpay_order["id"]
+            
+            # Save order to database
             saved_order = create_order(order_record)
             
             if not saved_order:
                 raise Exception("Failed to save order to database")
             
+            print(f"Order saved successfully: {order_id}")
+            
             return {
                 "success": True,
                 "order_id": order_id,
-                "message": "COD order placed successfully",
-                "amount": total_amount
+                "razorpay_order_id": razorpay_order["id"],
+                "razorpay_key": RAZORPAY_KEY_ID,
+                "amount": int(razorpay_amount * 100),
+                "currency": "INR",
+                "company_name": "WEARXTURE",
+                "company_logo": "/static/images/WEARXTURE LOGOai.png",
+                "is_cod": is_cod,
+                "actual_order_total": actual_order_total,
+                "remaining_amount": remaining_amount if is_cod else 0
             }
+        except Exception as e:
+            print(f"Razorpay order creation failed: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Payment gateway error: {str(e)}"
+            )
             
     except Exception as e:
         print(f"Order creation error: {str(e)}")
@@ -263,7 +284,8 @@ async def create_order_endpoint(order_data: dict, request: Request):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Order creation failed: {str(e)}"
         )
-# Verify payment endpoint
+
+# Verify payment endpoint@app.post("/api/verify-payment")
 @app.post("/api/verify-payment")
 async def verify_payment(payment_data: dict):
     """Verify Razorpay payment signature"""
@@ -271,23 +293,83 @@ async def verify_payment(payment_data: dict):
         order_id = payment_data.get("razorpay_order_id")
         payment_id = payment_data.get("razorpay_payment_id")
         signature = payment_data.get("razorpay_signature")
+        wearxture_order_id = payment_data.get("order_id")
+        is_cod = payment_data.get("is_cod", False)
         
-        # Verify signature
+        # Demo mode handling
+        if payment_data.get("demo_mode"):
+            # Get order from database
+            order = get_order(wearxture_order_id)
+            
+            if order:
+                # Update order status for demo
+                update_data = {
+                    "payment_status": "cod_fee_paid" if is_cod else "completed",
+                    "razorpay_payment_id": "DEMO_PAYMENT_ID"
+                }
+                
+                if is_cod:
+                    update_data["cod_status"] = "fee_paid"
+                    update_data["order_status"] = "confirmed"
+                else:
+                    update_data["order_status"] = "confirmed"
+                
+                updated_order = update_order_payment_status(wearxture_order_id, update_data)
+                
+                return {
+                    "success": True,
+                    "demo": True,
+                    "message": "Demo payment verified",
+                    "is_cod": is_cod
+                }
+            
+            return {"success": False, "message": "Order not found"}
+        
+        # Real payment verification
         is_valid = verify_payment_signature(order_id, payment_id, signature)
         
         if is_valid:
-            # Get payment details
+            # Get payment details from Razorpay
             payment_details = get_payment_details(payment_id)
             
-            # Update order status in database
-            # In production, update your order status
+            # Get order from database
+            order = get_order(wearxture_order_id)
             
-            return {
-                "success": True,
-                "payment_id": payment_id,
-                "status": payment_details.get("status"),
-                "message": "Payment verified successfully"
-            }
+            if order:
+                # Update order payment status
+                update_data = {
+                    "payment_status": "cod_fee_paid" if is_cod else "completed",
+                    "razorpay_payment_id": payment_id,
+                    "razorpay_signature": signature
+                }
+                
+                # For COD, update status to reflect that fee is paid
+                if is_cod:
+                    update_data["cod_status"] = "fee_paid"
+                    update_data["order_status"] = "confirmed"
+                else:
+                    update_data["order_status"] = "confirmed"
+                
+                updated_order = update_order_payment_status(wearxture_order_id, update_data)
+                
+                if updated_order:
+                    return {
+                        "success": True,
+                        "payment_id": payment_id,
+                        "status": payment_details.get("status"),
+                        "message": "COD fee paid successfully" if is_cod else "Payment verified successfully",
+                        "is_cod": is_cod
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "message": "Failed to update order status"
+                    }
+            else:
+                return {
+                    "success": False,
+                    "message": "Order not found"
+                }
         else:
             return {
                 "success": False,
@@ -303,7 +385,7 @@ async def verify_payment(payment_data: dict):
 # Order confirmation page
 @app.get("/order-confirmation", response_class=HTMLResponse)
 async def order_confirmation_page(request: Request):
-    """Enhanced order confirmation page with styling"""
+    """Minimal order confirmation page"""
     return HTMLResponse("""
         <!DOCTYPE html>
         <html>
@@ -311,39 +393,42 @@ async def order_confirmation_page(request: Request):
             <title>Order Confirmed - WEARXTURE</title>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
-                @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+                @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
                 
                 :root {
                     --primary-color: #e25822;
                     --success-color: #28a745;
                     --text-color: #333;
-                    --light-text: #777;
-                    --font-heading: 'Playfair Display', serif;
+                    --light-text: #666;
                     --font-body: 'Poppins', sans-serif;
                 }
                 
                 body {
                     font-family: var(--font-body);
-                    text-align: center;
-                    padding: 50px;
-                    background-color: #f9f9f9;
+                    background-color: #f8f9fa;
                     margin: 0;
+                    padding: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100vh;
                 }
                 
                 .confirmation-container {
-                    max-width: 600px;
-                    margin: 0 auto;
                     background: white;
-                    border-radius: 20px;
-                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-                    padding: 40px;
-                    animation: fadeIn 0.8s ease;
+                    border-radius: 16px;
+                    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+                    padding: 32px 24px;
+                    max-width: 400px;
+                    width: 100%;
+                    text-align: center;
+                    animation: fadeIn 0.5s ease;
                 }
                 
                 @keyframes fadeIn {
                     from {
                         opacity: 0;
-                        transform: translateY(20px);
+                        transform: translateY(10px);
                     }
                     to {
                         opacity: 1;
@@ -352,19 +437,26 @@ async def order_confirmation_page(request: Request):
                 }
                 
                 .success-icon {
+                    width: 56px;
+                    height: 56px;
+                    background: rgba(40, 167, 69, 0.1);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 20px;
+                    animation: checkmark 0.5s ease 0.1s both;
+                }
+                
+                .success-icon i {
                     color: var(--success-color);
-                    font-size: 80px;
-                    margin-bottom: 20px;
-                    animation: checkmark 0.8s ease 0.2s both;
+                    font-size: 28px;
                 }
                 
                 @keyframes checkmark {
                     0% {
-                        transform: scale(0);
+                        transform: scale(0.8);
                         opacity: 0;
-                    }
-                    50% {
-                        transform: scale(1.2);
                     }
                     100% {
                         transform: scale(1);
@@ -373,241 +465,179 @@ async def order_confirmation_page(request: Request):
                 }
                 
                 h1 {
-                    font-family: var(--font-heading);
+                    font-size: 24px;
+                    font-weight: 600;
                     color: var(--text-color);
-                    margin-bottom: 10px;
-                    font-size: 36px;
-                    font-weight: 700;
+                    margin: 0 0 8px 0;
                 }
                 
                 .order-message {
                     color: var(--light-text);
-                    margin-bottom: 30px;
-                    font-size: 18px;
-                    line-height: 1.6;
+                    font-size: 14px;
+                    line-height: 1.5;
+                    margin-bottom: 28px;
                 }
                 
-                .order-details {
-                    background: #f9f9f9;
-                    border-radius: 12px;
-                    padding: 20px;
-                    margin: 30px 0;
-                    text-align: left;
-                }
-                
-                .order-details h3 {
-                    font-size: 20px;
-                    margin-bottom: 15px;
+                .order-number {
+                    font-size: 14px;
                     color: var(--text-color);
-                }
-                
-                .detail-row {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 10px;
-                    font-size: 16px;
-                }
-                
-                .detail-label {
-                    color: var(--light-text);
-                }
-                
-                .detail-value {
+                    margin-bottom: 32px;
                     font-weight: 500;
-                    color: var(--text-color);
+                }
+                
+                .order-number span {
+                    color: var(--primary-color);
+                }
+                
+                .actions {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
                 }
                 
                 .btn {
-                    background: var(--primary-color);
-                    color: white;
-                    padding: 14px 35px;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 500;
                     text-decoration: none;
-                    border-radius: 50px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    border: none;
                     display: inline-block;
-                    margin: 10px;
-                    font-weight: 600;
-                    transition: all 0.3s ease;
-                    text-transform: uppercase;
-                    letter-spacing: 1px;
-                    box-shadow: 0 4px 15px rgba(226, 88, 34, 0.3);
                 }
                 
-                .btn:hover {
+                .btn-primary {
+                    background: var(--primary-color);
+                    color: white;
+                }
+                
+                .btn-primary:hover {
                     background: #c24d1e;
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 20px rgba(226, 88, 34, 0.4);
+                    transform: translateY(-1px);
                 }
                 
                 .btn-secondary {
                     background: white;
                     color: var(--text-color);
-                    border: 2px solid var(--primary-color);
-                    box-shadow: none;
+                    border: 1px solid #e0e0e0;
                 }
                 
                 .btn-secondary:hover {
-                    background: var(--primary-color);
-                    color: white;
+                    background: #f8f9fa;
                 }
                 
-                .delivery-info {
-                    margin-top: 30px;
-                    padding: 20px;
-                    background: #f0f8ff;
-                    border-radius: 12px;
-                    border-left: 4px solid #3498db;
-                }
-                
-                .delivery-info i {
-                    color: #3498db;
-                    margin-right: 10px;
-                }
-                
-                .social-share {
-                    margin-top: 30px;
-                    padding-top: 30px;
+                .email-note {
+                    margin-top: 24px;
+                    padding-top: 24px;
                     border-top: 1px solid #eee;
-                }
-                
-                .social-share h4 {
-                    margin-bottom: 15px;
+                    font-size: 13px;
                     color: var(--light-text);
-                }
-                
-                .social-icons {
-                    display: flex;
-                    justify-content: center;
-                    gap: 15px;
-                }
-                
-                .social-icon {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    background: #f1f1f1;
-                    color: var(--text-color);
-                    transition: all 0.3s ease;
+                    gap: 8px;
                 }
                 
-                .social-icon:hover {
-                    background: var(--primary-color);
-                    color: white;
-                    transform: translateY(-3px);
+                .email-note i {
+                    color: #3498db;
+                    font-size: 16px;
+                }
+                
+                @media (max-width: 480px) {
+                    body {
+                        padding: 16px;
+                    }
+                    
+                    .confirmation-container {
+                        padding: 24px 20px;
+                    }
+                    
+                    h1 {
+                        font-size: 22px;
+                    }
                 }
             </style>
         </head>
         <body>
             <div class="confirmation-container">
                 <div class="success-icon">
-                    <i class="fas fa-check-circle"></i>
+                    <i class="fas fa-check"></i>
                 </div>
-                <h1>Order Confirmed!</h1>
+                
+                <h1>Order Confirmed</h1>
+                
                 <p class="order-message">
-                    Thank you for your order! We're excited to get your items to you.
-                    You'll receive a confirmation email shortly with your order details.
+                    Thank you for your purchase. We'll send you a confirmation email shortly.
                 </p>
                 
-                <div class="order-details">
-                    <h3>Order Summary</h3>
-                    <div class="detail-row">
-                        <span class="detail-label">Order Number:</span>
-                        <span class="detail-value">#ORD20250117093412</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Payment Status:</span>
-                        <span class="detail-value">Confirmed</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Estimated Delivery:</span>
-                        <span class="detail-value">3-5 Business Days</span>
-                    </div>
+                <div class="order-number">
+                    Order: <span>#ORD20250117093412</span>
                 </div>
                 
-                <div class="delivery-info">
-                    <i class="fas fa-truck"></i>
-                    <strong>Track Your Order:</strong>
-                    <p>You can track your order status in your email or by visiting our tracking page.</p>
+                <div class="actions">
+                    <a href="/" class="btn btn-primary">Continue Shopping</a>
+                    <a href="/orders" class="btn btn-secondary">View Orders</a>
                 </div>
                 
-                <div style="margin-top: 30px;">
-                    <a href="/" class="btn">Continue Shopping</a>
-                    <a href="#" class="btn btn-secondary">View Order Details</a>
-                </div>
-                
-                <div class="social-share">
-                    <h4>Share the love</h4>
-                    <div class="social-icons">
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        <a href="#" class="social-icon">
-                            <i class="fab fa-whatsapp"></i>
-                        </a>
-                    </div>
+                <div class="email-note">
+                    <i class="fas fa-envelope"></i>
+                    Check your email for details
                 </div>
             </div>
         </body>
         </html>
     """)
-# Order confirmation page (placeholder)
-@app.get("/order-confirmation", response_class=HTMLResponse)
-async def order_confirmation_page(request: Request):
-    """Order confirmation page"""
-    # In a real app, this would show order details
-    return HTMLResponse("""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Order Confirmed - WEARXTURE</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    text-align: center;
-                    padding: 50px;
-                }
-                .success-icon {
-                    color: #28a745;
-                    font-size: 72px;
-                    margin-bottom: 20px;
-                }
-                h1 {
-                    color: #333;
-                    margin-bottom: 10px;
-                }
-                p {
-                    color: #666;
-                    margin-bottom: 30px;
-                }
-                .btn {
-                    background: #e25822;
-                    color: white;
-                    padding: 12px 30px;
-                    text-decoration: none;
-                    border-radius: 5px;
-                    display: inline-block;
-                }
-                .btn:hover {
-                    background: #c24d1e;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="success-icon">✓</div>
-            <h1>Order Confirmed!</h1>
-            <p>Thank you for your order. We'll send you a confirmation email shortly.</p>
-            <a href="/" class="btn">Continue Shopping</a>
-        </body>
-        </html>
-    """)
+# # Order confirmation page (placeholder)
+# @app.get("/order-confirmation", response_class=HTMLResponse)
+# async def order_confirmation_page(request: Request):
+#     """Order confirmation page"""
+#     # In a real app, this would show order details
+#     return HTMLResponse("""
+#         <!DOCTYPE html>
+#         <html>
+#         <head>
+#             <title>Order Confirmed - WEARXTURE</title>
+#             <style>
+#                 body {
+#                     font-family: Arial, sans-serif;
+#                     text-align: center;
+#                     padding: 50px;
+#                 }
+#                 .success-icon {
+#                     color: #28a745;
+#                     font-size: 72px;
+#                     margin-bottom: 20px;
+#                 }
+#                 h1 {
+#                     color: #333;
+#                     margin-bottom: 10px;
+#                 }
+#                 p {
+#                     color: #666;
+#                     margin-bottom: 30px;
+#                 }
+#                 .btn {
+#                     background: #e25822;
+#                     color: white;
+#                     padding: 12px 30px;
+#                     text-decoration: none;
+#                     border-radius: 5px;
+#                     display: inline-block;
+#                 }
+#                 .btn:hover {
+#                     background: #c24d1e;
+#                 }
+#             </style>
+#         </head>
+#         <body>
+#             <div class="success-icon">✓</div>
+#             <h1>Order Confirmed!</h1>
+#             <p>Thank you for your order. We'll send you a confirmation email shortly.</p>
+#             <a href="/" class="btn">Continue Shopping</a>
+#         </body>
+#         </html>
+#     """)
     
 
 # User orders page
@@ -664,7 +694,8 @@ def product_from_db(db_product: Dict[str, Any]) -> ProductResponse:
         attributes=attributes,
         created_at=db_product["created_at"],
         updated_at=db_product["updated_at"],
-        additional_images=additional_images  # Add this field
+        additional_images=additional_images,
+        filter=db_product.get("filter", "all")  # Add this line
     )
 
 
@@ -677,7 +708,30 @@ def category_from_db(db_category: Dict[str, Any]) -> CategoryResponse:
         parent_id=db_category["parent_id"],
         image_url=db_category["image_url"],
         created_at=db_category["created_at"],
-        updated_at=db_category["updated_at"]
+        updated_at=db_category["updated_at"],
+        filter=db_category.get("filter", "all")  # Add this line
+    )
+
+
+def reel_from_db(db_reel: Dict[str, Any]) -> ReelResponse:
+    """Convert a database reel to a ReelResponse model"""
+    # Extract category name if available
+    category_name = None
+    if "categories" in db_reel and db_reel["categories"]:
+        category_name = db_reel["categories"]["name"]
+    
+    return ReelResponse(
+        id=db_reel["id"],
+        title=db_reel["title"],
+        description=db_reel["description"],
+        category_id=db_reel["category_id"],
+        category_name=category_name,
+        product_url=db_reel["product_url"],
+        video_url=db_reel["video_url"],
+        is_active=db_reel["is_active"],
+        display_order=db_reel["display_order"],
+        created_at=db_reel["created_at"],
+        updated_at=db_reel["updated_at"]
     )
 
 # ========= Authentication Functions =========
@@ -710,6 +764,7 @@ async def verify_admin_token(request: Request):
 # ========= Public API Routes =========
 
 # Root endpoint - render HTML template
+# Root endpoint - render HTML template
 @app.get("/", response_class=HTMLResponse, tags=["Pages"])
 async def home_page(request: Request):
     # Get products and categories from database
@@ -723,13 +778,18 @@ async def home_page(request: Request):
     # Sort by created_at to get newest first
     new_products = sorted(products, key=lambda x: x.created_at, reverse=True)[:4]
     
+    # Get active reels
+    db_reels = get_active_reels()
+    reels = [reel_from_db(r) for r in db_reels]
+    
     return templates.TemplateResponse(
         "index.html", 
         {
             "request": request, 
             "products": products,
             "categories": categories,
-            "new_products": new_products
+            "new_products": new_products,
+            "reels": reels
         }
     )
 
@@ -825,27 +885,127 @@ async def logout():
 # ========= Admin Page Routes =========
 
 # Admin dashboard
+    # Admin dashboard
 @app.get("/admin/dashboard", response_class=HTMLResponse)
 async def admin_dashboard(request: Request):
+        try:
+            email = await verify_admin_token(request)
+            
+            # Get counts for dashboard
+            product_count = len(get_all_products())
+            category_count = len(get_all_categories())
+            
+            return templates.TemplateResponse(
+                "admin/dashboard.html", 
+                {
+                    "request": request, 
+                    "user_email": email,
+                    "product_count": product_count,
+                    "category_count": category_count
+                }
+            )
+        except HTTPException:
+            return RedirectResponse(url="/admin/login")
+
+
+# Admin orders page - this is already added to your main.py
+@app.get("/admin/orders", response_class=HTMLResponse)
+async def admin_orders_page(request: Request):
     try:
-        email = await verify_admin_token(request)
-        
-        # Get counts for dashboard
-        product_count = len(get_all_products())
-        category_count = len(get_all_categories())
-        
+        admin_email = await verify_admin_token(request)
         return templates.TemplateResponse(
-            "admin/dashboard.html", 
-            {
-                "request": request, 
-                "user_email": email,
-                "product_count": product_count,
-                "category_count": category_count
-            }
+            "admin/orders.html", 
+            {"request": request, "user_email": admin_email}
         )
     except HTTPException:
         return RedirectResponse(url="/admin/login")
+# 1. Get all orders (admin) 
+@app.get("/admin/api/orders")
+async def get_admin_orders(admin_email: str = Depends(verify_admin_token)):
+    """Get all orders for admin view"""
+    try:
+        orders = get_all_orders()
+        
+        # Sort by created_at descending (newest first)
+        orders.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+        
+        return orders
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch orders: {str(e)}"
+        )
 
+# 2. Get specific order details (admin)
+@app.get("/admin/api/orders/{order_id}")
+async def get_admin_order_details(order_id: str, admin_email: str = Depends(verify_admin_token)):
+    """Get detailed information about a specific order"""
+    try:
+        order = get_order(order_id)
+        
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        
+        return order
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch order details: {str(e)}"
+        )
+
+# 3. Update order status (admin)
+@app.put("/admin/api/orders/{order_id}/status")
+async def update_admin_order_status(
+    order_id: str,
+    status_update: dict,
+    admin_email: str = Depends(verify_admin_token)
+):
+    """Update the status of an order"""
+    try:
+        new_status = status_update.get("status")
+        notes = status_update.get("notes", "")
+        
+        if not new_status:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Status is required"
+            )
+        
+        # Validate status
+        valid_statuses = ["pending", "confirmed", "processing", "dispatched", "delivered", "cancelled"]
+        if new_status not in valid_statuses:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+            )
+        
+        # Update the order status
+        updated_order = update_order_status(order_id, new_status)
+        
+        if not updated_order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found or update failed"
+            )
+        
+        return {
+            "success": True,
+            "order": updated_order,
+            "message": f"Order status updated to {new_status}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update order status: {str(e)}"
+        )
 # Admin products page
 @app.get("/admin/products", response_class=HTMLResponse)
 async def admin_products_page(request: Request):
@@ -884,6 +1044,201 @@ async def admin_categories_page(request: Request):
     except HTTPException:
         return RedirectResponse(url="/admin/login")
 
+# Admin reels page
+@app.get("/admin/reels", response_class=HTMLResponse)
+async def admin_reels_page(request: Request):
+    try:
+        await verify_admin_token(request)
+        
+        # Get reels from database
+        db_reels = get_all_reels()
+        reels = [reel_from_db(r) for r in db_reels]
+        
+        # Get categories for the dropdown
+        db_categories = get_all_categories()
+        categories = [category_from_db(c) for c in db_categories]
+        
+        return templates.TemplateResponse(
+            "admin/reels.html", 
+            {"request": request, "reels": reels, "categories": categories}
+        )
+    except HTTPException:
+        return RedirectResponse(url="/admin/login")
+
+
+
+# Get all reels
+@app.get("/admin/api/reels", response_model=List[ReelResponse])
+async def get_admin_reels(admin_email: str = Depends(verify_admin_token)):
+    db_reels = get_all_reels()
+    return [reel_from_db(r) for r in db_reels]
+
+# Get a specific reel by ID
+@app.get("/admin/api/reels/{reel_id}", response_model=ReelResponse)
+async def get_admin_reel(reel_id: int, admin_email: str = Depends(verify_admin_token)):
+    db_reel = get_reel(reel_id)
+    if not db_reel:
+        raise HTTPException(status_code=404, detail="Reel not found")
+    return reel_from_db(db_reel)
+
+# Create a new reel
+@app.post("/admin/api/reels", response_model=ReelResponse)
+async def create_admin_reel(
+    reel: ReelCreate,
+    admin_email: str = Depends(verify_admin_token)
+):
+    # Prepare reel data for database
+    reel_data = {
+        "title": reel.title,
+        "description": reel.description,
+        "category_id": reel.category_id,
+        "product_url": reel.product_url,
+        "is_active": reel.is_active,
+        "display_order": reel.display_order
+    }
+    
+    # Create in database
+    db_reel = create_reel(reel_data)
+    if not db_reel:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create reel"
+        )
+    
+    # Important: Fetch the reel again to get the full data including category name
+    created_reel = get_reel(db_reel["id"])
+    if not created_reel:
+        raise HTTPException(status_code=404, detail="Created reel not found")
+    
+    return reel_from_db(created_reel)
+
+# Update a reel
+@app.put("/admin/api/reels/{reel_id}", response_model=ReelResponse)
+async def update_admin_reel(
+    reel_id: int,
+    reel: ReelUpdate,
+    admin_email: str = Depends(verify_admin_token)
+):
+    # Check if reel exists
+    existing_reel = get_reel(reel_id)
+    if not existing_reel:
+        raise HTTPException(status_code=404, detail="Reel not found")
+    
+    # Prepare reel data for database
+    reel_data = {
+        "title": reel.title,
+        "description": reel.description,
+        "category_id": reel.category_id,
+        "product_url": reel.product_url,
+        "is_active": reel.is_active,
+        "display_order": reel.display_order
+    }
+    
+    # Update in database
+    db_reel = update_reel(reel_id, reel_data)
+    if not db_reel:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update reel"
+        )
+    
+    # Important: Fetch the reel again to get the full data including category name
+    updated_reel = get_reel(reel_id)
+    if not updated_reel:
+        raise HTTPException(status_code=404, detail="Updated reel not found")
+    
+    return reel_from_db(updated_reel)
+
+# Delete a reel
+@app.delete("/admin/api/reels/{reel_id}")
+async def delete_admin_reel(
+    reel_id: int,
+    admin_email: str = Depends(verify_admin_token)
+):
+    # Check if reel exists
+    existing_reel = get_reel(reel_id)
+    if not existing_reel:
+        raise HTTPException(status_code=404, detail="Reel not found")
+    
+    # Delete from database
+    success = delete_reel(reel_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete reel"
+        )
+    
+    return {"success": True}
+
+# Upload reel video
+# Upload reel video
+@app.post("/admin/api/upload/reel-video")
+async def upload_admin_reel_video(
+    reel_id: int = Form(...),
+    file: UploadFile = File(...),
+    admin_email: str = Depends(verify_admin_token)
+):
+    # Check if reel exists
+    existing_reel = get_reel(reel_id)
+    if not existing_reel:
+        raise HTTPException(status_code=404, detail="Reel not found")
+    
+    try:
+        print(f"Starting upload for reel {reel_id}: {file.filename}")
+        
+        # Read file content
+        file_content = await file.read()
+        print(f"File read successfully, size: {len(file_content)} bytes")
+        
+        # Upload to Supabase Storage
+        video_url = upload_reel_video(file_content, file.filename)
+        print(f"Upload function returned: {video_url}")
+        
+        if not video_url:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to upload video to storage"
+            )
+        
+        print(f"Attempting to update reel {reel_id} with video URL: {video_url}")
+        
+        # Update reel with new video URL
+        result = update_reel(reel_id, {"video_url": video_url})
+        print(f"Update result: {result}")
+        
+        if result:
+            return {"success": True, "video_url": video_url}
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update reel with video URL"
+            )
+    except Exception as e:
+        print(f"Exception during upload: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error uploading video: {str(e)}"
+        )
+    finally:
+        await file.close()
+
+# Get a specific category by ID
+@app.get("/api/categories/{category_id}", response_model=CategoryResponse, tags=["API"])
+async def get_category_by_id(category_id: int):
+    db_category = get_category(category_id)
+    if not db_category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return category_from_db(db_category)
+
+# Get active reels for frontend display
+@app.get("/api/reels", response_model=List[ReelResponse], tags=["API"])
+async def get_reels():
+    db_reels = get_active_reels()
+    return [reel_from_db(r) for r in db_reels]
+
+
 # ========= Admin API Routes =========
 
 # Create a new product
@@ -892,6 +1247,10 @@ async def create_admin_product(
     product: ProductCreate, 
     admin_email: str = Depends(verify_admin_token)
 ):
+    # Get the category to inherit its filter
+    category = get_category(product.category_id)
+    filter_value = category.get("filter", "all") if category else "all"
+    
     # Prepare product data for database
     product_data = {
         "name": product.name,
@@ -903,6 +1262,7 @@ async def create_admin_product(
         "sku": product.sku,
         "tags": product.tags,
         "attributes": product.attributes,
+        "filter": filter_value,  # Add category's filter
         "image_url": "/static/images/products/placeholder.jpg"  # Default image
     }
     
@@ -928,6 +1288,12 @@ async def update_admin_product(
     if not existing_product:
         raise HTTPException(status_code=404, detail="Product not found")
     
+    # If category changed, get new filter
+    filter_value = existing_product.get("filter", "all")
+    if product.category_id != existing_product["category_id"]:
+        category = get_category(product.category_id)
+        filter_value = category.get("filter", "all") if category else "all"
+    
     # Prepare product data for database
     product_data = {
         "name": product.name,
@@ -938,7 +1304,8 @@ async def update_admin_product(
         "in_stock": product.in_stock,
         "sku": product.sku,
         "tags": product.tags,
-        "attributes": product.attributes
+        "attributes": product.attributes,
+        "filter": filter_value  # Update filter if category changed
     }
     
     # Update in database
@@ -989,6 +1356,7 @@ async def create_admin_category(
         "name": category.name,
         "description": category.description,
         "parent_id": category.parent_id,
+        "filter": category.filter,  # Add this line
         "image_url": "/static/images/categories/placeholder.jpg"  # Default image
     }
     
@@ -998,6 +1366,36 @@ async def create_admin_category(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create category"
+        )
+    
+    return category_from_db(db_category)
+
+# Update Update Category endpoint
+@app.put("/admin/api/categories/{category_id}", response_model=CategoryResponse)
+async def update_admin_category(
+    category_id: int,
+    category: CategoryUpdate,
+    admin_email: str = Depends(verify_admin_token)
+):
+    # Check if category exists
+    existing_category = get_category(category_id)
+    if not existing_category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    # Prepare category data for database
+    category_data = {
+        "name": category.name,
+        "description": category.description,
+        "parent_id": category.parent_id,
+        "filter": category.filter  # Add this line
+    }
+    
+    # Update in database
+    db_category = update_category(category_id, category_data)
+    if not db_category:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update category"
         )
     
     return category_from_db(db_category)
@@ -1031,6 +1429,31 @@ async def update_admin_category(
     
     return category_from_db(db_category)
 
+
+# Add this route to main.py
+
+# Dynamic version - fetches categories from database
+
+# Add this to your main.py file
+
+@app.get("/collections", response_class=HTMLResponse, tags=["Pages"])
+async def collections_page(request: Request):
+    """
+    Render the collections page with categories from database
+    Same approach as the index page
+    """
+    # Get categories from database
+    db_categories = get_all_categories()
+    categories = [category_from_db(c) for c in db_categories]
+    
+    return templates.TemplateResponse(
+        "collections.html", 
+        {
+            "request": request, 
+            "categories": categories
+        }
+    )
+
 # Delete a category
 @app.delete("/admin/api/categories/{category_id}")
 async def delete_admin_category(
@@ -1052,8 +1475,104 @@ async def delete_admin_category(
     
     return {"success": True}
 
-# ========= File Upload Routes =========
 
+@app.get("/api/user/orders")
+async def get_user_orders_endpoint(request: Request):
+    """Get orders for the authenticated user"""
+    try:
+        # Check if user is authenticated
+        token = request.cookies.get("user_access_token")
+        
+        if not token:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={"error": "Not authenticated"}
+            )
+        
+        # Decode the JWT token to get user info
+        from jose import jwt
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_email = payload.get("sub")
+        
+        if not user_email:
+            return JSONResponse(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                content={"error": "Invalid token"}
+            )
+        
+        # Get orders from database
+        from db.order_management import get_user_orders
+        orders = get_user_orders(user_email)
+        
+        return orders
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"error": f"Failed to fetch orders: {str(e)}"}
+        )
+
+
+@app.get("/order/{order_id}", response_class=HTMLResponse)
+async def order_detail_page(request: Request, order_id: str):
+    """Display individual order details"""
+    return templates.TemplateResponse("order_detail.html", {"request": request, "order_id": order_id})
+
+# API endpoint to get single order details
+@app.get("/api/orders/{order_id}")
+async def get_order_details(order_id: str, request: Request):
+    """Get details for a specific order"""
+    try:
+        # Check if user is authenticated
+        token = request.cookies.get("user_access_token")
+        
+        if not token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated"
+            )
+        
+        # Decode the JWT token to get user info
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_email = payload.get("sub")
+        
+        if not user_email:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token"
+            )
+        
+        # Get order from database
+        from db.order_management import get_order
+        order = get_order(order_id)
+        
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        
+        # Verify the order belongs to this user
+        if order.get("user_email") != user_email:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied"
+            )
+        
+        return order
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch order: {str(e)}"
+        )
+# ========= File Upload Routes =========
 # Upload product image
 @app.post("/admin/api/upload/product-image")
 async def upload_admin_product_image(

@@ -93,32 +93,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Testimonial slider
-    const testimonialCards = document.querySelectorAll('.testimonial-card');
+    // const testimonialCards = document.querySelectorAll('.testimonial-card');
     
-    if (testimonialCards.length > 0) {
-        let currentTestimonial = 0;
-        const testimonialCount = testimonialCards.length;
+    // if (testimonialCards.length > 0) {
+    //     let currentTestimonial = 0;
+    //     const testimonialCount = testimonialCards.length;
         
-        const showTestimonial = (index) => {
-            testimonialCards.forEach((card, i) => {
-                card.style.opacity = i === index ? '1' : '0';
-                card.style.transform = i === index ? 'translateY(0)' : 'translateY(20px)';
-                card.style.zIndex = i === index ? '1' : '0';
-            });
-        };
+    //     const showTestimonial = (index) => {
+    //         testimonialCards.forEach((card, i) => {
+    //             card.style.opacity = i === index ? '1' : '0';
+    //             card.style.transform = i === index ? 'translateY(0)' : 'translateY(20px)';
+    //             card.style.zIndex = i === index ? '1' : '0';
+    //         });
+    //     };
         
-        // Auto rotate testimonials
-        const rotateTestimonials = () => {
-            currentTestimonial = (currentTestimonial + 1) % testimonialCount;
-            showTestimonial(currentTestimonial);
-        };
+    //     // Auto rotate testimonials
+    //     const rotateTestimonials = () => {
+    //         currentTestimonial = (currentTestimonial + 1) % testimonialCount;
+    //         showTestimonial(currentTestimonial);
+    //     };
         
-        // Initialize
-        showTestimonial(0);
+    //     // Initialize
+    //     showTestimonial(0);
         
-        // Set interval for testimonial rotation
-        setInterval(rotateTestimonials, 5000);
-    }
+    //     // Set interval for testimonial rotation
+    //     setInterval(rotateTestimonials, 5000);
+    // }
     
     // Add to cart functionality
     const addToCartButtons = document.querySelectorAll('.action-btn:nth-child(2)');

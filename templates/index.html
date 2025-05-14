@@ -6,6 +6,7 @@
     <title>WEARXTURE - Modern Ethnic Wear Collection</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper@11/swiper-bundle.min.css" />
     <style>
         /* Shopping Cart Styles */
         .cart-sidebar {
@@ -341,7 +342,7 @@
                 <ul class="nav-links">
                     <li><a href="/" class="active">Home</a></li>
                     <li><a href="/products">All Products</a></li>
-                    <li><a href="#">Collections</a></li>
+                    <li><a href="/collections">Collections</a></li>
                 </ul>
             </nav>
             <div class="nav-icons">
@@ -666,48 +667,130 @@
         </div>
     </section>
 
-    <!-- Testimonials -->
-    <section class="testimonials">
-        <div class="section-title">
-            <h2>Customer Love</h2>
-            <p>What our customers say about us</p>
+<!-- Instagram Reels Section -->
+<section class="instagram-reels">
+    <div class="section-title">
+        <h2>Watch Our Reels</h2>
+        <p>See our collection in action</p>
+    </div>
+    
+    <div class="reels-container">
+        <div class="swiper reelsSwiper">
+            <div class="swiper-wrapper">
+                {% if reels %}
+                    {% for reel in reels %}
+                        <!-- Reel {{ loop.index }} -->
+                        <div class="swiper-slide">
+                            <div class="reel-item">
+                                <video class="reel-video" loop muted playsinline>
+                                    <source src="{{ reel.video_url }}" type="video/mp4">
+                                </video>
+                                <div class="reel-overlay">
+                                    <div class="reel-content">
+                                        <h4>{{ reel.title }}</h4>
+                                        <p>{{ reel.description or 'Shop this look' }}</p>
+                                        <a href="{{ reel.product_url or '/products' }}" class="reel-cta">Shop Now</a>
+                                    </div>
+                                </div>
+                                <button class="reel-play-btn">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Default reels if none in database -->
+                    <!-- Reel 1 -->
+                    <div class="swiper-slide">
+                        <div class="reel-item">
+                            <video class="reel-video" loop muted playsinline>
+                                <source src="/static/videos/reel.mp4" type="video/mp4">
+                            </video>
+                            <div class="reel-overlay">
+                                <div class="reel-content">
+                                    <h4>Anarkali Collection</h4>
+                                    <p>Timeless elegance</p>
+                                    <a href="/products" class="reel-cta">Shop Now</a>
+                                </div>
+                            </div>
+                            <button class="reel-play-btn">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Reel 2 -->
+                    <div class="swiper-slide">
+                        <div class="reel-item">
+                            <video class="reel-video" loop muted playsinline>
+                                <source src="/static/videos/reel.mp4" type="video/mp4">
+                            </video>
+                            <div class="reel-overlay">
+                                <div class="reel-content">
+                                    <h4>Lehenga Styles</h4>
+                                    <p>Perfect for celebrations</p>
+                                    <a href="/products" class="reel-cta">Shop Now</a>
+                                </div>
+                            </div>
+                            <button class="reel-play-btn">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Navigation buttons -->
+            <div class="swiper-button-next reel-nav-next"></div>
+            <div class="swiper-button-prev reel-nav-prev"></div>
+            
+            <!-- Pagination -->
+            <div class="swiper-pagination"></div>
         </div>
-        <div class="testimonial-slider">
-            <div class="testimonial-card">
-                <div class="testimonial-rating">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                </div>
-                <p class="testimonial-text">"The quality of the fabric and embroidery exceeded my expectations. Got so many compliments at my sister's wedding!"</p>
-                <div class="testimonial-author">- Priya S.</div>
+    </div>
+</section>
+<section class="testimonials">
+    <div class="section-title">
+        <h2>Customer Love</h2>
+        <p>What our customers say about us</p>
+    </div>
+    <!-- Changed class name from testimonial-slider to testimonial-container -->
+    <div class="testimonial-container">
+        <div class="testimonial-card">
+            <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
             </div>
-            <div class="testimonial-card">
-                <div class="testimonial-rating">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                </div>
-                <p class="testimonial-text">"Fast delivery and the outfit looked exactly like the pictures. The sizing guide was very helpful!"</p>
-                <div class="testimonial-author">- Meera P.</div>
-            </div>
-            <div class="testimonial-card">
-                <div class="testimonial-rating">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star-half-alt"></i>
-                </div>
-                <p class="testimonial-text">"Beautiful collection and excellent customer service. They helped me find the perfect outfit for my engagement."</p>
-                <div class="testimonial-author">- Anjali R.</div>
-            </div>
+            <p class="testimonial-text">"The quality of the fabric and embroidery exceeded my expectations. Got so many compliments at my sister's wedding!"</p>
+            <div class="testimonial-author">- Priya S.</div>
         </div>
-    </section>
+        <div class="testimonial-card">
+            <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+            </div>
+            <p class="testimonial-text">"Fast delivery and the outfit looked exactly like the pictures. The sizing guide was very helpful!"</p>
+            <div class="testimonial-author">- Meera P.</div>
+        </div>
+        <div class="testimonial-card">
+            <div class="testimonial-rating">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star-half-alt"></i>
+            </div>
+            <p class="testimonial-text">"Beautiful collection and excellent customer service. They helped me find the perfect outfit for my engagement."</p>
+            <div class="testimonial-author">- Anjali R.</div>
+        </div>
+    </div>
+</section>
 
     <!-- Features -->
     <section class="features">
@@ -805,7 +888,7 @@
             </div>
         </div>
     </footer>
-
+    <script src="https://unpkg.com/swiper@11/swiper-bundle.min.js"></script>
     <script src="{{ url_for('static', path='/js/script.js') }}"></script>
     <script>
         // Cart management - Initialize everything after DOM is loaded
@@ -1089,6 +1172,93 @@
             // Initialize cart on load
             initializeCart();
         });
+
+ // Initialize Reels Swiper
+const reelsSwiper = new Swiper('.reelsSwiper', {
+    slidesPerView: 'auto',
+    spaceBetween: 20,
+    centeredSlides: false,
+    loop: true,
+    navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+    },
+    pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+    },
+    breakpoints: {
+        320: {
+            slidesPerView: 2,
+            spaceBetween: 15
+        },
+        640: {
+            slidesPerView: 3,
+            spaceBetween: 20
+        },
+        768: {
+            slidesPerView: 4,
+            spaceBetween: 20
+        },
+        1024: {
+            slidesPerView: 5,
+            spaceBetween: 20
+        }
+    }
+});
+
+// Video play/pause functionality
+document.querySelectorAll('.reel-item').forEach(item => {
+    const video = item.querySelector('.reel-video');
+    const playBtn = item.querySelector('.reel-play-btn');
+    const overlay = item.querySelector('.reel-overlay');
+    
+    // Play video on hover
+    item.addEventListener('mouseenter', () => {
+        video.play();
+        playBtn.classList.add('playing');
+    });
+    
+    // Pause video on mouse leave
+    item.addEventListener('mouseleave', () => {
+        video.pause();
+        video.currentTime = 0;
+        playBtn.classList.remove('playing');
+    });
+    
+    // Toggle play/pause on click
+    item.addEventListener('click', (e) => {
+        if (e.target.closest('.reel-cta')) return; // Don't interfere with CTA click
+        
+        if (video.paused) {
+            video.play();
+            playBtn.classList.add('playing');
+        } else {
+            video.pause();
+            playBtn.classList.remove('playing');
+        }
+    });
+    
+    // Mobile touch handling
+    let touchTimer;
+    item.addEventListener('touchstart', () => {
+        touchTimer = setTimeout(() => {
+            video.play();
+            playBtn.classList.add('playing');
+        }, 200);
+    });
+    
+    item.addEventListener('touchend', () => {
+        clearTimeout(touchTimer);
+        if (!video.paused) {
+            setTimeout(() => {
+                video.pause();
+                video.currentTime = 0;
+                playBtn.classList.remove('playing');
+            }, 3000); // Auto-pause after 3 seconds on mobile
+        }
+    });
+});
     </script>
 </body>
 </html>

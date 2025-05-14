@@ -927,3 +927,62 @@ input, select, textarea {
         align-items: stretch;
     }
 }
+
+/* Add filter badge styles */
+.category-filter {
+    margin-left: auto;
+}
+
+.filter-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filter-badge.filter-all {
+    background-color: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+}
+
+.filter-badge.filter-men {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.filter-badge.filter-women {
+    background-color: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+}
+
+.filter-badge.filter-accessories {
+    background-color: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+}
+
+/* Update category-meta to flex layout */
+.category-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--light-text);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Adjust responsive layout for category cards */
+@media (max-width: 767px) {
+    .category-filter {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .filter-badge {
+        display: block;
+        text-align: center;
+    }
+}

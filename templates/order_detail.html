@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details - WEARXTURE</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Order Detail Page Styles */
+        :root {
+            --primary-color: #e25822;
+            --secondary-color: #9b4dca;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --text-color: #333;
+            --light-text: #777;
+            --border-color: #eee;
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Poppins', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .order-detail-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--light-text);
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+
+        .order-detail-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .detail-header {
+            padding: 25px;
+            background: #fcfcfc;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .detail-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        .detail-subtitle {
+            color: var(--light-text);
+            font-size: 14px;
+        }
+
+        .order-status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: capitalize;
+            margin-top: 10px;
+        }
+
+        .detail-content {
+            padding: 25px;
+        }
+
+        .info-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: var(--light-text);
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        /* Order items table */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .items-table th {
+            text-align: left;
+            padding: 12px;
+            background: #f9f9f9;
+            font-weight: 600;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .items-table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .item-image {
+            width: 60px;
+            height: 75px;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-name {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .item-details {
+            font-size: 14px;
+            color: var(--light-text);
+            margin-top: 5px;
+        }
+
+        /* Summary section */
+        .order-summary {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .summary-row.total {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--primary-color);
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .items-table {
+                font-size: 14px;
+            }
+
+            .items-table th,
+            .items-table td {
+                padding: 10px;
+            }
+
+            .item-image {
+                width: 50px;
+                height: 62px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <a href="/">
+                    <img src="{{ url_for('static', path='/images/WEARXTURE LOGOai.png') }}" alt="WEARXTURE Logo" class="logo-img">
+                </a>
+            </div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">All Products</a></li>
+                    <li><a href="/orders">My Orders</a></li>
+                </ul>
+            </nav>
+            <div class="nav-icons">
+                <a href="#" class="icon-link"><i class="fas fa-user"></i></a>
+                <a href="#" class="icon-link cart"><i class="fas fa-shopping-bag"></i><span class="cart-count">0</span></a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Order Detail Content -->
+    <div class="order-detail-container">
+        <a href="/orders" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading order details...</p>
+        </div>
+
+        <!-- Order Detail Card -->
+        <div class="order-detail-card" id="order-detail" style="display: none;">
+            <!-- Order details will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const orderId = '{{ order_id }}';
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const loadingEl = document.getElementById('loading');
+            const orderDetailEl = document.getElementById('order-detail');
+
+            try {
+                // Fetch order details
+                const response = await fetch(`/api/orders/${orderId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch order details');
+                }
+
+                const order = await response.json();
+
+                // Hide loading and show order details
+                loadingEl.style.display = 'none';
+                orderDetailEl.style.display = 'block';
+                
+                renderOrderDetails(order);
+            } catch (error) {
+                console.error('Error loading order:', error);
+                loadingEl.innerHTML = '<p>Error loading order details. Please try again later.</p>';
+            }
+        });
+
+        function renderOrderDetails(order) {
+            const orderDetailEl = document.getElementById('order-detail');
+            
+            const statusClass = `status-${order.order_status}`;
+            
+            orderDetailEl.innerHTML = `
+                <div class="detail-header">
+                    <h1 class="detail-title">Order #${order.order_id}</h1>
+                    <p class="detail-subtitle">Placed on ${formatDate(order.created_at)}</p>
+                    <div class="order-status-badge ${statusClass}">
+                        ${order.order_status}
+                    </div>
+                </div>
+                
+                <div class="detail-content">
+                    <!-- Order Information -->
+                    <div class="info-section">
+                        <h2 class="section-title">Order Information</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Payment Method</span>
+                                <span class="info-value">${order.payment_method === 'cod' ? 'Cash on Delivery' : order.payment_method}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Payment Status</span>
+                                <span class="info-value">${order.payment_status}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Contact Email</span>
+                                <span class="info-value">${order.user_email}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Phone Number</span>
+                                <span class="info-value">${order.phone}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Delivery Address -->
+                    <div class="info-section">
+                        <h2 class="section-title">Delivery Address</h2>
+                        <div class="info-value">
+                            ${order.delivery_address.address}<br>
+                            ${order.delivery_address.city}, ${order.delivery_address.state} ${order.delivery_address.pincode}<br>
+                            ${order.delivery_address.country}
+                        </div>
+                    </div>
+                    
+                    <!-- Order Items -->
+                    <div class="info-section">
+                        <h2 class="section-title">Order Items</h2>
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Details</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${order.items.map(item => `
+                                    <tr>
+                                        <td>
+                                            <div class="item-image">
+                                                <img src="${item.image}" alt="${item.name}">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="item-name">${item.name}</div>
+                                            <div class="item-details">
+                                                ${item.size ? `Size: ${item.size}` : ''}
+                                                ${item.color ? `| Color: ${item.color}` : ''}
+                                            </div>
+                                        </td>
+                                        <td>₹${item.price}</td>
+                                        <td>${item.quantity}</td>
+                                        <td>₹${(item.price * item.quantity).toFixed(0)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Order Summary -->
+<!-- Order Summary -->
+                    <div class="order-summary">
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span>₹${order.subtotal.toFixed(0)}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Delivery Charge</span>
+                            <span>₹${order.delivery_charge.toFixed(0)}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Tax</span>
+                            <span>₹${order.tax.toFixed(0)}</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total Amount</span>
+                            <span>₹${order.total_amount.toFixed(0)}</span>
+                        </div>
+                        
+                        ${order.payment_method === 'cod' && order.payment_status === 'cod_fee_paid' ? `
+                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                                <div class="summary-row" style="color: var(--success-color);">
+                                    <span>COD Fee (Paid)</span>
+                                    <span>₹80</span>
+                                </div>
+                                <div class="summary-row" style="font-weight: 600; font-size: 16px;">
+                                    <span>Amount Due on Delivery</span>
+                                    <span style="color: var(--warning-color);">₹${(order.total_amount - 80).toFixed(0)}</span>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
+</body>
+</html>

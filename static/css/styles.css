@@ -874,13 +874,15 @@ header {
 }
 
 /* Testimonials */
+/* Testimonials - Fixed Display */
 .testimonials {
     padding: 80px 20px;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-.testimonial-slider {
+/* Change selector from .testimonial-slider to .testimonial-container */
+.testimonial-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 30px;
@@ -892,6 +894,10 @@ header {
     padding: 30px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
     transition: var(--transition);
+    /* Ensure equal height for all cards */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .testimonial-card:hover {
@@ -902,6 +908,8 @@ header {
 .testimonial-rating {
     margin-bottom: 15px;
     color: var(--accent-color);
+    display: flex;
+    gap: 2px;
 }
 
 .testimonial-text {
@@ -909,6 +917,8 @@ header {
     margin-bottom: 15px;
     color: var(--text-color);
     line-height: 1.8;
+    /* Make testimonial text grow to fill available space */
+    flex-grow: 1;
 }
 
 .testimonial-author {
@@ -1422,3 +1432,214 @@ footer {
     }
 }
 
+
+
+/* Instagram Reels Section */
+.instagram-reels {
+    padding: 80px 0;
+    background: #fafafa;
+}
+
+.reels-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.reelsSwiper {
+    width: 100%;
+    padding: 20px 0 50px;
+}
+
+.reelsSwiper .swiper-slide {
+    background: transparent;
+    width: 250px;
+}
+
+.reel-item {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #000;
+    height: 445px;
+    width: 250px;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.reel-item:hover {
+    /* transform: translateY(-5px); */
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.reel-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.reel-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+    padding: 30px 20px 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.reel-item:hover .reel-overlay {
+    opacity: 1;
+}
+
+.reel-content {
+    color: white;
+    text-align: center;
+}
+
+.reel-content h4 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.reel-content p {
+    font-size: 14px;
+    margin-bottom: 15px;
+    opacity: 0.9;
+}
+
+.reel-cta {
+    display: inline-block;
+    background: white;
+    color: var(--primary-color);
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.reel-cta:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.05);
+}
+
+.reel-play-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    opacity: 1;
+}
+
+.reel-play-btn.playing {
+    opacity: 0;
+}
+
+.reel-play-btn i {
+    font-size: 20px;
+    color: var(--primary-color);
+    margin-left: 3px;
+}
+
+.reel-play-btn:hover {
+    background: white;
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Swiper customization for reels */
+.reelsSwiper .swiper-button-next,
+.reelsSwiper .swiper-button-prev {
+    color: var(--primary-color);
+    background: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.reelsSwiper .swiper-button-next:after,
+.reelsSwiper .swiper-button-prev:after {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.reelsSwiper .swiper-pagination-bullet {
+    background: var(--primary-color);
+    opacity: 0.5;
+}
+
+.reelsSwiper .swiper-pagination-bullet-active {
+    opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .reelsSwiper .swiper-slide {
+        width: 200px;
+    }
+    
+    .reel-item {
+        height: 356px;
+        width: 200px;
+    }
+    
+    .reel-content h4 {
+        font-size: 16px;
+    }
+    
+    .reel-content p {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .instagram-reels {
+        padding: 60px 0;
+    }
+    
+    .reelsSwiper .swiper-slide {
+        width: 160px;
+    }
+    
+    .reel-item {
+        height: 285px;
+        width: 160px;
+    }
+    
+    .reel-play-btn {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .reel-play-btn i {
+        font-size: 18px;
+    }
+}
+
+/* Add to the end of your main styles.css */
+a.category-btn,
+a.category-btn:hover,
+a.category-btn:focus,
+a.category-btn:active,
+a.category-btn:visited {
+    text-decoration: none !important;
+    border: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
+}

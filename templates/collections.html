@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collections - WEARXTURE</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Modern aesthetic variables */
+        :root {
+            --primary-color: #e25822;
+            --secondary-color: #9b4dca;
+            --accent-color: #f8b400;
+            --text-color: #333;
+            --light-text: #777;
+            --white: #fff;
+            --light-bg: #f9f9f9;
+            --lighter-bg: #fcfcfc;
+            --border-color: #eee;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Poppins', sans-serif;
+            --transition: all 0.3s ease;
+            --cubic-ease: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* Remove underlines from all links and buttons */
+        a {
+            text-decoration: none !important;
+        }
+
+        a:hover {
+            text-decoration: none !important;
+        }
+
+        button {
+            text-decoration: none !important;
+        }
+
+        button:hover {
+            text-decoration: none !important;
+        }
+        
+        /* Specific rule for category buttons */
+        .category-btn {
+            text-decoration: none !important;
+        }
+        
+        .category-btn:hover {
+            text-decoration: none !important;
+        }
+        
+        .category-btn:focus {
+            text-decoration: none !important;
+        }
+        
+        .category-btn:active {
+            text-decoration: none !important;
+        }
+
+        /* Collections Hero Section */
+        .collections-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 350px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .collections-hero::before {
+            content: '';
+            position: absolute;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 30px 30px;
+            top: -100%;
+            left: -100%;
+            animation: floatGrid 20s linear infinite;
+        }
+
+        @keyframes floatGrid {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-30px, -30px); }
+        }
+
+        .hero-content {
+            text-align: center;
+            color: white;
+            z-index: 1;
+            padding: 40px 20px;
+        }
+
+        .hero-content h1 {
+            font-family: var(--font-heading);
+            font-size: 56px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            animation: slideInDown 0.8s ease;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero-content p {
+            font-size: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            opacity: 0.9;
+            animation: slideInUp 0.8s ease 0.2s both;
+        }
+
+        /* Container */
+        .collections-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 80px 20px;
+        }
+
+        /* Collections Title */
+        .collections-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .collections-title h2 {
+            font-size: 42px;
+            font-weight: 700;
+            font-family: var(--font-heading);
+            color: var(--text-color);
+            margin-bottom: 15px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .collections-title h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .collections-subtitle {
+            color: var(--light-text);
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        /* Category Grid - Same as index page */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin-bottom: 60px;
+            transition: opacity 0.3s ease;
+        }
+
+        .category-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: all 0.5s var(--cubic-ease);
+            cursor: pointer;
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .category-img {
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+        }
+
+        .category-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s ease;
+        }
+
+        .category-card:hover .category-img img {
+            transform: scale(1.15);
+        }
+
+        .category-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.8) 100%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 30px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .category-card:hover .category-overlay {
+            opacity: 1;
+        }
+
+        .category-btn {
+            background: rgba(255,255,255,0.9);
+            color: var(--text-color);
+            padding: 14px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            border-bottom: none !important;
+            outline: none;
+        }
+
+        .category-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.05);
+            text-decoration: none;
+            border-bottom: none !important;
+        }
+        
+        .category-btn:focus {
+            outline: none;
+            text-decoration: none;
+            border-bottom: none !important;
+        }
+        
+        .category-btn:active {
+            text-decoration: none;
+            border-bottom: none !important;
+        }
+        
+        /* Remove any border or underline from the link */
+        .category-overlay a {
+            border: none !important;
+            border-bottom: none !important;
+            text-decoration: none !important;
+        }
+        
+        .category-overlay a:hover {
+            border: none !important;
+            border-bottom: none !important;
+            text-decoration: none !important;
+        }
+
+        /* Category name badge */
+        .category-badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            color: var(--text-color);
+            padding: 5px 10px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        /* Filter Container */
+        .filter-container {
+            text-align: center;
+            margin: 50px 0;
+        }
+
+        .filter-buttons {
+            display: inline-flex;
+            gap: 15px;
+            background: white;
+            padding: 8px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .filter-btn {
+            padding: 12px 30px;
+            border: none;
+            background: transparent;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .filter-btn:hover {
+            background: var(--light-bg);
+            color: var(--primary-color);
+        }
+
+        .filter-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 5px 15px rgba(226, 88, 34, 0.3);
+        }
+
+        /* Hide categories when filtered */
+        .category-card {
+            transition: all 0.4s ease;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .category-card.hide {
+            display: none;
+        }
+
+        /* Fade in animation for showing cards */
+        .category-card.show {
+            animation: fadeInScale 0.4s ease forwards;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Animations */
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Loading animation for cards */
+        .category-card {
+            animation: cardLoad 0.6s ease forwards;
+        }
+
+        @keyframes cardLoad {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .category-card:nth-child(1) { animation-delay: 0.1s; }
+        .category-card:nth-child(2) { animation-delay: 0.2s; }
+        .category-card:nth-child(3) { animation-delay: 0.3s; }
+        .category-card:nth-child(4) { animation-delay: 0.4s; }
+        .category-card:nth-child(5) { animation-delay: 0.5s; }
+        .category-card:nth-child(6) { animation-delay: 0.6s; }
+        .category-card:nth-child(7) { animation-delay: 0.7s; }
+        .category-card:nth-child(8) { animation-delay: 0.8s; }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .category-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .category-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 25px;
+            }
+
+            .collections-title h2 {
+                font-size: 36px;
+            }
+
+            .hero-content h1 {
+                font-size: 42px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .collections-hero {
+                min-height: 300px;
+            }
+
+            .hero-content h1 {
+                font-size: 36px;
+            }
+
+            .hero-content p {
+                font-size: 16px;
+            }
+
+            .category-img {
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .category-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .collections-container {
+                padding: 40px 15px;
+            }
+
+            .collections-title h2 {
+                font-size: 30px;
+            }
+        }
+
+        /* Add this CSS to completely remove any underlines from category buttons */
+
+/* Target all possible selectors for the category button */
+.category-btn,
+.category-btn:link,
+.category-btn:visited,
+.category-btn:hover,
+.category-btn:active,
+.category-btn:focus,
+a.category-btn,
+a.category-btn:link,
+a.category-btn:visited,
+a.category-btn:hover,
+a.category-btn:active,
+a.category-btn:focus,
+.category-overlay a,
+.category-overlay a:link,
+.category-overlay a:visited,
+.category-overlay a:hover,
+.category-overlay a:active,
+.category-overlay a:focus {
+    text-decoration: none !important;
+    text-decoration-line: none !important;
+    text-underline-offset: 0 !important;
+    text-decoration-thickness: 0 !important;
+    border: none !important;
+    border-bottom: none !important;
+    border-top: none !important;
+    border-left: none !important;
+    border-right: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Remove any pseudo-elements that might create underlines */
+.category-btn::before,
+.category-btn::after,
+a.category-btn::before,
+a.category-btn::after,
+.category-overlay a::before,
+.category-overlay a::after {
+    display: none !important;
+    content: none !important;
+    border: none !important;
+    text-decoration: none !important;
+}
+
+/* Target the specific container and all children */
+.category-overlay *,
+.category-overlay a * {
+    text-decoration: none !important;
+    border: none !important;
+    border-bottom: none !important;
+}
+
+/* Override any inherited styles from parent elements */
+.category-card a,
+.category-card a:hover {
+    text-decoration: none !important;
+    border: none !important;
+    border-bottom: none !important;
+}
+
+/* If using Font Awesome or other icon fonts that might add underlines */
+.category-btn i,
+.category-btn span,
+a.category-btn i,
+a.category-btn span {
+    text-decoration: none !important;
+    border: none !important;
+}
+
+/* Nuclear option - remove ALL underlines from ANY link in the category section */
+.category-grid a,
+.category-grid a:hover,
+.category-grid a:focus,
+.category-grid a:active,
+.category-grid a:visited {
+    text-decoration: none !important;
+    text-decoration-line: none !important;
+    border: none !important;
+    border-bottom: none !important;
+}
+
+/* Additional specificity with parent selectors */
+body .category-overlay a.category-btn,
+body .category-overlay a.category-btn:hover {
+    text-decoration: none !important;
+    border: none !important;
+    border-bottom: none !important;
+}
+
+/* Remove webkit specific styling */
+.category-btn::-webkit-any-link {
+    text-decoration: none !important;
+}
+
+/* Remove moz specific styling */
+.category-btn::-moz-any-link {
+    text-decoration: none !important;
+}
+    </style>
+</head>
+<body>
+    <!-- Announcement Banner -->
+    <div class="announcement-banner">
+        <div class="marquee-container">
+            <div class="marquee-content">
+                <p>🚚 Free Shipping + Easy Returns on All Ethnic Wear Orders! &nbsp;&nbsp;&nbsp; 🚚 Free Shipping + Easy Returns on All Ethnic Wear Orders! &nbsp;&nbsp;&nbsp; 🚚 Free Shipping + Easy Returns on All Ethnic Wear Orders!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <a href="/">
+                    <img src="{{ url_for('static', path='/images/WEARXTURE LOGOai.png') }}" alt="WEARXTURE Logo" class="logo-img">
+                </a>
+            </div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">All Products</a></li>
+                    <li><a href="/collections" class="active">Collections</a></li>
+                </ul>
+            </nav>
+            <div class="nav-icons">
+                <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                <a href="#" class="icon-link"><i class="fas fa-user"></i></a>
+                <a href="#" class="icon-link cart">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="collections-hero">
+        <div class="hero-content">
+            <h1>Our Collections</h1>
+            <p>Explore our diverse range of traditional and contemporary ethnic wear</p>
+        </div>
+    </section>
+
+    <!-- Collections Container -->
+    <div class="collections-container">
+        <div class="collections-title">
+            <h2>Shop by Category</h2>
+            <p class="collections-subtitle">Find your perfect style from our curated collections</p>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="filter-container">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All Collections</button>
+                <button class="filter-btn" data-filter="women">Women</button>
+                <button class="filter-btn" data-filter="men">Men</button>
+                <button class="filter-btn" data-filter="accessories">Accessories</button>
+            </div>
+        </div>
+
+        <!-- Category Grid - Same structure as index page -->
+        <div class="category-grid">
+            {% if categories %}
+                {% for category in categories %}
+                    <div class="category-card" data-category="{{ category.name.lower() }}">
+                        <div class="category-badge">{{ category.name }}</div>
+                        <div class="category-img">
+                            <img src="{{ category.image_url }}" alt="{{ category.name }}">
+                            <div class="category-overlay">
+                                <a href="/category/{{ category.id }}" class="category-btn">Shop {{ category.name }}</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <!-- Default categories if none in database -->
+                <div class="category-card" data-category="anarkali suits">
+                    <div class="category-badge">Anarkali Suits</div>
+                    <div class="category-img">
+                        <img src="{{ url_for('static', path='/images/categories/anarkali.jpg') }}" alt="Anarkali Suits">
+                        <div class="category-overlay">
+                            <a href="#" class="category-btn">Shop Anarkali Suits</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="category-card" data-category="sarees">
+                    <div class="category-badge">Sarees</div>
+                    <div class="category-img">
+                        <img src="{{ url_for('static', path='/images/categories/sarees.jpg') }}" alt="Sarees">
+                        <div class="category-overlay">
+                            <a href="#" class="category-btn">Shop Sarees</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="category-card" data-category="lehengas">
+                    <div class="category-badge">Lehengas</div>
+                    <div class="category-img">
+                        <img src="{{ url_for('static', path='/images/categories/lehengas.jpg') }}" alt="Lehengas">
+                        <div class="category-overlay">
+                            <a href="#" class="category-btn">Shop Lehengas</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="category-card" data-category="kurtis">
+                    <div class="category-badge">Kurtis</div>
+                    <div class="category-img">
+                        <img src="{{ url_for('static', path='/images/categories/kurtis.jpg') }}" alt="Kurtis">
+                        <div class="category-overlay">
+                            <a href="#" class="category-btn">Shop Kurtis</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h2>Join Our Newsletter</h2>
+            <p>Subscribe and get ₹500 off on your first order!</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="Enter your email address" required>
+                <button type="submit">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-column">
+                <div class="footer-logo">
+                    <img src="{{ url_for('static', path='/images/no bg white logo.png') }}" alt="WEARXTURE Logo" class="footer-logo-img">
+                </div>
+                <p>Discover the perfect blend of tradition and modernity with our exclusive ethnic wear collection.</p>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-pinterest"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">All Products</a></li>
+                    <li><a href="/collections">Collections</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Customer Service</h3>
+                <ul>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Track Order</a></li>
+                    <li><a href="#">Return & Exchange</a></li>
+                    <li><a href="#">Shipping Policy</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Contact Info</h3>
+                <ul class="contact-info">
+                    <li><i class="fas fa-map-marker-alt"></i> 123 Fashion Street, Delhi, India</li>
+                    <li><i class="fas fa-phone"></i> +91 98765 43210</li>
+                    <li><i class="fas fa-envelope"></i> info@wearxture.com</li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 WEARXTURE. All Rights Reserved.</p>
+            <div class="payment-icons">
+                <i class="fab fa-cc-visa"></i>
+                <i class="fab fa-cc-mastercard"></i>
+                <i class="fab fa-cc-paypal"></i>
+                <i class="fab fa-cc-apple-pay"></i>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', path='/js/script.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scroll animation for category cards
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            // Observe all category cards
+            document.querySelectorAll('.category-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+
+            // Mobile menu toggle
+            const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+            
+            if (mobileMenuToggle && navLinks) {
+                mobileMenuToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                });
+            }
+
+            // Filter functionality
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const categoryCards = document.querySelectorAll('.category-card');
+            const categoryGrid = document.querySelector('.category-grid');
+
+            // Define category mappings - using lowercase for matching
+            const categoryMappings = {
+                'women': [
+                    'anarkali', 'saree', 'sarees', 'lehenga', 'kurti', 'kurtis', 'gown', 
+                    'palazzo', 'salwar', 'churidar', 'dress', 'suit', 'women'
+                ],
+                'men': [
+                    'sherwani', 'kurta', 'polo', 'nehru', 'dhoti', 'jodhpuri', 
+                    'modi', 'men', 'shirt', 'pyjama', 'pajama'
+                ],
+                'accessories': [
+                    'jewelry', 'jewellery', 'clutch', 'bag', 'footwear', 'shoe',
+                    'dupatta', 'stole', 'turban', 'safa', 'belt', 'watch',
+                    'bangle', 'necklace', 'earring', 'purse', 'accessory'
+                ]
+            };
+
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    const filterValue = this.getAttribute('data-filter');
+                    
+                    // Add fade-out effect to the grid
+                    categoryGrid.style.opacity = '0.3';
+                    
+                    setTimeout(() => {
+                        // Filter categories
+                        categoryCards.forEach(card => {
+                            const categoryName = card.getAttribute('data-category').toLowerCase();
+                            
+                            // First remove all animation classes
+                            card.classList.remove('hide', 'show');
+                            
+                            if (filterValue === 'all') {
+                                card.classList.add('show');
+                                card.style.display = 'block';
+                            } else {
+                                // Check if the category belongs to the selected filter
+                                let shouldShow = false;
+                                
+                                if (categoryMappings[filterValue]) {
+                                    // Check if any keyword matches the category name
+                                    shouldShow = categoryMappings[filterValue].some(keyword => 
+                                        categoryName.includes(keyword)
+                                    );
+                                }
+                                
+                                if (shouldShow) {
+                                    card.classList.add('show');
+                                    card.style.display = 'block';
+                                } else {
+                                    card.classList.add('hide');
+                                    // Delay the display:none to allow fade out
+                                    setTimeout(() => {
+                                        if (card.classList.contains('hide')) {
+                                            card.style.display = 'none';
+                                        }
+                                    }, 400);
+                                }
+                            }
+                        });
+                        
+                        // Fade the grid back in
+                        categoryGrid.style.opacity = '1';
+                    }, 300);
+                });
+            });
+            
+            // Debug: Log all category names to see what we're working with
+            console.log('Categories found:');
+            categoryCards.forEach(card => {
+                console.log(card.getAttribute('data-category'));
+            });
+        });
+    </script>
+</body>
+</html>

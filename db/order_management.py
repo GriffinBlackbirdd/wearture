@@ -14,6 +14,7 @@ def create_order(order_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         # Prepare order data for database
         now = datetime.now().isoformat()
         
+        # Create base order record
         order_record = {
             "order_id": order_data["order_id"],
             "user_email": order_data["user_email"],
@@ -33,7 +34,21 @@ def create_order(order_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             "updated_at": now
         }
         
+        # Add COD-specific fields if they exist in order_data and if payment method is COD
+        if order_data.get("payment_method") == "cod":
+            # Store COD info in a JSON field or in the payment_status field
+            cod_info = {
+                "cod_fee": order_data.get("cod_fee", 80),
+                "cod_remaining": order_data.get("cod_remaining", 0),
+                "cod_status": order_data.get("cod_status", "fee_pending")
+            }
+            # Store COD info as part of the payment status or in a separate field
+            order_record["payment_status"] = "cod_fee_pending"
+            # If your database has a metadata/additional_info JSON field, use it
+            # order_record["metadata"] = json.dumps(cod_info)
+        
         print(f"Creating order: {order_record['order_id']}")
+        print(f"Order record: {order_record}")
         
         # Insert into database
         response = supabase.table('orders').insert(order_record).execute()
@@ -50,6 +65,7 @@ def create_order(order_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         import traceback
         traceback.print_exc()
         return None
+
 
 def get_order(order_id: str) -> Optional[Dict[str, Any]]:
     """
@@ -163,6 +179,7 @@ def get_pending_orders() -> List[Dict[str, Any]]:
         print(f"Error getting pending orders: {e}")
         return []
 
+
 def update_order_status(order_id: str, status: str) -> Optional[Dict[str, Any]]:
     """
     Update order status
@@ -188,3 +205,27 @@ def update_order_status(order_id: str, status: str) -> Optional[Dict[str, Any]]:
     except Exception as e:
         print(f"Error updating order status: {e}")
         return None
+
+def get_all_orders() -> List[Dict[str, Any]]:
+    """
+    Get all orders (admin function)
+    
+    Returns:
+        List of all orders
+    """
+    try:
+        response = supabase.table('orders').select("*").order('created_at', desc=True).execute()
+        
+        orders = response.data or []
+        
+        # Parse JSON fields
+        for order in orders:
+            if order.get('delivery_address'):
+                order['delivery_address'] = json.loads(order['delivery_address'])
+            if order.get('items'):
+                order['items'] = json.loads(order['items'])
+        
+        return orders
+    except Exception as e:
+        print(f"Error getting all orders: {e}")
+        return []
