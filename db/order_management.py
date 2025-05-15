@@ -4,11 +4,11 @@ Order management functions for WEARXTURE
 from typing import Dict, List, Optional, Any
 import json
 from datetime import datetime
-from db.supabase_client import supabase
+from db.supabase_client import supabase, deduct_inventory, restore_inventory, get_product
 
 def create_order(order_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
-    Create a new order in the database
+    Create a new order in the database and deduct inventory
     """
     try:
         # Prepare order data for database
@@ -34,38 +34,86 @@ def create_order(order_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             "updated_at": now
         }
         
-        # Add COD-specific fields if they exist in order_data and if payment method is COD
+        # Add COD-specific fields if they exist
         if order_data.get("payment_method") == "cod":
-            # Store COD info in a JSON field or in the payment_status field
             cod_info = {
                 "cod_fee": order_data.get("cod_fee", 80),
                 "cod_remaining": order_data.get("cod_remaining", 0),
                 "cod_status": order_data.get("cod_status", "fee_pending")
             }
-            # Store COD info as part of the payment status or in a separate field
             order_record["payment_status"] = "cod_fee_pending"
-            # If your database has a metadata/additional_info JSON field, use it
-            # order_record["metadata"] = json.dumps(cod_info)
         
         print(f"Creating order: {order_record['order_id']}")
-        print(f"Order record: {order_record}")
+        
+        # First, check inventory for all items
+        items = order_data.get("items", [])
+        inventory_check_failed = False
+        insufficient_products = []
+        
+        for item in items:
+            product_id = item.get("product_id") or item.get("id")
+            quantity = item.get("quantity", 1)
+            
+            if product_id:
+                product = get_product(product_id)
+                if product:
+                    current_inventory = product.get('inventory_count', 0)
+                    if current_inventory < quantity:
+                        inventory_check_failed = True
+                        insufficient_products.append({
+                            "name": item.get("name"),
+                            "required": quantity,
+                            "available": current_inventory
+                        })
+        
+        if inventory_check_failed:
+            error_msg = "Insufficient inventory: " + ", ".join([
+                f"{p['name']} (need {p['required']}, have {p['available']})" 
+                for p in insufficient_products
+            ])
+            print(f"Order creation failed: {error_msg}")
+            return {"error": error_msg, "success": False}
         
         # Insert into database
         response = supabase.table('orders').insert(order_record).execute()
         
         if response.data:
-            print(f"Order created successfully: {response.data[0]['order_id']}")
-            return response.data[0]
+            created_order = response.data[0]
+            print(f"Order created successfully: {created_order['order_id']}")
+            
+            # Deduct inventory for each item
+            inventory_deduction_failed = False
+            deducted_items = []
+            
+            for item in items:
+                product_id = item.get("product_id") or item.get("id")
+                quantity = item.get("quantity", 1)
+                
+                if product_id:
+                    success = deduct_inventory(product_id, quantity)
+                    if success:
+                        deducted_items.append((product_id, quantity))
+                    else:
+                        inventory_deduction_failed = True
+                        # Restore inventory for previously deducted items
+                        for deducted_id, deducted_qty in deducted_items:
+                            restore_inventory(deducted_id, deducted_qty)
+                        break
+            
+            if inventory_deduction_failed:
+                # Delete the order if inventory deduction failed
+                supabase.table('orders').delete().eq('order_id', created_order['order_id']).execute()
+                return {"error": "Failed to deduct inventory", "success": False}
+            
+            return created_order
         else:
             print(f"Error creating order: No data returned")
             return None
     except Exception as e:
         print(f"Error creating order: {str(e)}")
-        print(f"Order data: {order_data}")
         import traceback
         traceback.print_exc()
         return None
-
 
 def get_order(order_id: str) -> Optional[Dict[str, Any]]:
     """
@@ -180,18 +228,19 @@ def get_pending_orders() -> List[Dict[str, Any]]:
         return []
 
 
-def update_order_status(order_id: str, status: str) -> Optional[Dict[str, Any]]:
+def update_order_status(order_id: str, status: str, notes: str = "") -> Optional[Dict[str, Any]]:
     """
-    Update order status
-    
-    Args:
-        order_id: Order ID
-        status: New status (pending/confirmed/processing/shipped/delivered/cancelled)
-    
-    Returns:
-        Updated order or None if failed
+    Update order status and handle inventory management
     """
     try:
+        # Get current order
+        current_order = get_order(order_id)
+        if not current_order:
+            return None
+        
+        current_status = current_order.get('order_status')
+        
+        # Update order
         update_data = {
             "order_status": status,
             "updated_at": datetime.now().isoformat()
@@ -200,6 +249,23 @@ def update_order_status(order_id: str, status: str) -> Optional[Dict[str, Any]]:
         response = supabase.table('orders').update(update_data).eq('order_id', order_id).execute()
         
         if response.data:
+            # If order is cancelled, restore inventory
+            if status == 'cancelled' and current_status != 'cancelled':
+                items = current_order.get('items', [])
+                if isinstance(items, str):
+                    try:
+                        items = json.loads(items)
+                    except:
+                        items = []
+                
+                for item in items:
+                    product_id = item.get("product_id") or item.get("id")
+                    quantity = item.get("quantity", 1)
+                    
+                    if product_id:
+                        restore_inventory(product_id, quantity)
+                        print(f"Restored {quantity} units of product {product_id} for cancelled order {order_id}")
+            
             return response.data[0]
         return None
     except Exception as e:

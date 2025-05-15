@@ -6,6 +6,8 @@
     <title>WEARXTURE Admin - Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/admin/css/admin.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Add Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="admin-container">
@@ -27,16 +29,13 @@
                     <i class="fas fa-tags"></i> Categories
                 </a>
                 <a href="/admin/reels" class="menu-item">
-                    <i class="fas fa-shopping-cart"></i> Reels
+                    <i class="fas fa-video"></i> Reels
                 </a>
-                <a href="#" class="menu-item">
+                <a href="/admin/orders" class="menu-item">
                     <i class="fas fa-shopping-cart"></i> Orders
                 </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-image"></i> Media Library
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-cog"></i> Settings
+                <a href="/admin/customers" class="menu-item">
+                    <i class="fas fa-users"></i> Customers
                 </a>
             </nav>
         </div>
@@ -49,6 +48,14 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 
+                <div class="dashboard-header-info">
+                    <h1 class="dashboard-title">Dashboard Overview</h1>
+                    <div class="dashboard-date">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="current-date">May 15, 2025</span>
+                    </div>
+                </div>
+                
                 <div class="user-menu">
                     <div class="user-info">
                         {{ user_email if user_email else "Admin User" }}
@@ -59,85 +66,176 @@
                 </div>
             </div>
             
-            <!-- Content Area -->
-            <div class="content">
-                <div class="dashboard-title">
-                    <h1>Dashboard</h1>
-                </div>
-                
-                <div class="dashboard-cards">
-                    <div class="card card-products">
-                        <div class="card-icon">
-                            <i class="fas fa-tshirt"></i>
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Primary KPI Cards -->
+                <div class="kpi-grid">
+                    <!-- Total Products Card -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon products-icon">
+                                <i class="fas fa-tshirt"></i>
+                            </div>
+                            <div class="kpi-title">Total Products</div>
                         </div>
-                        <div class="card-title">Total Products</div>
-                        <div class="card-value">{{ product_count if product_count is defined else 0 }}</div>
-                        <div class="card-change positive">
-                            <i class="fas fa-arrow-up"></i> Real-time data
+                        <div class="kpi-value" id="total-products">0</div>
+                        <div class="kpi-breakdown">
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Men:</span>
+                                <span class="breakdown-value" id="men-products">0</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Women:</span>
+                                <span class="breakdown-value" id="women-products">0</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Accessories:</span>
+                                <span class="breakdown-value" id="accessories-products">0</span>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="card card-categories">
-                        <div class="card-icon">
+                    <!-- Total Sales Card -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon sales-icon">
+                                <i class="fas fa-rupee-sign"></i>
+                            </div>
+                            <div class="kpi-title">Total Sales</div>
+                        </div>
+                        <div class="kpi-value" id="total-sales">₹0</div>
+                        <div class="kpi-footer">
+                            <div class="today-sales">
+                                <span class="footer-label">Today:</span>
+                                <span class="footer-value" id="today-sales">₹0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Total Orders Card -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon orders-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="kpi-title">Total Orders</div>
+                        </div>
+                        <div class="kpi-value" id="total-orders">0</div>
+                        <div class="kpi-breakdown">
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Pending:</span>
+                                <span class="breakdown-value pending" id="pending-orders">0</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Processing:</span>
+                                <span class="breakdown-value processing" id="processing-orders">0</span>
+                            </div>
+                            <div class="breakdown-item">
+                                <span class="breakdown-label">Delivered:</span>
+                                <span class="breakdown-value delivered" id="delivered-orders">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- COD Outstanding Card -->
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon outstanding-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="kpi-title">COD Outstanding</div>
+                        </div>
+                        <div class="kpi-value" id="cod-outstanding">₹0</div>
+                        <div class="kpi-footer">
+                            <div class="outstanding-info">
+                                <span class="footer-label">From</span>
+                                <span class="footer-value" id="cod-orders-count">0 orders</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Secondary KPI Cards -->
+                <div class="secondary-kpi-grid">
+                    <!-- Total Categories -->
+                    <div class="secondary-kpi-card">
+                        <div class="kpi-icon-small categories-icon">
                             <i class="fas fa-tags"></i>
                         </div>
-                        <div class="card-title">Categories</div>
-                        <div class="card-value">{{ category_count if category_count is defined else 0 }}</div>
-                        <div class="card-change positive">
-                            <i class="fas fa-arrow-up"></i> Real-time data
+                        <div class="kpi-info">
+                            <div class="kpi-label">Total Categories</div>
+                            <div class="kpi-number" id="total-categories">0</div>
                         </div>
                     </div>
                     
-                    <div class="card card-orders">
-                        <div class="card-icon">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <div class="card-title">Orders</div>
-                        <div class="card-value">0</div>
-                        <div class="card-change positive">
-                            <i class="fas fa-arrow-up"></i> Coming soon
-                        </div>
-                    </div>
-                    
-                    <div class="card card-users">
-                        <div class="card-icon">
+                    <!-- Total Customers -->
+                    <div class="secondary-kpi-card">
+                        <div class="kpi-icon-small customers-icon">
                             <i class="fas fa-users"></i>
                         </div>
-                        <div class="card-title">Users</div>
-                        <div class="card-value">1</div>
-                        <div class="card-change positive">
-                            <i class="fas fa-arrow-up"></i> Admin active
+                        <div class="kpi-info">
+                            <div class="kpi-label">Total Customers</div>
+                            <div class="kpi-number" id="total-customers">0</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Inventory Value -->
+                    <div class="secondary-kpi-card">
+                        <div class="kpi-icon-small inventory-icon">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <div class="kpi-label">Inventory Value</div>
+                            <div class="kpi-number" id="inventory-value">₹0</div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="quick-links">
-                    <h2 class="section-title">Quick Links</h2>
-                    <div class="links-grid">
-                        <a href="/admin/products" class="link-item">
-                            <i class="fas fa-plus-circle"></i>
-                            <span>Add Product</span>
-                        </a>
-                        <a href="/admin/categories" class="link-item">
-                            <i class="fas fa-folder-plus"></i>
-                            <span>Add Category</span>
-                        </a>
-                        <a href="#" class="link-item">
-                            <i class="fas fa-upload"></i>
-                            <span>Upload Images</span>
-                        </a>
-                        <a href="#" class="link-item">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>View Analytics</span>
-                        </a>
+                <!-- Charts Section -->
+                <div class="charts-section">
+                    <!-- Payment Method Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3 class="chart-title">
+                                <i class="fas fa-credit-card"></i>
+                                Payment Methods
+                            </h3>
+                            <div class="chart-subtitle">UPI vs COD Distribution</div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="paymentMethodChart"></canvas>
+                        </div>
+                        <div class="chart-stats">
+                            <div class="stat-item">
+                                <div class="stat-color upi-color"></div>
+                                <div class="stat-info">
+                                    <div class="stat-label">UPI</div>
+                                    <div class="stat-value" id="upi-count">0 orders</div>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-color cod-color"></div>
+                                <div class="stat-info">
+                                    <div class="stat-label">COD</div>
+                                    <div class="stat-value" id="cod-count">0 orders</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="card">
-                    <h2 class="section-title">Recent Products</h2>
-                    <div class="recent-products" id="recent-products">
+                <!-- Low Stock Alert Section -->
+                <div class="alert-section">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Low Stock Alert
+                        </h2>
+                        <div class="alert-count" id="low-stock-count">0 items</div>
+                    </div>
+                    <div class="low-stock-list" id="low-stock-list">
                         <div class="loading-indicator">
-                            <i class="fas fa-spinner fa-spin"></i> Loading recent products...
+                            <i class="fas fa-spinner fa-spin"></i> Loading...
                         </div>
                     </div>
                 </div>
@@ -147,8 +245,10 @@
 
     <script src="{{ url_for('static', path='/admin/js/admin.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Toggle sidebar on mobile
+        let paymentChart;
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Toggle sidebar
             const sidebar = document.getElementById('sidebar');
             const toggleSidebar = document.getElementById('toggle-sidebar');
             
@@ -158,129 +258,777 @@
                 });
             }
             
-            // Close sidebar when clicking outside on mobile
-            document.addEventListener('click', function(e) {
-                if (sidebar.classList.contains('show') && 
-                    !sidebar.contains(e.target) && 
-                    e.target !== toggleSidebar) {
-                    sidebar.classList.remove('show');
+            // Set current date
+            const currentDate = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').textContent = currentDate.toLocaleDateString('en-US', options);
+            
+            // Initialize payment chart
+            initializePaymentChart();
+            
+            // Load dashboard data
+            await loadDashboardData();
+            
+            // Refresh data every 30 seconds
+            setInterval(loadDashboardData, 30000);
+        });
+        
+        function initializePaymentChart() {
+            const ctx = document.getElementById('paymentMethodChart').getContext('2d');
+            paymentChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['UPI', 'COD'],
+                    datasets: [{
+                        data: [0, 0],
+                        backgroundColor: [
+                            '#3b82f6', // Blue for UPI
+                            '#f97316'  // Orange for COD
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        async function loadDashboardData() {
+            try {
+                // Load all data concurrently
+                const [products, categories, orders] = await Promise.all([
+                    fetch('/api/products').then(r => r.json()),
+                    fetch('/api/categories').then(r => r.json()),
+                    fetch('/admin/api/orders').then(r => r.json())
+                ]);
+                
+                // Update product metrics
+                updateProductMetrics(products);
+                
+                // Update category count
+                document.getElementById('total-categories').textContent = categories.length;
+                
+                // Update order metrics and payment chart
+                updateOrderMetrics(orders);
+                
+                // Update inventory metrics
+                updateInventoryMetrics(products);
+                
+                // Update low stock alert
+                updateLowStockAlert(products);
+                
+                // Update customer count (unique emails from orders)
+                updateCustomerCount(orders);
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+        
+        function updateProductMetrics(products) {
+            document.getElementById('total-products').textContent = products.length;
+            
+            // Count products by filter
+            let menCount = 0;
+            let womenCount = 0;
+            let accessoriesCount = 0;
+            
+            products.forEach(product => {
+                const filter = product.filter?.toLowerCase() || 'all';
+                if (filter === 'men') menCount++;
+                else if (filter === 'women') womenCount++;
+                else if (filter === 'accessories') accessoriesCount++;
+            });
+            
+            document.getElementById('men-products').textContent = menCount;
+            document.getElementById('women-products').textContent = womenCount;
+            document.getElementById('accessories-products').textContent = accessoriesCount;
+        }
+        
+        function updateOrderMetrics(orders) {
+            document.getElementById('total-orders').textContent = orders.length;
+            
+            // Calculate total sales and COD outstanding
+            let totalSales = 0;
+            let todaySales = 0;
+            let codOutstanding = 0;
+            let codOrdersCount = 0;
+            
+            // Count orders by status and payment method
+            let pendingCount = 0;
+            let processingCount = 0;
+            let deliveredCount = 0;
+            let upiCount = 0;
+            let codCount = 0;
+            
+            const today = new Date().toDateString();
+            
+            orders.forEach(order => {
+                const orderDate = new Date(order.created_at).toDateString();
+                
+                // Count by status
+                switch (order.order_status) {
+                    case 'pending':
+                    case 'confirmed':
+                        pendingCount++;
+                        break;
+                    case 'processing':
+                    case 'dispatched':
+                        processingCount++;
+                        break;
+                    case 'delivered':
+                        deliveredCount++;
+                        break;
+                }
+                
+                // Count by payment method
+                if (order.payment_method === 'upi') {
+                    upiCount++;
+                } else if (order.payment_method === 'cod') {
+                    codCount++;
+                }
+                
+                // Calculate sales
+                if (order.payment_status === 'completed' || 
+                    order.payment_status === 'cod_fee_paid' ||
+                    (order.order_status === 'delivered' && order.payment_method === 'cod')) {
+                    totalSales += order.total_amount;
+                    
+                    if (orderDate === today) {
+                        todaySales += order.total_amount;
+                    }
+                }
+                
+                // Calculate COD outstanding
+                if (order.payment_method === 'cod' && order.order_status !== 'delivered') {
+                    codOutstanding += order.total_amount;
+                    codOrdersCount++;
                 }
             });
             
-            // Load recent products
-            async function loadRecentProducts() {
-                try {
-                    const response = await fetch('/api/products');
-                    
-                    if (!response.ok) {
-                        throw new Error(`Error: ${response.status}`);
-                    }
-                    
-                    const products = await response.json();
-                    const recentProductsContainer = document.getElementById('recent-products');
-                    
-                    if (products.length === 0) {
-                        recentProductsContainer.innerHTML = '<p>No products found. Add your first product!</p>';
-                        return;
-                    }
-                    
-                    // Sort by created_at date (newest first)
-                    products.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                    
-                    // Take only the first 5 most recent products
-                    const recentProducts = products.slice(0, 5);
-                    
-                    // Create HTML
-                    let html = '<ul class="product-list">';
-                    
-                    recentProducts.forEach(product => {
-                        html += `
-                        <li class="product-item">
-                            <img src="${product.image_url}" alt="${product.name}" class="product-thumbnail">
-                            <div class="product-details">
-                                <div class="product-name">${product.name}</div>
-                                <div class="product-meta">
-                                    <span class="product-category">${product.category_name || 'Uncategorized'}</span>
-                                    <span class="product-price">₹${product.price}</span>
-                                </div>
-                            </div>
-                        </li>
-                        `;
-                    });
-                    
-                    html += '</ul>';
-                    
-                    // Update container
-                    recentProductsContainer.innerHTML = html;
-                    
-                } catch (error) {
-                    console.error('Error loading recent products:', error);
-                    document.getElementById('recent-products').innerHTML = 
-                        '<p>Error loading recent products. Please try again later.</p>';
-                }
+            // Update KPI values
+            document.getElementById('total-sales').textContent = `₹${totalSales.toLocaleString('en-IN')}`;
+            document.getElementById('today-sales').textContent = `₹${todaySales.toLocaleString('en-IN')}`;
+            document.getElementById('cod-outstanding').textContent = `₹${codOutstanding.toLocaleString('en-IN')}`;
+            document.getElementById('cod-orders-count').textContent = `${codOrdersCount} orders`;
+            
+            document.getElementById('pending-orders').textContent = pendingCount;
+            document.getElementById('processing-orders').textContent = processingCount;
+            document.getElementById('delivered-orders').textContent = deliveredCount;
+            
+            // Update payment method stats
+            document.getElementById('upi-count').textContent = `${upiCount} orders`;
+            document.getElementById('cod-count').textContent = `${codCount} orders`;
+            
+            // Update payment chart
+            if (paymentChart) {
+                paymentChart.data.datasets[0].data = [upiCount, codCount];
+                paymentChart.update();
+            }
+        }
+        
+        function updateInventoryMetrics(products) {
+            let totalInventoryValue = 0;
+            
+            products.forEach(product => {
+                const inventoryCount = product.inventory_count || 0;
+                const price = product.price || 0;
+                totalInventoryValue += inventoryCount * price;
+            });
+            
+            document.getElementById('inventory-value').textContent = `₹${totalInventoryValue.toLocaleString('en-IN')}`;
+        }
+        
+        function updateLowStockAlert(products) {
+            const lowStockProducts = products.filter(product => product.inventory_count < 10);
+            
+            document.getElementById('low-stock-count').textContent = `${lowStockProducts.length} items`;
+            
+            const lowStockList = document.getElementById('low-stock-list');
+            
+            if (lowStockProducts.length === 0) {
+                lowStockList.innerHTML = '<div class="no-alerts">All products have sufficient stock</div>';
+                return;
             }
             
-            // Load recent products
-            loadRecentProducts();
-        });
+            let html = '<div class="low-stock-items">';
+            
+            lowStockProducts.forEach(product => {
+                html += `
+                    <div class="low-stock-item">
+                        <img src="${product.image_url}" alt="${product.name}" class="product-thumbnail">
+                        <div class="product-info">
+                            <div class="product-name">${product.name}</div>
+                            <div class="product-sku">SKU: ${product.sku || 'N/A'}</div>
+                        </div>
+                        <div class="stock-level ${product.inventory_count === 0 ? 'out-of-stock' : 'low-stock'}">
+                            ${product.inventory_count} units
+                        </div>
+                        <a href="/admin/products" class="action-link">
+                            <i class="fas fa-edit"></i> Update
+                        </a>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            lowStockList.innerHTML = html;
+        }
+        
+        function updateCustomerCount(orders) {
+            // Get unique customer emails
+            const uniqueCustomers = new Set(orders.map(order => order.user_email));
+            document.getElementById('total-customers').textContent = uniqueCustomers.size;
+        }
     </script>
+    
     <style>
-        /* Additional styles for the dashboard */
-        .product-list {
-            list-style: none;
-            padding: 0;
+        /* Dashboard Specific Styles */
+        .dashboard-header-info {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex: 1;
+        }
+        
+        .dashboard-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
             margin: 0;
         }
         
-        .product-item {
+        .dashboard-date {
             display: flex;
-            padding: 15px 0;
-            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+            gap: 8px;
+            color: var(--light-text);
+            font-size: 14px;
         }
         
-        .product-item:last-child {
-            border-bottom: none;
+        .dashboard-date i {
+            color: var(--primary-color);
+        }
+        
+        .dashboard-content {
+            padding: 30px;
+        }
+        
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .kpi-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .kpi-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .products-icon {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+        
+        .sales-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        
+        .orders-icon {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+        
+        .outstanding-icon {
+            background: rgba(249, 115, 22, 0.1);
+            color: #f97316;
+        }
+        
+        .kpi-title {
+            font-size: 14px;
+            color: var(--light-text);
+            font-weight: 500;
+        }
+        
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 16px;
+        }
+        
+        .kpi-breakdown {
+            display: flex;
+            gap: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .breakdown-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .breakdown-label {
+            font-size: 12px;
+            color: var(--light-text);
+        }
+        
+        .breakdown-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .breakdown-value.pending {
+            color: #f97316;
+        }
+        
+        .breakdown-value.processing {
+            color: #3b82f6;
+        }
+        
+        .breakdown-value.delivered {
+            color: #10b981;
+        }
+        
+        .kpi-footer {
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .today-sales,
+        .outstanding-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-label {
+            font-size: 14px;
+            color: var(--light-text);
+        }
+        
+        .footer-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        /* Secondary KPI Grid */
+        .secondary-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .secondary-kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .secondary-kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .kpi-icon-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .categories-icon {
+            background: rgba(236, 72, 153, 0.1);
+            color: #ec4899;
+        }
+        
+        .customers-icon {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+        
+        .inventory-icon {
+            background: rgba(168, 85, 247, 0.1);
+            color: #a855f7;
+        }
+        
+        .kpi-info {
+            flex: 1;
+        }
+        
+        .kpi-label {
+            font-size: 14px;
+            color: var(--light-text);
+            margin-bottom: 4px;
+        }
+        
+        .kpi-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-header {
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        
+        .chart-title i {
+            color: var(--primary-color);
+        }
+        
+        .chart-subtitle {
+            font-size: 14px;
+            color: var(--light-text);
+        }
+        
+        .chart-container {
+            height: 250px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .chart-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .stat-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        
+        .upi-color {
+            background: #3b82f6;
+        }
+        
+        .cod-color {
+            background: #f97316;
+        }
+        
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: var(--light-text);
+        }
+        
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        /* Alert Section */
+        .alert-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-title i {
+            color: #f97316;
+        }
+        
+        .alert-count {
+            background: rgba(249, 115, 22, 0.1);
+            color: #f97316;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .low-stock-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .low-stock-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .low-stock-item:hover {
+            background: var(--light-bg);
         }
         
         .product-thumbnail {
-            width: 60px;
-            height: 60px;
-            border-radius: 4px;
+            width: 50px;
+            height: 50px;
+            border-radius: 6px;
             object-fit: cover;
-            margin-right: 15px;
         }
         
-        .product-details {
+        .product-info {
             flex: 1;
         }
         
         .product-name {
             font-weight: 500;
-            margin-bottom: 5px;
+            color: var(--text-color);
+            margin-bottom: 4px;
         }
         
-        .product-meta {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
+        .product-sku {
+            font-size: 12px;
             color: var(--light-text);
         }
         
-        .product-price {
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-        
-        .loading-indicator {
-            padding: 20px;
-            text-align: center;
-            color: var(--light-text);
-        }
-        
-        .loading-indicator i {
-            margin-right: 10px;
-            color: var(--primary-color);
-        }
-    </style>
+        .stock-level {
+            padding: 6px 12px;
+           border-radius: 6px;
+           font-size: 14px;
+           font-weight: 500;
+       }
+       
+       .stock-level.low-stock {
+           background: rgba(249, 115, 22, 0.1);
+           color: #f97316;
+       }
+       
+       .stock-level.out-of-stock {
+           background: rgba(239, 68, 68, 0.1);
+           color: #ef4444;
+       }
+       
+       .action-link {
+           color: var(--primary-color);
+           text-decoration: none;
+           font-size: 14px;
+           font-weight: 500;
+           display: flex;
+           align-items: center;
+           gap: 4px;
+           transition: all 0.2s ease;
+       }
+       
+       .action-link:hover {
+           color: var(--secondary-color);
+       }
+       
+       .no-alerts {
+           text-align: center;
+           padding: 40px;
+           color: var(--light-text);
+           font-size: 14px;
+       }
+       
+       .loading-indicator {
+           text-align: center;
+           padding: 40px;
+           color: var(--light-text);
+       }
+       
+       /* Responsive */
+       @media (max-width: 991px) {
+           .dashboard-header-info {
+               flex-direction: column;
+               align-items: flex-start;
+               gap: 10px;
+           }
+           
+           .dashboard-title {
+               font-size: 20px;
+           }
+           
+           .kpi-grid {
+               grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+               gap: 16px;
+           }
+           
+           .kpi-card {
+               padding: 20px;
+           }
+           
+           .kpi-value {
+               font-size: 28px;
+           }
+           
+           .secondary-kpi-grid {
+               grid-template-columns: 1fr;
+               gap: 16px;
+           }
+           
+           .charts-section {
+               grid-template-columns: 1fr;
+           }
+       }
+       
+       @media (max-width: 767px) {
+           .dashboard-content {
+               padding: 20px;
+           }
+           
+           .kpi-grid {
+               grid-template-columns: 1fr;
+           }
+           
+           .kpi-breakdown {
+               flex-wrap: wrap;
+               gap: 12px;
+           }
+           
+           .low-stock-item {
+               flex-wrap: wrap;
+               gap: 12px;
+           }
+           
+           .product-info {
+               width: 100%;
+               order: 2;
+           }
+           
+           .stock-level,
+           .action-link {
+               width: auto;
+           }
+           
+           .chart-container {
+               height: 200px;
+           }
+           
+           .chart-stats {
+               gap: 20px;
+           }
+       }
+       
+       @media (max-width: 575px) {
+           .kpi-card {
+               padding: 16px;
+           }
+           
+           .kpi-value {
+               font-size: 24px;
+           }
+           
+           .secondary-kpi-card {
+               padding: 16px;
+           }
+           
+           .kpi-number {
+               font-size: 20px;
+           }
+       }
+   </style>
 </body>
 </html>

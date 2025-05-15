@@ -74,7 +74,8 @@ class ProductBase(BaseModel):
     category_id: int
     in_stock: bool = True
     sku: Optional[str] = None
-    filter: Optional[str] = None  # Add this field
+    filter: Optional[str] = None
+    inventory_count: int = 0  # Add this field
 
 class ProductCreate(ProductBase):
     sale_price: Optional[float] = None
@@ -97,7 +98,8 @@ class ProductResponse(ProductBase):
     created_at: datetime
     updated_at: datetime
     additional_images: List[str] = []
-    filter: str = 'all'  # Add this field
+    filter: str = 'all'
+    inventory_count: int = 0  # Add this field
 
 # Category Models
 class CategoryBase(BaseModel):
@@ -160,7 +162,7 @@ async def checkout_page(request: Request):
 # Create order endpoint (placeholder for now)
 @app.post("/api/orders")
 async def create_order_endpoint(order_data: dict, request: Request):
-    """Create a new order with Razorpay integration for all payments including COD"""
+    """Create a new order with Razorpay integration and inventory management"""
     try:
         # Extract order details
         cart = order_data.get("cart", [])
@@ -176,6 +178,30 @@ async def create_order_endpoint(order_data: dict, request: Request):
         
         is_cod = order_data.get("isCOD", False)
         
+        # First, validate inventory for all items
+        from db.supabase_client import get_product
+        for item in cart:
+            product_id = item.get("id") or item.get("product_id")
+            quantity = item.get("quantity", 1)
+            
+            if product_id:
+                # Get product from database
+                product = get_product(product_id)
+                
+                if not product:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Product {product_id} not found"
+                    )
+                
+                inventory_count = product.get("inventory_count", 0)
+                
+                if inventory_count < quantity:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Insufficient inventory for {item.get('name', 'product')}. Available: {inventory_count}, Requested: {quantity}"
+                    )
+        
         # Get the actual order total and the amount to charge on Razorpay
         actual_order_total = order_data.get("actualOrderTotal", 0)
         razorpay_amount = order_data.get("razorpayAmount", 0)  # This is 80 for COD, full amount otherwise
@@ -184,13 +210,23 @@ async def create_order_endpoint(order_data: dict, request: Request):
         # Generate order ID
         order_id = "ORD" + datetime.now().strftime("%Y%m%d%H%M%S")
         
+        # Prepare cart items with product IDs for inventory management
+        cart_with_ids = []
+        for item in cart:
+            cart_item = {
+                **item,
+                "product_id": item.get("id") or item.get("product_id"),
+                "id": item.get("id") or item.get("product_id")
+            }
+            cart_with_ids.append(cart_item)
+        
         # Prepare order record with actual totals
         order_record = {
             "order_id": order_id,
             "user_email": email,
             "phone": phone,
             "delivery_address": delivery_address,
-            "items": cart,
+            "items": cart_with_ids,  # Use cart with proper IDs
             "subtotal": order_data.get("subtotal", 0),
             "delivery_charge": order_data.get("deliveryCharge", 0),
             "tax": order_data.get("tax", 0),
@@ -203,7 +239,6 @@ async def create_order_endpoint(order_data: dict, request: Request):
         # Add COD-specific fields (we'll handle these differently if they don't exist in DB)
         if is_cod:
             # Store COD info in the order record
-            # These will be handled appropriately by the create_order function
             order_record["cod_fee"] = 80
             order_record["cod_remaining"] = remaining_amount
             order_record["cod_status"] = "fee_pending"
@@ -220,6 +255,12 @@ async def create_order_endpoint(order_data: dict, request: Request):
                 saved_order = create_order(order_record)
                 
                 if not saved_order:
+                    # Check if it's an inventory issue
+                    if isinstance(saved_order, dict) and saved_order.get("error"):
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=saved_order.get("error")
+                        )
                     raise Exception("Failed to save order to database")
                 
                 return {
@@ -252,7 +293,20 @@ async def create_order_endpoint(order_data: dict, request: Request):
             saved_order = create_order(order_record)
             
             if not saved_order:
+                # Check if it's an inventory issue
+                if isinstance(saved_order, dict) and saved_order.get("error"):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=saved_order.get("error")
+                    )
                 raise Exception("Failed to save order to database")
+            
+            # Check for inventory issues that were caught during order creation
+            if isinstance(saved_order, dict) and saved_order.get("error"):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=saved_order.get("error")
+                )
             
             print(f"Order saved successfully: {order_id}")
             
@@ -269,6 +323,9 @@ async def create_order_endpoint(order_data: dict, request: Request):
                 "actual_order_total": actual_order_total,
                 "remaining_amount": remaining_amount if is_cod else 0
             }
+        except HTTPException:
+            # Re-raise HTTP exceptions as is
+            raise
         except Exception as e:
             print(f"Razorpay order creation failed: {str(e)}")
             raise HTTPException(
@@ -276,6 +333,9 @@ async def create_order_endpoint(order_data: dict, request: Request):
                 detail=f"Payment gateway error: {str(e)}"
             )
             
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
     except Exception as e:
         print(f"Order creation error: {str(e)}")
         import traceback
@@ -285,6 +345,62 @@ async def create_order_endpoint(order_data: dict, request: Request):
             detail=f"Order creation failed: {str(e)}"
         )
 
+@app.post("/api/check-inventory")
+async def check_inventory(cart_items: List[dict]):
+    """Check inventory availability for cart items"""
+    try:
+        results = []
+        all_available = True
+        
+        for item in cart_items:
+            product_id = item.get("id")
+            quantity = item.get("quantity", 1)
+            
+            if product_id:
+                product = get_product(product_id)
+                
+                if product:
+                    inventory_count = product.get("inventory_count", 0)
+                    available = inventory_count >= quantity
+                    
+                    if not available:
+                        all_available = False
+                    
+                    results.append({
+                        "id": product_id,
+                        "name": product.get("name"),
+                        "requested": quantity,
+                        "available": inventory_count,
+                        "sufficient": available
+                    })
+                else:
+                    results.append({
+                        "id": product_id,
+                        "error": "Product not found"
+                    })
+                    all_available = False
+        
+        return {
+            "success": all_available,
+            "items": results
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to check inventory: {str(e)}"
+        )
+
+# Admin customers page
+@app.get("/admin/customers", response_class=HTMLResponse)
+async def admin_customers_page(request: Request):
+    try:
+        admin_email = await verify_admin_token(request)
+        return templates.TemplateResponse(
+            "admin/customers.html", 
+            {"request": request, "user_email": admin_email}
+        )
+    except HTTPException:
+        return RedirectResponse(url="/admin/login")
 # Verify payment endpoint@app.post("/api/verify-payment")
 @app.post("/api/verify-payment")
 async def verify_payment(payment_data: dict):
@@ -695,7 +811,8 @@ def product_from_db(db_product: Dict[str, Any]) -> ProductResponse:
         created_at=db_product["created_at"],
         updated_at=db_product["updated_at"],
         additional_images=additional_images,
-        filter=db_product.get("filter", "all")  # Add this line
+        filter=db_product.get("filter", "all"),
+        inventory_count=db_product.get("inventory_count", 0)  # Add this line
     )
 
 
@@ -894,14 +1011,21 @@ async def admin_dashboard(request: Request):
             # Get counts for dashboard
             product_count = len(get_all_products())
             category_count = len(get_all_categories())
+        # Get unique customers from orders
+            from db.order_management import get_all_orders
+            orders = get_all_orders()
+            unique_customers = len(set(order.get('user_email') for order in orders))
             
+                
             return templates.TemplateResponse(
                 "admin/dashboard.html", 
                 {
                     "request": request, 
                     "user_email": email,
                     "product_count": product_count,
-                    "category_count": category_count
+                    "category_count": category_count,
+                    "customer_count": unique_customers
+
                 }
             )
         except HTTPException:
@@ -959,13 +1083,14 @@ async def get_admin_order_details(order_id: str, admin_email: str = Depends(veri
         )
 
 # 3. Update order status (admin)
+# Update the existing update_admin_order_status function
 @app.put("/admin/api/orders/{order_id}/status")
 async def update_admin_order_status(
     order_id: str,
     status_update: dict,
     admin_email: str = Depends(verify_admin_token)
 ):
-    """Update the status of an order"""
+    """Update the status of an order with inventory management"""
     try:
         new_status = status_update.get("status")
         notes = status_update.get("notes", "")
@@ -984,8 +1109,8 @@ async def update_admin_order_status(
                 detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
             )
         
-        # Update the order status
-        updated_order = update_order_status(order_id, new_status)
+        # Update the order status with inventory management
+        updated_order = update_order_status(order_id, new_status, notes)
         
         if not updated_order:
             raise HTTPException(
@@ -1262,7 +1387,8 @@ async def create_admin_product(
         "sku": product.sku,
         "tags": product.tags,
         "attributes": product.attributes,
-        "filter": filter_value,  # Add category's filter
+        "filter": filter_value,
+        "inventory_count": product.inventory_count,  # Add this line
         "image_url": "/static/images/products/placeholder.jpg"  # Default image
     }
     
@@ -1295,6 +1421,7 @@ async def update_admin_product(
         filter_value = category.get("filter", "all") if category else "all"
     
     # Prepare product data for database
+# Prepare product data for database
     product_data = {
         "name": product.name,
         "description": product.description,
@@ -1305,7 +1432,8 @@ async def update_admin_product(
         "sku": product.sku,
         "tags": product.tags,
         "attributes": product.attributes,
-        "filter": filter_value  # Update filter if category changed
+        "filter": filter_value,
+        "inventory_count": product.inventory_count  # Add this line
     }
     
     # Update in database

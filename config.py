@@ -14,3 +14,4 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8  # 8 hours
 
 # Application Settings
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+

@@ -79,6 +79,10 @@ def create_product(product_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         if 'filter' not in product_data:
             product_data['filter'] = 'all'
         
+        # Ensure inventory_count is set
+        if 'inventory_count' not in product_data:
+            product_data['inventory_count'] = 0
+        
         # Handle any JSON fields
         if 'attributes' in product_data and isinstance(product_data['attributes'], dict):
             product_data['attributes'] = json.dumps(product_data['attributes'])
@@ -89,6 +93,8 @@ def create_product(product_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     except Exception as e:
         print(f"Error creating product: {e}")
         return None
+
+
 def update_product(product_id: int, product_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Update an existing product
@@ -492,3 +498,74 @@ def upload_reel_video(file_content: bytes, file_name: str) -> Optional[str]:
         import traceback
         traceback.print_exc()
         return None
+
+def deduct_inventory(product_id: int, quantity: int) -> bool:
+    """
+    Deduct inventory for a product after an order is placed
+    Returns True if successful, False otherwise
+    """
+    try:
+        # Get current product
+        product = get_product(product_id)
+        if not product:
+            print(f"Product {product_id} not found")
+            return False
+        
+        current_inventory = product.get('inventory_count', 0)
+        
+        # Check if sufficient inventory
+        if current_inventory < quantity:
+            print(f"Insufficient inventory for product {product_id}. Required: {quantity}, Available: {current_inventory}")
+            return False
+        
+        # Deduct inventory
+        new_inventory = current_inventory - quantity
+        
+        # Update product
+        response = supabase.table('products').update({
+            'inventory_count': new_inventory,
+            'in_stock': new_inventory > 0,  # Update stock status based on inventory
+            'updated_at': datetime.now().isoformat()
+        }).eq('id', product_id).execute()
+        
+        if response.data:
+            print(f"Inventory deducted for product {product_id}: {current_inventory} -> {new_inventory}")
+            return True
+        
+        return False
+    except Exception as e:
+        print(f"Error deducting inventory for product {product_id}: {e}")
+        return False
+
+def restore_inventory(product_id: int, quantity: int) -> bool:
+    """
+    Restore inventory for a product (used when order is cancelled)
+    Returns True if successful, False otherwise
+    """
+    try:
+        # Get current product
+        product = get_product(product_id)
+        if not product:
+            print(f"Product {product_id} not found")
+            return False
+        
+        current_inventory = product.get('inventory_count', 0)
+        
+        # Add back inventory
+        new_inventory = current_inventory + quantity
+        
+        # Update product
+        response = supabase.table('products').update({
+            'inventory_count': new_inventory,
+            'in_stock': True,  # If we're restoring, it should be in stock
+            'updated_at': datetime.now().isoformat()
+        }).eq('id', product_id).execute()
+        
+        if response.data:
+            print(f"Inventory restored for product {product_id}: {current_inventory} -> {new_inventory}")
+            return True
+        
+        return False
+    except Exception as e:
+        print(f"Error restoring inventory for product {product_id}: {e}")
+        return False
