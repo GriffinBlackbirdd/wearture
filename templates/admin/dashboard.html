@@ -71,6 +71,7 @@
                 <!-- Primary KPI Cards -->
                 <div class="kpi-grid">
                     <!-- Total Products Card -->
+                    <a href="/admin/products" class="kpi-card-link">
                     <div class="kpi-card">
                         <div class="kpi-header">
                             <div class="kpi-icon products-icon">
@@ -94,7 +95,9 @@
                             </div>
                         </div>
                     </div>
-                    
+                </a>
+
+                <a href="/admin/orders" class="kpi-card-link">
                     <!-- Total Sales Card -->
                     <div class="kpi-card">
                         <div class="kpi-header">
@@ -111,7 +114,9 @@
                             </div>
                         </div>
                     </div>
-                    
+                </a>
+
+                <a href="/admin/orders" class="kpi-card-link">
                     <!-- Total Orders Card -->
                     <div class="kpi-card">
                         <div class="kpi-header">
@@ -127,8 +132,8 @@
                                 <span class="breakdown-value pending" id="pending-orders">0</span>
                             </div>
                             <div class="breakdown-item">
-                                <span class="breakdown-label">Processing:</span>
-                                <span class="breakdown-value processing" id="processing-orders">0</span>
+                                <span class="breakdown-label">Confirmed:</span>
+                                <span class="breakdown-value confirmed" id="confirmed-orders">0</span>
                             </div>
                             <div class="breakdown-item">
                                 <span class="breakdown-label">Delivered:</span>
@@ -136,7 +141,9 @@
                             </div>
                         </div>
                     </div>
-                    
+                </a>   
+
+                <a href="/admin/orders" class="kpi-card-link">
                     <!-- COD Outstanding Card -->
                     <div class="kpi-card">
                         <div class="kpi-header">
@@ -154,9 +161,11 @@
                         </div>
                     </div>
                 </div>
+            </a>
                 
                 <!-- Secondary KPI Cards -->
                 <div class="secondary-kpi-grid">
+                    <a href="/admin/categories" class="kpi-card-link">
                     <!-- Total Categories -->
                     <div class="secondary-kpi-card">
                         <div class="kpi-icon-small categories-icon">
@@ -167,7 +176,9 @@
                             <div class="kpi-number" id="total-categories">0</div>
                         </div>
                     </div>
-                    
+                </a>
+
+                <a href="/admin/customers" class="kpi-card-link">
                     <!-- Total Customers -->
                     <div class="secondary-kpi-card">
                         <div class="kpi-icon-small customers-icon">
@@ -178,7 +189,9 @@
                             <div class="kpi-number" id="total-customers">0</div>
                         </div>
                     </div>
+                </a>
                     
+                <a href="/admin/products" class="kpi-card-link">
                     <!-- Inventory Value -->
                     <div class="secondary-kpi-card">
                         <div class="kpi-icon-small inventory-icon">
@@ -190,6 +203,7 @@
                         </div>
                     </div>
                 </div>
+            </a>
                 
                 <!-- Charts Section -->
                 <div class="charts-section">
@@ -374,7 +388,7 @@
             
             // Count orders by status and payment method
             let pendingCount = 0;
-            let processingCount = 0;
+            let confirmedCount = 0;
             let deliveredCount = 0;
             let upiCount = 0;
             let codCount = 0;
@@ -387,12 +401,10 @@
                 // Count by status
                 switch (order.order_status) {
                     case 'pending':
-                    case 'confirmed':
                         pendingCount++;
                         break;
-                    case 'processing':
-                    case 'dispatched':
-                        processingCount++;
+                    case 'confirmed':
+                        confirmedCount++;
                         break;
                     case 'delivered':
                         deliveredCount++;
@@ -431,7 +443,7 @@
             document.getElementById('cod-orders-count').textContent = `${codOrdersCount} orders`;
             
             document.getElementById('pending-orders').textContent = pendingCount;
-            document.getElementById('processing-orders').textContent = processingCount;
+            document.getElementById('confirmed-orders').textContent = confirmedCount;
             document.getElementById('delivered-orders').textContent = deliveredCount;
             
             // Update payment method stats
@@ -1029,6 +1041,20 @@
                font-size: 20px;
            }
        }
+
+               /* Clickable KPI cards */
+               .kpi-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: all 0.3s ease;
+        }
+        
+        .kpi-card-link:hover .kpi-card,
+        .kpi-card-link:hover .secondary-kpi-card {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
    </style>
 </body>
 </html>

@@ -297,26 +297,34 @@
 
         /* Modern hero section */
         .category-hero {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            min-height: 350px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    min-height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center center;
+    transition: all 0.5s ease;
+}
+.category-hero[style*="background:"] {
+    min-height: 450px; /* Make it taller when we have a cover image */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
 
-        .category-hero::before {
-            content: '';
-            position: absolute;
-            width: 300%;
-            height: 300%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-            background-size: 30px 30px;
-            top: -100%;
-            left: -100%;
-            animation: floatGrid 20s linear infinite;
-        }
+.category-hero::before {
+    content: '';
+    position: absolute;
+    width: 300%;
+    height: 300%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 30px 30px;
+    top: -100%;
+    left: -100%;
+    animation: floatGrid 20s linear infinite;
+    z-index: 1;
+}
 
         @keyframes floatGrid {
             0% { transform: translate(0, 0); }
@@ -324,28 +332,38 @@
         }
 
         .hero-content {
-            text-align: center;
-            color: white;
-            z-index: 1;
-            padding: 40px 20px;
-        }
+    text-align: center;
+    color: white;
+    z-index: 2;
+    padding: 40px 20px;
+    max-width: 800px;
+    position: relative;
+    animation: fadeIn 1s ease;
+}
 
-        .hero-content h1 {
-            font-family: var(--font-heading);
-            font-size: 56px;
-            font-weight: 700;
-            margin-bottom: 15px;
-            animation: slideInDown 0.8s ease;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
 
-        .hero-content p {
-            font-size: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-            opacity: 0.9;
-            animation: slideInUp 0.8s ease 0.2s both;
-        }
+/* Enhanced text shadow for better readability over any background */
+.hero-content h1 {
+    font-family: var(--font-heading);
+    font-size: 56px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    animation: slideInDown 0.8s ease;
+    text-shadow: 2px 2px 15px rgba(0,0,0,0.5);
+    letter-spacing: 1px;
+}
+
+
+.hero-content p {
+    font-size: 20px;
+    max-width: 700px;
+    margin: 0 auto;
+    opacity: 0.9;
+    animation: slideInUp 0.8s ease 0.2s both;
+    text-shadow: 1px 1px 10px rgba(0,0,0,0.5);
+    line-height: 1.6;
+}
+
 
         /* Floating shapes */
         .floating-shape {
@@ -605,6 +623,9 @@
             position: relative;
             transform: translateY(0);
             transition: all 0.5s var(--cubic-ease);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
         .product-card:hover {
@@ -615,20 +636,21 @@
         /* Enhanced image container */
         .product-image-container {
             position: relative;
-            height: auto;
-            min-height: 280px;
-            max-height: 720px;
+            height: 0;
+            padding-bottom: 100%; /* Creates a square aspect ratio */
             overflow: hidden;
             background: #f8f9fa;
         }
 
         .product-image {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: auto;
-            display: block;
+            height: 100%;
+            object-fit: cover; /* This ensures the image covers the container while maintaining aspect ratio */
             transition: transform 0.8s ease;
         }
-        
         .product-card:hover .product-image {
             transform: scale(1.1);
         }
@@ -1209,6 +1231,46 @@
                 flex: 1;
             }
         }
+
+        /* Category Page Product Hover Styles */
+.category-container .product-image-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.category-container .product-image,
+.category-container .product-second-image {
+    width: 100%;
+    height: auto;
+    transition: transform 0.8s ease, opacity 0.4s ease;
+}
+
+.category-container .product-second-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    z-index: 1;
+}
+
+.category-container .product-image.hide {
+    opacity: 0;
+}
+
+.category-container .product-second-image.show {
+    opacity: 1;
+}
+
+/* Enhance the zoom effect */
+.category-container .product-card:hover .product-image,
+.category-container .product-card:hover .product-second-image.show {
+    transform: scale(1.1);
+}
+
+/* Ensure the overlay remains visible and above the second image */
+.category-container .product-overlay {
+    z-index: 5;
+}
     </style>
 </head>
 <body>
@@ -1283,16 +1345,17 @@
     </div>
 
     <!-- Modern Hero Section -->
-    <section class="category-hero">
-        <div class="floating-shape shape-1"></div>
-        <div class="floating-shape shape-2"></div>
-        <div class="floating-shape shape-3"></div>
-        
-        <div class="hero-content">
-            <h1>{{ category.name }}</h1>
-            <p>{{ category.description }}</p>
-        </div>
-    </section>
+<!-- Modern Hero Section -->
+<section class="category-hero" {% if category.cover_image_url %}style="background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('{{ category.cover_image_url }}'); background-size: cover; background-position: center;"{% endif %}>
+    <div class="floating-shape shape-1"></div>
+    <div class="floating-shape shape-2"></div>
+    <div class="floating-shape shape-3"></div>
+    
+    <div class="hero-content">
+        <h1>{{ category.name }}</h1>
+        <p>{{ category.description }}</p>
+    </div>
+</section>
 
     <!-- Category Content -->
     <div class="category-container">
@@ -1361,57 +1424,59 @@
         <div class="product-grid">
             {% if category_products %}
                 {% for product in category_products %}
-                    <div class="product-card" data-price="{{ product.price }}" data-date="{{ product.created_at }}">
-                        {% if product.sale_price %}
-                            <div class="product-badge">Sale</div>
-                        {% endif %}
-                        <div class="product-image-container">
-                            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
-                            
-                            <div class="product-overlay">
-                                <div class="overlay-content">
-                                    <div class="overlay-category">{{ product.category_name }}</div>
-                                    <h3 class="overlay-name">{{ product.name }}</h3>
-                                    <p class="overlay-description">{{ product.description[:150] }}...</p>
-                                    
-                                    <div class="overlay-actions">
-                                        <a href="/product/{{ product.id }}" class="action-btn">
-                                            <i class="fas fa-eye"></i> View Details
-                                        </a>
-                                        <button class="action-btn add-to-cart add-to-cart-btn" 
-                                            data-id="{{ product.id }}"
-                                            data-name="{{ product.name }}"
-                                            data-price="{{ product.sale_price if product.sale_price else product.price }}"
-                                            data-image="{{ product.image_url }}"
-                                            type="button">
-                                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="product-info">
-                            <h3 class="product-name">{{ product.name }}</h3>
-                            <div class="product-price">
-                                {% if product.sale_price %}
-                                    <span class="current-price">₹{{ product.sale_price }}</span>
-                                    <span class="original-price">₹{{ product.price }}</span>
-                                {% else %}
-                                    <span class="current-price">₹{{ product.price }}</span>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="quick-actions">
-                                <button class="quick-action add-to-wishlist" data-id="{{ product.id }}">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                                <button class="quick-action quick-view" data-id="{{ product.id }}">
-                                    <i class="fas fa-expand"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="product-card" data-price="{{ product.price }}" data-date="{{ product.created_at }}" 
+                data-product-data='{"additional_images": {{ product.additional_images|tojson if product.additional_images else "[]" }}}'>
+               {% if product.sale_price %}
+                   <div class="product-badge">Sale</div>
+               {% endif %}
+               
+               <div class="product-image-container">
+                   <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
+                   
+                   <div class="product-overlay">
+                       <div class="overlay-content">
+                           <div class="overlay-category">{{ product.category_name }}</div>
+                           <h3 class="overlay-name">{{ product.name }}</h3>
+                           <p class="overlay-description">{{ product.description[:150] }}...</p>
+                           
+                           <div class="overlay-actions">
+                               <a href="/product/{{ product.id }}" class="action-btn">
+                                   <i class="fas fa-eye"></i> View Details
+                               </a>
+                               <button class="action-btn add-to-cart add-to-cart-btn" 
+                                   data-id="{{ product.id }}"
+                                   data-name="{{ product.name }}"
+                                   data-price="{{ product.sale_price if product.sale_price else product.price }}"
+                                   data-image="{{ product.image_url }}"
+                                   type="button">
+                                   <i class="fas fa-shopping-cart"></i> Add to Cart
+                               </button>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+               
+               <div class="product-info">
+                   <h3 class="product-name">{{ product.name }}</h3>
+                   <div class="product-price">
+                       {% if product.sale_price %}
+                           <span class="current-price">₹{{ product.sale_price }}</span>
+                           <span class="original-price">₹{{ product.price }}</span>
+                       {% else %}
+                           <span class="current-price">₹{{ product.price }}</span>
+                       {% endif %}
+                   </div>
+                   
+                   <div class="quick-actions">
+                       <button class="quick-action add-to-wishlist" data-id="{{ product.id }}">
+                           <i class="far fa-heart"></i>
+                       </button>
+                       <button class="quick-action quick-view" data-id="{{ product.id }}">
+                           <i class="fas fa-expand"></i>
+                       </button>
+                   </div>
+               </div>
+           </div>
                 {% endfor %}
             {% else %}
                 <div class="no-products">
@@ -1874,5 +1939,63 @@
             initializeCart();
         });
     </script>
+
+<script>
+
+    // Category Page Product Hover Effect
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we're on the category page
+    const categoryContainer = document.querySelector('.category-container');
+    if (!categoryContainer) return; // Only proceed on category page
+    
+    // Find all product cards on the category page
+    const productCards = document.querySelectorAll('.product-grid .product-card');
+    
+    productCards.forEach(card => {
+        // Get the main image container and image
+        const imageContainer = card.querySelector('.product-image-container');
+        const mainImage = card.querySelector('.product-image');
+        
+        if (!imageContainer || !mainImage) return;
+        
+        // Check if this product has additional images in data attribute
+        const productData = card.dataset.productData;
+        let additionalImages = [];
+        
+        if (productData) {
+            try {
+                const parsedData = JSON.parse(productData);
+                additionalImages = parsedData.additional_images || [];
+            } catch (e) {
+                console.error('Error parsing product data:', e);
+            }
+        }
+        
+        // If there's at least one additional image, create the hover effect
+        if (additionalImages.length > 0) {
+            // Store the original image URL
+            const originalSrc = mainImage.src;
+            
+            // Create a second image element that will be hidden initially
+            const secondImage = document.createElement('img');
+            secondImage.src = additionalImages[0]; // Use the first additional image
+            secondImage.alt = mainImage.alt;
+            secondImage.className = 'product-second-image';
+            imageContainer.appendChild(secondImage);
+            
+            // Add hover event listeners to the card
+            card.addEventListener('mouseenter', function() {
+                secondImage.classList.add('show');
+                mainImage.classList.add('hide');
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                secondImage.classList.remove('show');
+                mainImage.classList.remove('hide');
+            });
+        }
+    });
+});
+</script>
 </body>
 </html>

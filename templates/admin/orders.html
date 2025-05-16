@@ -164,8 +164,8 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline modal-close">Close</button>
-                <button class="btn btn-primary" id="print-order-btn">
-                    <i class="fas fa-print"></i> Print Invoice
+                <button class="btn btn-primary" id="download-invoice-btn" onclick="downloadInvoice()">
+                    <i class="fas fa-download"></i> Download Invoice
                 </button>
             </div>
         </div>
@@ -432,33 +432,41 @@
         
         // View order details
         async function viewOrderDetails(orderId) {
-            try {
-                showNotification('Loading order details...', 'info');
-                
-                const response = await fetch(`/admin/api/orders/${orderId}`);
-                
-                if (!response.ok) {
-                    throw new Error(`Failed to load order details: ${response.status}`);
-                }
-                
-                const order = await response.json();
-                displayOrderDetails(order);
-                
-                // Show modal
-                const modal = document.getElementById('order-details-modal');
-                if (modal) {
-                    modal.classList.add('show');
-                }
-                
-            } catch (error) {
-                console.error('Error loading order details:', error);
-                showNotification('Failed to load order details', 'error');
-            }
+    try {
+        showNotification('Loading order details...', 'info');
+        
+        const response = await fetch(`/admin/api/orders/${orderId}`);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to load order details: ${response.status}`);
         }
+        
+        const order = await response.json();
+        displayOrderDetails(order);
+        
+        // Update download button with order ID
+        const downloadBtn = document.getElementById('download-invoice-btn');
+        if (downloadBtn) {
+            downloadBtn.onclick = () => downloadInvoice(orderId);
+        }
+        
+        // Show modal
+        const modal = document.getElementById('order-details-modal');
+        if (modal) {
+            modal.classList.add('show');
+        }
+        
+    } catch (error) {
+        console.error('Error loading order details:', error);
+        showNotification('Failed to load order details', 'error');
+    }
+}
         
         // Display order details in modal
         function displayOrderDetails(order) {
             const contentDiv = document.getElementById('order-details-content');
+            contentDiv.dataset.orderId = order.order_id;
+
             
             // Parse items and address if they're JSON strings
             let items = order.items;
@@ -763,6 +771,25 @@
                 }, 4000);
             };
         }
+
+        function downloadInvoice() {
+                const orderId = document.getElementById('update-order-id').value || 
+                            document.querySelector('[data-order-id]')?.dataset.orderId;
+                
+                if (!orderId) {
+                    showNotification('Order ID not found', 'error');
+                    return;
+                }
+                
+    
+                // Create a temporary anchor element to download the file
+                const link = document.createElement('a');
+                link.href = `/admin/api/orders/${orderId}/invoice`;
+                link.download = `WEARXTURE_Invoice_${orderId}.pdf`;
+                link.click();
+                showNotification('Invoice downloading...', 'info');
+            }
+
     </script>
     
     <style>

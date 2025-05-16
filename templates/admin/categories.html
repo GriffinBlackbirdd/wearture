@@ -114,68 +114,81 @@
         </div>
     </div>
     
-    <!-- Add/Edit Category Modal -->
-    <div class="modal-backdrop" id="category-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Add New Category</h2>
-                <button class="modal-close"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body">
-                <form id="category-form">
-                    <input type="hidden" id="category-id" name="id">
-                    
-                    <div class="form-group">
-                        <label for="category-name">Category Name</label>
-                        <input type="text" id="category-name" name="name" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="category-description">Description</label>
-                        <textarea id="category-description" name="description" class="form-control" rows="3"></textarea>
-                    </div>
+<!-- Add/Edit Category Modal -->
+<div class="modal-backdrop" id="category-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Add New Category</h2>
+            <button class="modal-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="category-form">
+                <input type="hidden" id="category-id" name="id">
+                
+                <div class="form-group">
+                    <label for="category-name">Category Name</label>
+                    <input type="text" id="category-name" name="name" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="category-description">Description</label>
+                    <textarea id="category-description" name="description" class="form-control" rows="3"></textarea>
+                </div>
 
-                    <div class="form-group">
-                        <label for="category-filter">Filter</label>
-                        <select id="category-filter" name="filter" class="form-control" required>
-                            <option value="all">All</option>
-                            <option value="men">Men</option>
-                            <option value="women">Women</option>
-                            <option value="accessories">Accessories</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="category-filter">Filter</label>
+                    <select id="category-filter" name="filter" class="form-control" required>
+                        <option value="all">All</option>
+                        <option value="men">Men</option>
+                        <option value="women">Women</option>
+                        <option value="accessories">Accessories</option>
+                    </select>
+                </div>
 
-                    
-                    <div class="form-group">
-                        <label for="category-parent">Parent Category (Optional)</label>
-                        <select id="category-parent" name="parent_id" class="form-control">
-                            <option value="">None (Top Level)</option>
-                            {% for category in categories %}
-                            <option value="{{ category.id }}">{{ category.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <!-- Updated image upload section -->
-                    <div class="form-group">
-                        <label>Category Image</label>
-                        <input type="file" id="category-image" name="category_image" accept="image/*">
-                        <button type="button" id="clearCategoryImageBtn" class="btn btn-outline">Clear Image</button>
-                        <div id="category-image-preview-container" class="image-preview-container">
-                            <div id="preview-placeholder" class="preview-placeholder">
-                                <span>No image selected</span>
-                            </div>
-                            <!-- Image preview will be added here -->
+                <div class="form-group">
+                    <label for="category-parent">Parent Category (Optional)</label>
+                    <select id="category-parent" name="parent_id" class="form-control">
+                        <option value="">None (Top Level)</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Main Category Image -->
+                <div class="form-group">
+                    <label>Category Image (Card Display)</label>
+                    <input type="file" id="category-image" name="category_image" accept="image/*">
+                    <button type="button" id="clearCategoryImageBtn" class="btn btn-outline">Clear Image</button>
+                    <div id="category-image-preview-container" class="image-preview-container">
+                        <div id="preview-placeholder" class="preview-placeholder">
+                            <span>No image selected</span>
                         </div>
+                        <!-- Image preview will be added here -->
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline modal-close">Cancel</button>
-                <button class="btn btn-primary" id="save-category-btn">Save Category</button>
-            </div>
+                </div>
+                
+                <!-- NEW: Cover Image for Category Hero -->
+                <div class="form-group">
+                    <label>Category Cover Image (Hero Background)</label>
+                    <p class="field-description">This image will be used as background in the category detail page</p>
+                    <input type="file" id="category-cover-image" name="category_cover_image" accept="image/*">
+                    <button type="button" id="clearCategoryCoverImageBtn" class="btn btn-outline">Clear Cover Image</button>
+                    <div id="category-cover-image-preview-container" class="image-preview-container">
+                        <div id="cover-preview-placeholder" class="preview-placeholder">
+                            <span>No cover image selected</span>
+                        </div>
+                        <!-- Cover image preview will be added here -->
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline modal-close">Cancel</button>
+            <button class="btn btn-primary" id="save-category-btn">Save Category</button>
         </div>
     </div>
+</div>
     
     <!-- Delete Confirmation Modal -->
     <div class="modal-backdrop" id="delete-modal">
@@ -452,7 +465,8 @@
             }
             
             // Save category with updated implementation
-            if (saveButton && categoryForm) {
+ // Save category with updated implementation including cover image
+if (saveButton && categoryForm) {
     saveButton.addEventListener('click', async function() {
         if (validateCategoryForm()) {
             try {
@@ -468,8 +482,8 @@
                 // Convert form data to JSON for the category API
                 const categoryData = {};
                 formData.forEach((value, key) => {
-                    // Skip the file input
-                    if (key === 'category_image') return;
+                    // Skip the file inputs
+                    if (key === 'category_image' || key === 'category_cover_image') return;
                     
                     // Handle parent_id as integer or null
                     if (key === 'parent_id') {
@@ -508,7 +522,7 @@
                 const result = await response.json();
                 console.log('Category saved:', result);
                 
-                // Step 2: Handle image upload if an image was selected
+                // Step 2: Handle main image upload if an image was selected
                 const categoryImageInput = document.getElementById('category-image');
                 if (categoryImageInput && categoryImageInput.files && categoryImageInput.files.length > 0) {
                     // Create a new FormData for the image upload
@@ -516,7 +530,7 @@
                     imageFormData.append('category_id', result.id);
                     imageFormData.append('file', categoryImageInput.files[0]);
                     
-                    console.log('Uploading image for category ID:', result.id);
+                    console.log('Uploading main image for category ID:', result.id);
                     
                     try {
                         const uploadResponse = await fetch('/admin/api/upload/category-image', {
@@ -529,10 +543,41 @@
                         }
                         
                         const uploadResult = await uploadResponse.json();
-                        console.log('Image upload success:', uploadResult);
+                        console.log('Main image upload success:', uploadResult);
                     } catch (uploadError) {
                         console.error('Error uploading category image:', uploadError);
                         showNotification('Category saved but image upload failed. Please try again.', 'warning');
+                        setTimeout(() => window.location.reload(), 2500);
+                        return;
+                    }
+                }
+                
+                // Step 3: Handle cover image upload if a cover image was selected
+                const categoryCoverImageInput = document.getElementById('category-cover-image');
+                if (categoryCoverImageInput && categoryCoverImageInput.files && categoryCoverImageInput.files.length > 0) {
+                    // Create a new FormData for the cover image upload
+                    const coverImageFormData = new FormData();
+                    coverImageFormData.append('category_id', result.id);
+                    coverImageFormData.append('file', categoryCoverImageInput.files[0]);
+                    coverImageFormData.append('is_cover', 'true'); // Flag to indicate this is a cover image
+                    
+                    console.log('Uploading cover image for category ID:', result.id);
+                    
+                    try {
+                        const uploadCoverResponse = await fetch('/admin/api/upload/category-cover-image', {
+                            method: 'POST',
+                            body: coverImageFormData
+                        });
+                        
+                        if (!uploadCoverResponse.ok) {
+                            throw new Error(`Cover image upload failed: ${uploadCoverResponse.status}`);
+                        }
+                        
+                        const uploadCoverResult = await uploadCoverResponse.json();
+                        console.log('Cover image upload success:', uploadCoverResult);
+                    } catch (uploadError) {
+                        console.error('Error uploading category cover image:', uploadError);
+                        showNotification('Category saved but cover image upload failed. Please try again.', 'warning');
                         setTimeout(() => window.location.reload(), 2500);
                         return;
                     }
@@ -578,7 +623,8 @@
             }
             
             // Load category for editing
-            async function loadCategoryForEdit(categoryId) {
+// Load category for editing
+async function loadCategoryForEdit(categoryId) {
     try {
         resetCategoryForm();
         
@@ -595,11 +641,16 @@
         document.getElementById('category-name').value = category.name;
         document.getElementById('category-description').value = category.description || '';
         document.getElementById('category-parent').value = category.parent_id || '';
-        document.getElementById('category-filter').value = category.filter || 'all'; // Add this line
+        document.getElementById('category-filter').value = category.filter || 'all';
         
-        // Show category image if available using our function
+        // Show category main image if available using our function
         if (category.image_url) {
             loadExistingCategoryImage(category.image_url);
+        }
+        
+        // Show category cover image if available
+        if (category.cover_image_url) {
+            loadExistingCategoryCoverImage(category.cover_image_url);
         }
         
         // Update modal title
@@ -615,30 +666,44 @@
 }
             
             // Reset category form
-            function resetCategoryForm() {
-                if (categoryForm) {
-                    categoryForm.reset();
-                    categoryId.value = '';
-                    
-                    // Reset image preview
-                    const existingPreviews = document.querySelectorAll('.category-image-preview');
-                    existingPreviews.forEach(preview => preview.remove());
-                    
-                    // Show placeholder
-                    if (previewPlaceholder) {
-                        previewPlaceholder.style.display = 'flex';
-                    }
-                    
-                    // Clear file input
-                    if (categoryImageInput) {
-                        categoryImageInput.value = '';
-                    }
-                    
-                    // Clear error messages
-                    document.querySelectorAll('.error-message').forEach(el => el.remove());
-                    document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
-                }
-            }
+// Reset category form
+function resetCategoryForm() {
+    if (categoryForm) {
+        categoryForm.reset();
+        categoryId.value = '';
+        
+        // Reset main image preview
+        const existingMainPreviews = document.querySelectorAll('.category-image-preview');
+        existingMainPreviews.forEach(preview => preview.remove());
+        
+        // Show main image placeholder
+        if (previewPlaceholder) {
+            previewPlaceholder.style.display = 'flex';
+        }
+        
+        // Reset cover image preview
+        const existingCoverPreviews = document.querySelectorAll('.category-cover-image-preview');
+        existingCoverPreviews.forEach(preview => preview.remove());
+        
+        // Show cover image placeholder
+        if (coverPreviewPlaceholder) {
+            coverPreviewPlaceholder.style.display = 'flex';
+        }
+        
+        // Clear file inputs
+        if (categoryImageInput) {
+            categoryImageInput.value = '';
+        }
+        
+        if (categoryCoverImageInput) {
+            categoryCoverImageInput.value = '';
+        }
+        
+        // Clear error messages
+        document.querySelectorAll('.error-message').forEach(el => el.remove());
+        document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+    }
+}
             
             // Count products per category
             async function loadProductCounts() {
@@ -714,6 +779,136 @@
                 };
             }
         });
+
+        // Cover image handling with the same approach as the main image
+const categoryCoverImageInput = document.getElementById('category-cover-image');
+const categoryCoverPreviewContainer = document.getElementById('category-cover-image-preview-container');
+const coverPreviewPlaceholder = document.getElementById('cover-preview-placeholder');
+const clearCategoryCoverImageBtn = document.getElementById('clearCategoryCoverImageBtn');
+
+if (categoryCoverImageInput && categoryCoverPreviewContainer) {
+    console.log('Category cover image upload elements found');
+    
+    categoryCoverImageInput.addEventListener('change', function() {
+        console.log('Category cover image input changed, files:', this.files.length);
+        
+        if (!this.files || this.files.length === 0) {
+            console.log('No category cover image selected');
+            return;
+        }
+        
+        const file = this.files[0]; // Only need the first file for category cover image
+        
+        if (!file.type.match('image.*')) {
+            console.log('Not an image file:', file.name);
+            alert('Please select a valid image file (JPG, PNG, etc.)');
+            return;
+        }
+        
+        console.log('Processing category cover image:', file.name);
+        
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            console.log('Category cover image loaded successfully');
+            
+            // Clear existing preview
+            if (coverPreviewPlaceholder) {
+                coverPreviewPlaceholder.style.display = 'none';
+            }
+            
+            // Remove any existing image preview
+            const existingPreviews = categoryCoverPreviewContainer.querySelectorAll('.category-cover-image-preview');
+            existingPreviews.forEach(preview => preview.remove());
+            
+            // Create preview element
+            const preview = document.createElement('div');
+            preview.className = 'category-cover-image-preview';
+            preview.style.backgroundImage = `url(${e.target.result})`;
+            
+            // Add remove button
+            const removeBtn = document.createElement('div');
+            removeBtn.className = 'remove-image';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.addEventListener('click', function() {
+                preview.remove();
+                categoryCoverImageInput.value = ''; // Reset file input
+                if (coverPreviewPlaceholder) {
+                    coverPreviewPlaceholder.style.display = 'flex';
+                }
+            });
+            
+            preview.appendChild(removeBtn);
+            categoryCoverPreviewContainer.appendChild(preview);
+        };
+        
+        reader.onerror = function() {
+            console.error('Error reading category cover image file');
+            alert('Error reading the image file. Please try another image.');
+        };
+        
+        reader.readAsDataURL(file);
+    });
+    
+    if (clearCategoryCoverImageBtn) {
+        clearCategoryCoverImageBtn.addEventListener('click', function() {
+            // Remove any existing image preview
+            const existingPreviews = categoryCoverPreviewContainer.querySelectorAll('.category-cover-image-preview');
+            existingPreviews.forEach(preview => preview.remove());
+            
+            // Reset file input
+            categoryCoverImageInput.value = '';
+            
+            // Show placeholder
+            if (coverPreviewPlaceholder) {
+                coverPreviewPlaceholder.style.display = 'flex';
+            }
+        });
+    }
+} else {
+    console.error('Category cover image upload elements missing:', {
+        categoryCoverImageInput: !!categoryCoverImageInput,
+        categoryCoverPreviewContainer: !!categoryCoverPreviewContainer
+    });
+}
+
+// Function to load existing category cover image
+function loadExistingCategoryCoverImage(imageUrl) {
+    if (!imageUrl) return;
+    
+    console.log('Loading existing category cover image:', imageUrl);
+    
+    if (coverPreviewPlaceholder) {
+        coverPreviewPlaceholder.style.display = 'none';
+    }
+    
+    // Remove any existing image preview
+    const existingPreviews = categoryCoverPreviewContainer.querySelectorAll('.category-cover-image-preview');
+    existingPreviews.forEach(preview => preview.remove());
+    
+    // Create preview element
+    const preview = document.createElement('div');
+    preview.className = 'category-cover-image-preview';
+    preview.style.backgroundImage = `url(${imageUrl})`;
+    
+    // Add remove button
+    const removeBtn = document.createElement('div');
+    removeBtn.className = 'remove-image';
+    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+    removeBtn.addEventListener('click', function() {
+        preview.remove();
+        categoryCoverImageInput.value = ''; // Reset file input
+        if (coverPreviewPlaceholder) {
+            coverPreviewPlaceholder.style.display = 'flex';
+        }
+    });
+    
+    preview.appendChild(removeBtn);
+    categoryCoverPreviewContainer.appendChild(preview);
+}
+
+// Make this function available globally
+window.loadExistingCategoryCoverImage = loadExistingCategoryCoverImage;
     </script>
     
     <style>
@@ -976,6 +1171,48 @@
                 height: 160px;
             }
         }
+
+        /* Cover image upload styles */
+.field-description {
+    font-size: 12px;
+    color: #777;
+    margin-top: -5px;
+    margin-bottom: 10px;
+}
+
+.category-cover-image-preview {
+    width: 150px;
+    height: 70px;
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    background-size: cover;
+    background-position: center;
+}
+
+/* Overall container for cover image similar to main image but with a hint */
+#category-cover-image-preview-container {
+    background-color: #f5f5f5;
+    border: 1px dashed #ddd;
+}
+
+/* Style the cover image preview differently to indicate its role */
+#category-cover-image-preview-container::before {
+    content: 'Banner Image';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.7;
+}
+
+
     </style>
 </body>
 </html>

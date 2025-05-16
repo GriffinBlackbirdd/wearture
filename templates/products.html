@@ -933,6 +933,48 @@
                 padding: 15px;
             }
         }
+/* Product Image Hover Transition Styles */
+.product-image-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.product-image,
+.product-second-image {
+    width: 100%;
+    height: auto;
+    transition: transform 0.8s ease, opacity 0.4s ease;
+}
+
+.product-second-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    z-index: 1;
+}
+
+.product-image.hide {
+    opacity: 0;
+}
+
+.product-second-image.show {
+    opacity: 1;
+}
+
+/* Enhance the zoom effect */
+.product-card:hover .product-image,
+.product-card:hover .product-second-image.show {
+    transform: scale(1.1);
+}
+.product-overlay {
+    z-index: 5 !important;
+}
+
+/* Ensure the overlay remains visible and above the second image */
+.product-card:hover .product-overlay {
+    opacity: 1;
+}
     </style>
 </head>
 <body>
@@ -1032,58 +1074,59 @@
         <div class="product-grid">
             {% if products %}
                 {% for product in products %}
-                    <div class="product-card">
-                        {% if product.sale_price %}
-                            <div class="product-badge">Sale</div>
-                        {% endif %}
+                <div class="product-card" data-price="{{ product.price }}" data-date="{{ product.created_at }}" 
+                data-product-data='{"additional_images": {{ product.additional_images|tojson if product.additional_images else "[]" }}}'>
+               {% if product.sale_price %}
+                   <div class="product-badge">Sale</div>
+               {% endif %}
+               
+               <div class="product-image-container">
+                   <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
+                   
+                   <div class="product-overlay">
+                       <div class="overlay-content">
+                           <div class="overlay-category">{{ product.category_name }}</div>
+                           <h3 class="overlay-name">{{ product.name }}</h3>
+                           <p class="overlay-description">{{ product.description[:150] }}...</p>
+                           
+                           <div class="overlay-actions">
+                               <a href="/product/{{ product.id }}" class="action-btn">
+                                   <i class="fas fa-eye"></i> View Details
+                               </a>
+                               <button class="action-btn add-to-cart add-to-cart-btn" 
+                                   data-id="{{ product.id }}"
+                                   data-name="{{ product.name }}"
+                                   data-price="{{ product.sale_price if product.sale_price else product.price }}"
+                                   data-image="{{ product.image_url }}"
+                                   type="button">
+                                   <i class="fas fa-shopping-cart"></i> Add to Cart
+                               </button>
+                           </div>
+                       </div>
+                   </div>
+               </div>
                         
-                        <div class="product-image-container">
-                            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
+               <div class="product-info">
+                <h3 class="product-name">{{ product.name }}</h3>
+                <div class="product-price">
+                    {% if product.sale_price %}
+                        <span class="current-price">₹{{ product.sale_price }}</span>
+                        <span class="original-price">₹{{ product.price }}</span>
+                    {% else %}
+                        <span class="current-price">₹{{ product.price }}</span>
+                    {% endif %}
+                </div>
                             
-                            <div class="product-overlay">
-                                <div class="overlay-content">
-                                    <div class="overlay-category">{{ product.category_name }}</div>
-                                    <h3 class="overlay-name">{{ product.name }}</h3>
-                                    <p class="overlay-description">{{ product.description[:150] }}...</p>
-                                    
-                                    <div class="overlay-actions">
-                                        <a href="/product/{{ product.id }}" class="action-btn">
-                                            <i class="fas fa-eye"></i> View Details
-                                        </a>
-                                        <button class="action-btn add-to-cart add-to-cart-btn" 
-                                            data-id="{{ product.id }}"
-                                            data-name="{{ product.name }}"
-                                            data-price="{{ product.sale_price if product.sale_price else product.price }}"
-                                            data-image="{{ product.image_url }}"
-                                            type="button">
-                                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="product-info">
-                            <h3 class="product-name">{{ product.name }}</h3>
-                            <div class="product-price">
-                                {% if product.sale_price %}
-                                    <span>₹{{ product.sale_price }}</span>
-                                    <span class="original-price">₹{{ product.price }}</span>
-                                {% else %}
-                                    <span>₹{{ product.price }}</span>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="quick-actions">
-                                <button class="quick-action add-to-wishlist" data-id="{{ product.id }}">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                                <button class="quick-action quick-view" data-id="{{ product.id }}">
-                                    <i class="fas fa-expand"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="quick-actions">
+                    <button class="quick-action add-to-wishlist" data-id="{{ product.id }}">
+                        <i class="far fa-heart"></i>
+                    </button>
+                    <button class="quick-action quick-view" data-id="{{ product.id }}">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
                 {% endfor %}
             {% else %}
                 <div class="no-products">
@@ -1440,5 +1483,6 @@
             initializeCart();
         });
     </script>
+<script src="{{ url_for('static', path='/js/product-hover.js') }}"></script>
 </body>
 </html>

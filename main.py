@@ -12,6 +12,7 @@ import json
 from datetime import datetime, timedelta
 from jose import jwt
 from admin.user_auth import router as user_auth_router
+from inspect import iscoroutinefunction
 
 from db.razorpay_client import (
     create_razorpay_order, 
@@ -28,7 +29,7 @@ from db.supabase_client import (
     get_all_categories, get_category, create_category, update_category, delete_category,
     upload_product_image, upload_category_image, verify_admin_credentials, supabase, 
     get_products_by_category, get_subcategories, update_product_images, get_related_products,
-    get_all_reels, get_active_reels, get_reel, create_reel, update_reel, delete_reel, upload_reel_video
+    get_all_reels, get_active_reels, get_reel, create_reel, update_reel, delete_reel, upload_reel_video, upload_category_cover_image,
 )
 from db.order_management import (
     create_order, get_order, update_order_payment_status,
@@ -117,6 +118,7 @@ class CategoryUpdate(CategoryBase):
 class CategoryResponse(CategoryBase):
     id: int
     image_url: Optional[str] = None
+    cover_image_url: Optional[str] = None  # Add this field
     created_at: datetime
     updated_at: datetime
     filter: str = 'all'  # Add this field
@@ -824,6 +826,7 @@ def category_from_db(db_category: Dict[str, Any]) -> CategoryResponse:
         description=db_category["description"],
         parent_id=db_category["parent_id"],
         image_url=db_category["image_url"],
+        cover_image_url=db_category.get("cover_image_url"),  # Use get() to handle missing field
         created_at=db_category["created_at"],
         updated_at=db_category["updated_at"],
         filter=db_category.get("filter", "all")  # Add this line
@@ -999,9 +1002,55 @@ async def logout():
     response.delete_cookie(key="admin_access_token")
     return response
 
+
+# Add this import at the top of main.py
+from fastapi.responses import FileResponse
+
+# Add this endpoint in main.py after the other order endpoints
+@app.get("/admin/api/orders/{order_id}/invoice")
+async def download_order_invoice(
+    order_id: str,
+    admin_email: str = Depends(verify_admin_token)
+):
+    """Download invoice PDF for an order"""
+    try:
+        # Get order from database
+        order = get_order(order_id)
+        
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        
+        # Import the generate_invoice_pdf function
+        from db.order_management import generate_invoice_pdf
+        
+        # Generate PDF
+        pdf_data = generate_invoice_pdf(order)
+        
+        # Create response with PDF
+        response = Response(
+            content=pdf_data,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f"attachment; filename=WEARXTURE_Invoice_{order_id}.pdf"
+            }
+        )
+        
+        return response
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate invoice: {str(e)}"
+        )
 # ========= Admin Page Routes =========
 
-# Admin dashboard
     # Admin dashboard
 @app.get("/admin/dashboard", response_class=HTMLResponse)
 async def admin_dashboard(request: Request):
@@ -1891,6 +1940,7 @@ async def get_admin_product_by_id(
     return product_from_db(db_product)
 
 # Category page
+# Category page route
 @app.get("/category/{category_id}", response_class=HTMLResponse, tags=["Pages"])
 async def category_page(request: Request, category_id: int):
     """
@@ -1901,7 +1951,11 @@ async def category_page(request: Request, category_id: int):
     if not db_category:
         raise HTTPException(status_code=404, detail="Category not found")
     
+    # Convert to response model - this includes cover_image_url if available
     category = category_from_db(db_category)
+    
+    # Print debug info to verify cover_image_url is included
+    print(f"Category data: {category}")
     
     # Get products from database for this specific category
     db_products = get_products_by_category(category_id)
@@ -2101,6 +2155,76 @@ async def product_detail_page(request: Request, product_id: int):
     }
     
     return templates.TemplateResponse("product_detail.html", context)
+
+# Upload category cover image
+# Upload category cover image - FIXED VERSION
+# Upload category cover image - ASYNC AWAIT VERSION
+# Final version of Upload category cover image endpoint
+@app.post("/admin/api/upload/category-cover-image")
+async def upload_category_cover_image_endpoint(  # Changed function name to avoid confusion
+    category_id: int = Form(...),
+    file: UploadFile = File(...),
+    admin_email: str = Depends(verify_admin_token)
+):
+    # Check if category exists
+    existing_category = get_category(category_id)
+    if not existing_category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    
+    try:
+        # Read file content
+        file_content = await file.read()
+        
+        # Upload to Supabase Storage
+        # Make sure this is NOT an async function - it should return the URL directly, not a coroutine
+        cover_image_url = upload_category_cover_image(file_content, file.filename)
+        
+        if not cover_image_url:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to upload cover image"
+            )
+        
+        # DIRECT SUPABASE UPDATE - completely bypass any potential issues
+        from db.supabase_client import supabase
+        
+        # Execute the update and capture the response
+        update_response = supabase.table('categories').update({
+            'cover_image_url': cover_image_url,
+            'updated_at': datetime.now().isoformat()
+        }).eq('id', category_id).execute()
+        
+        # Check that the update was successful
+        if not update_response.data:
+            print(f"Supabase update failed: {update_response}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update category with cover image"
+            )
+            
+        # Return a simple dictionary response
+        return {
+            "success": True, 
+            "cover_image_url": cover_image_url
+        }
+        
+    except Exception as e:
+        print(f"Cover image upload error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        # Pass through HTTPException
+        if isinstance(e, HTTPException):
+            raise
+            
+        # Convert other exceptions to HTTPException
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error processing cover image: {str(e)}"
+        )
+    finally:
+        await file.close()
+
 # Run the application
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

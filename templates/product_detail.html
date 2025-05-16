@@ -113,7 +113,6 @@
 
         .main-image {
             width: 100%;
-            height: 700px;
             border-radius: 20px;
             overflow: hidden;
             margin-bottom: 20px;
@@ -126,12 +125,10 @@
         .main-image img {
             width: 100%;
             height: auto;
-            max-height: 100%;
-            object-position: center;
+            display: block;
             background: none;
             transition: transform 0.5s ease;
         }
-
         .main-image:hover img {
             transform: scale(1.05);
         }
@@ -161,7 +158,6 @@
 
         .thumbnail {
             width: 100px;
-            height: 120px;
             border-radius: 12px;
             overflow: hidden;
             cursor: pointer;
@@ -177,7 +173,7 @@
         .thumbnail img {
             width: 100%;
             height: auto;
-            max-height: 100%;
+            display: block;
             object-position: center;
             background-color: #f8f9fa;
         }
@@ -1314,6 +1310,140 @@
                 grid-template-columns: 1fr;
             }
         }
+ /* Share button */
+ .share-btn {
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .share-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* Share Modal */
+        .share-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .share-modal.active {
+            display: flex;
+        }
+
+        .share-modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .share-modal-content h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: var(--text-color);
+        }
+
+        .share-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .share-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .share-option:hover {
+            border-color: var(--primary-color);
+            background: var(--light-bg);
+            transform: translateY(-2px);
+        }
+
+        .share-option i {
+            font-size: 18px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .share-option:nth-child(1) i { color: #3b5998; }
+        .share-option:nth-child(2) i { color: #1da1f2; }
+        .share-option:nth-child(3) i { color: #25d366; }
+        .share-option:nth-child(4) i { color: #bd081c; }
+        .share-option:nth-child(5) i { color: #4285f4; }
+        .share-option:nth-child(6) i { color: var(--primary-color); }
+
+        .close-share {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--light-text);
+            transition: color 0.3s ease;
+        }
+
+        .close-share:hover {
+            color: var(--text-color);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 480px) {
+            .share-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .share-modal-content {
+                padding: 20px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -1480,20 +1610,60 @@
                             {% if product.in_stock %}Add to Cart{% else %}Out of Stock{% endif %}
                         </button>
                         
-                        <button class="wishlist-btn">
+                        <!-- <button class="wishlist-btn">
                             <i class="far fa-heart"></i>
+                        </button> -->
+ 
+                        <button class="share-btn">
+                            <i class="fas fa-share-alt"></i>
                         </button>
                     </div>
-                    
+                     <!-- Share Modal -->
+                     <div class="share-modal" id="share-modal">
+                        <div class="share-modal-content">
+                            <h3>Share this product</h3>
+                            <div class="share-options">
+                                <button class="share-option" id="share-facebook">
+                                    <i class="fab fa-facebook-f"></i>
+                                    Facebook
+                                </button>
+                                <button class="share-option" id="share-twitter">
+                                    <i class="fab fa-twitter"></i>
+                                    Twitter
+                                </button>
+                                <button class="share-option" id="share-whatsapp">
+                                    <i class="fab fa-whatsapp"></i>
+                                    WhatsApp
+                                </button>
+                                <button class="share-option" id="share-pinterest">
+                                    <i class="fab fa-pinterest"></i>
+                                    Pinterest
+                                </button>
+                                <button class="share-option" id="share-email">
+                                    <i class="fas fa-envelope"></i>
+                                    Email
+                                </button>
+                                <button class="share-option" id="share-copy">
+                                    <i class="fas fa-link"></i>
+                                    Copy Link
+                                </button>
+                            </div>
+                            <button class="close-share" id="close-share">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
                     <!-- Product Features -->
+
+
                     <div class="product-features">
                         <div class="feature-item">
                             <div class="feature-icon">
                                 <i class="fas fa-shipping-fast"></i>
                             </div>
                             <div class="feature-text">
-                                Free Shipping<br>
-                                <small>On orders over ₹999</small>
+                                <h4>Free Shipping</h4>
+                                <p>On orders over ₹999</p>
                             </div>
                         </div>
                         <div class="feature-item">
@@ -1501,8 +1671,8 @@
                                 <i class="fas fa-undo"></i>
                             </div>
                             <div class="feature-text">
-                                Easy Returns<br>
-                                <small>14-day return policy</small>
+                                <h4>Easy Returns</h4>
+                                <p>7-day return policy</p>
                             </div>
                         </div>
                         <div class="feature-item">
@@ -1510,8 +1680,8 @@
                                 <i class="fas fa-shield-alt"></i>
                             </div>
                             <div class="feature-text">
-                                100% Authentic<br>
-                                <small>Guaranteed genuine</small>
+                                <h4>100% Authentic</h4>
+                                <p>Guaranteed genuine</p>
                             </div>
                         </div>
                     </div>
@@ -1985,23 +2155,90 @@
             }
             
             // Wishlist functionality
-            const wishlistBtn = document.querySelector('.wishlist-btn');
+            // const wishlistBtn = document.querySelector('.wishlist-btn');
             
-            wishlistBtn.addEventListener('click', function() {
-                const icon = this.querySelector('i');
-                const productName = document.querySelector('.product-title').textContent;
+            // wishlistBtn.addEventListener('click', function() {
+            //     const icon = this.querySelector('i');
+            //     const productName = document.querySelector('.product-title').textContent;
                 
-                if (icon.classList.contains('fas')) {
-                    icon.classList.remove('fas');
-                    icon.classList.add('far');
-                    this.classList.remove('added');
-                    showNotification(`${productName} removed from wishlist!`);
-                } else {
-                    icon.classList.remove('far');
-                    icon.classList.add('fas');
-                    this.classList.add('added');
-                    showNotification(`${productName} added to wishlist!`);
+            //     if (icon.classList.contains('fas')) {
+            //         icon.classList.remove('fas');
+            //         icon.classList.add('far');
+            //         this.classList.remove('added');
+            //         showNotification(`${productName} removed from wishlist!`);
+            //     } else {
+            //         icon.classList.remove('far');
+            //         icon.classList.add('fas');
+            //         this.classList.add('added');
+            //         showNotification(`${productName} added to wishlist!`);
+            //     }
+            // });
+            // Share functionality
+            const shareBtn = document.querySelector('.share-btn');
+            const shareModal = document.getElementById('share-modal');
+            const closeShareBtn = document.getElementById('close-share');
+            
+            shareBtn.addEventListener('click', function() {
+                shareModal.classList.add('active');
+            });
+            
+            closeShareBtn.addEventListener('click', function() {
+                shareModal.classList.remove('active');
+            });
+            
+            shareModal.addEventListener('click', function(e) {
+                if (e.target === shareModal) {
+                    shareModal.classList.remove('active');
                 }
+            });
+            
+            // Share functionality for different platforms
+            const productUrl = window.location.href;
+            const productTitle = document.querySelector('.product-title').textContent;
+            const productImage = document.getElementById('main-product-image').src;
+            const productDescription = document.querySelector('.product-description').textContent;
+            
+            // Facebook share
+            document.getElementById('share-facebook').addEventListener('click', function() {
+                const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}`;
+                window.open(url, '_blank', 'width=600,height=400');
+            });
+            
+            // Twitter share
+            document.getElementById('share-twitter').addEventListener('click', function() {
+                const text = `Check out ${productTitle} from WEARXTURE`;
+                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(productUrl)}`;
+                window.open(url, '_blank', 'width=600,height=400');
+            });
+            
+            // WhatsApp share
+            document.getElementById('share-whatsapp').addEventListener('click', function() {
+                const text = `Check out ${productTitle} from WEARXTURE: ${productUrl}`;
+                const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                window.open(url, '_blank');
+            });
+            
+            // Pinterest share
+            document.getElementById('share-pinterest').addEventListener('click', function() {
+                const url = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(productUrl)}&media=${encodeURIComponent(productImage)}&description=${encodeURIComponent(productTitle)}`;
+                window.open(url, '_blank', 'width=600,height=400');
+            });
+            
+            // Email share
+            document.getElementById('share-email').addEventListener('click', function() {
+                const subject = `Check out ${productTitle} from WEARXTURE`;
+                const body = `I found this amazing product and thought you might like it:\n\n${productTitle}\n\n${productDescription}\n\nCheck it out here: ${productUrl}`;
+                window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            });
+            
+            // Copy link
+            document.getElementById('share-copy').addEventListener('click', function() {
+                navigator.clipboard.writeText(productUrl).then(function() {
+                    showNotification('Link copied to clipboard!');
+                    shareModal.classList.remove('active');
+                }).catch(function(err) {
+                    showNotification('Failed to copy link', 'error');
+                });
             });
             
             // Related products quick add to cart

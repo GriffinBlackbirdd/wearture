@@ -569,3 +569,33 @@ def restore_inventory(product_id: int, quantity: int) -> bool:
     except Exception as e:
         print(f"Error restoring inventory for product {product_id}: {e}")
         return False
+
+def upload_category_cover_image(file_content: bytes, file_name: str) -> Optional[str]:
+    """
+    Upload a category cover image to Supabase Storage
+    Returns the public URL of the uploaded image
+    """
+    try:
+        # Create a unique file name
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        unique_filename = f"cover_{timestamp}_{file_name}"
+        
+        # Upload to Supabase Storage (using the same bucket as category images)
+        response = supabase.storage.from_("category-images").upload(
+            path=unique_filename,
+            file=file_content,
+            file_options={"content-type": "image/jpeg"}  # Adjust based on file type
+        )
+        
+        # Get the public URL
+        if response:
+            print("Category cover image uploaded successfully, getting public URL")
+            public_url = supabase.storage.from_("category-images").get_public_url(unique_filename)
+            print(f"Public URL: {public_url}")
+            return public_url
+        
+        print("Category cover image upload failed, response:", response)
+        return None
+    except Exception as e:
+        print(f"Error uploading category cover image: {e}")
+        return None

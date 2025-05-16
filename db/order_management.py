@@ -295,3 +295,284 @@ def get_all_orders() -> List[Dict[str, Any]]:
     except Exception as e:
         print(f"Error getting all orders: {e}")
         return []
+
+# Add these imports at the top of order_management.py
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.graphics.barcode import code128
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from io import BytesIO
+import base64
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.graphics.barcode import code128
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from io import BytesIO
+import base64
+import os
+from typing import Dict, Any
+import json
+from datetime import datetime
+
+def generate_invoice_pdf(order_data: Dict[str, Any]) -> bytes:
+    """
+    Generate an invoice PDF with barcode for an order
+    """
+    # Create a byte stream for the PDF
+    pdf_buffer = BytesIO()
+    
+    # Create PDF document
+    doc = SimpleDocTemplate(
+        pdf_buffer, 
+        pagesize=A4,
+        rightMargin=inch/2,
+        leftMargin=inch/2,
+        topMargin=inch/2,
+        bottomMargin=inch/2
+    )
+    
+    # Container for the 'Flowable' objects
+    elements = []
+    
+    # Styles
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'Title',
+        parent=styles['Heading1'],
+        fontSize=20,
+        textColor=colors.HexColor('#e25822'),
+        alignment=TA_CENTER,
+        spaceAfter=6
+    )
+    
+    heading_style = ParagraphStyle(
+        'Heading',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=colors.HexColor('#333333'),
+        spaceAfter=6
+    )
+    
+    normal_style = styles['Normal']
+    normal_style.fontSize = 10
+    
+    # Try to add logo
+    logo_added = False
+    logo_path = os.path.join("static", "images", "WEARXTURE LOGOai.png")
+    
+    try:
+        if os.path.exists(logo_path):
+            logo = Image(logo_path, width=2*inch, height=0.8*inch, kind='proportional')
+            logo.hAlign = 'LEFT'
+            
+            # Create header with logo
+            header_right_text = Paragraph(
+                "Ethnic Wear Collection<br/>Email: support@wearxture.com<br/>Phone: +91-XXXXXXXXXX", 
+                normal_style
+            )
+            
+            header_data = [[logo, header_right_text]]
+            header_table = Table(header_data, colWidths=[3*inch, 3.5*inch])
+            header_table.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+                ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            elements.append(header_table)
+            logo_added = True
+    except Exception as e:
+        print(f"Error adding logo: {e}")
+    
+    # Fallback if logo failed
+    if not logo_added:
+        elements.append(Paragraph("WEARXTURE", title_style))
+        elements.append(Paragraph("Ethnic Wear Collection", styles['Normal']))
+        elements.append(Paragraph("Email: support@wearxture.com | Phone: +91-7505348249", styles['Normal']))
+    
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Invoice heading
+    elements.append(Paragraph("INVOICE / SHIPPING LABEL", heading_style))
+    elements.append(Spacer(1, 0.1*inch))
+    
+    # Order info with barcode
+    try:
+        # Create barcode
+        barcode = code128.Code128(order_data['order_id'], barHeight=0.5*inch, barWidth=1.2)
+        
+        # Order details on left
+        order_date = datetime.fromisoformat(str(order_data['created_at'])).strftime('%B %d, %Y')
+        order_info_left = [
+            ['Order ID:', order_data['order_id']],
+            ['Order Date:', order_date],
+            ['Payment Method:', order_data['payment_method'].upper()],
+            ['Order Status:', order_data['order_status'].replace('_', ' ').title()],
+        ]
+        
+        left_table = Table(order_info_left, colWidths=[1.5*inch, 2.5*inch])
+        left_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ]))
+        
+        # Combine left details and barcode
+        main_info_data = [[left_table, barcode]]
+        main_info_table = Table(main_info_data, colWidths=[4*inch, 2.5*inch])
+        main_info_table.setStyle(TableStyle([
+            ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ]))
+        elements.append(main_info_table)
+    except Exception as e:
+        print(f"Error adding barcode: {e}")
+        # Fallback without barcode
+        elements.append(Paragraph(f"Order ID: {order_data['order_id']}", normal_style))
+    
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Customer details
+    elements.append(Paragraph("SHIP TO:", heading_style))
+    
+    address = order_data['delivery_address']
+    if isinstance(address, str):
+        try:
+            address = json.loads(address)
+        except:
+            address = {}
+    
+    customer_info = f"""
+    {order_data['user_email']}<br/>
+    {order_data['phone']}<br/>
+    {address.get('address', '')}<br/>
+    {address.get('city', '')}, {address.get('state', '')} {address.get('pincode', '')}<br/>
+    {address.get('country', 'India')}
+    """
+    elements.append(Paragraph(customer_info, normal_style))
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Order items
+    elements.append(Paragraph("ORDER ITEMS:", heading_style))
+    
+    items = order_data['items']
+    if isinstance(items, str):
+        try:
+            items = json.loads(items)
+        except:
+            items = []
+    
+    # Items table
+    items_data = [['SKU', 'Product', 'Qty', 'Price', 'Total']]
+    
+    for item in items:
+        # Get SKU
+        sku = "N/A"
+        try:
+            product_id = item.get('product_id') or item.get('id')
+            if product_id:
+                from db.supabase_client import get_product
+                product_details = get_product(product_id)
+                if product_details:
+                    sku = product_details.get('sku', 'N/A') or 'N/A'
+        except:
+            pass
+        
+        product_name = str(item.get('name', 'Product'))[:30]
+        if len(str(item.get('name', ''))) > 30:
+            product_name += '...'
+        
+        items_data.append([
+            sku,
+            product_name,
+            str(item.get('quantity', 1)),
+            f"Rs. {item.get('price', 0)}",
+            f"Rs. {item.get('price', 0) * item.get('quantity', 1)}"
+        ])
+    
+    items_table = Table(items_data, colWidths=[1*inch, 2.5*inch, 0.5*inch, 0.8*inch, 1*inch])
+    items_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('ALIGN', (1, 1), (1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    elements.append(items_table)
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Order summary
+    is_cod = order_data.get('payment_method') == 'cod'
+    summary_data = []
+    
+    if is_cod:
+        if order_data.get('payment_status') == 'cod_fee_paid':
+            total_amount = float(order_data.get('total_amount', 0))
+            remaining_amount = total_amount - 80
+            summary_data = [['Amount to Collect (COD):', f"Rs. {remaining_amount}"]]
+            elements.append(Paragraph("Note: COD fee of Rs. 80 already paid online", normal_style))
+        else:
+            summary_data = [['Amount to Collect (COD):', f"Rs. {order_data.get('total_amount', 0)}"]]
+    else:
+        summary_data = [
+            ['Subtotal:', f"Rs. {order_data.get('subtotal', 0)}"],
+            ['Delivery Charge:', f"Rs. {order_data.get('delivery_charge', 0)}"],
+            ['Tax:', f"Rs. {order_data.get('tax', 0)}"],
+            ['Total Amount:', f"Rs. {order_data.get('total_amount', 0)}"]
+        ]
+    
+    summary_table = Table(summary_data, colWidths=[4*inch, 2*inch])
+    summary_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 12),
+    ]))
+    elements.append(summary_table)
+    
+    # COD special display
+    if is_cod:
+        elements.append(Spacer(1, 0.3*inch))
+        cod_style = ParagraphStyle(
+            'COD',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#e74c3c'),
+            alignment=TA_CENTER
+        )
+        elements.append(Paragraph("CASH ON DELIVERY", cod_style))
+        
+        amount_style = ParagraphStyle(
+            'Amount',
+            parent=styles['Heading1'],
+            fontSize=20,
+            textColor=colors.HexColor('#2c3e50'),
+            alignment=TA_CENTER
+        )
+        
+        if order_data.get('payment_status') == 'cod_fee_paid':
+            total_amount = float(order_data.get('total_amount', 0))
+            remaining_amount = total_amount - 80
+            elements.append(Paragraph(f"COLLECT: Rs. {remaining_amount}", amount_style))
+        else:
+            elements.append(Paragraph(f"COLLECT: Rs. {order_data.get('total_amount', 0)}", amount_style))
+    
+    # Build PDF
+    try:
+        doc.build(elements)
+        pdf_buffer.seek(0)
+        return pdf_buffer.read()
+    except Exception as e:
+        print(f"Error building PDF: {e}")
+        raise
+    finally:
+        pdf_buffer.close()
