@@ -13,7 +13,8 @@ from datetime import datetime, timedelta
 from jose import jwt
 from admin.user_auth import router as user_auth_router
 from inspect import iscoroutinefunction
-
+from db.email_service import send_order_confirmation_email
+from db.email_service import send_order_status_update_email
 from db.razorpay_client import (
     create_razorpay_order, 
     verify_payment_signature,
@@ -162,6 +163,7 @@ async def checkout_page(request: Request):
     return templates.TemplateResponse("checkout.html", {"request": request})
 
 # Create order endpoint (placeholder for now)
+# Create order endpoint
 @app.post("/api/orders")
 async def create_order_endpoint(order_data: dict, request: Request):
     """Create a new order with Razorpay integration and inventory management"""
@@ -265,6 +267,18 @@ async def create_order_endpoint(order_data: dict, request: Request):
                         )
                     raise Exception("Failed to save order to database")
                 
+                # Send order confirmation email
+                try:
+                    from db.email_service import send_order_confirmation_email
+                    email_sent = send_order_confirmation_email(saved_order)
+                    if email_sent:
+                        print(f"Order confirmation email sent for order {order_id}")
+                    else:
+                        print(f"Failed to send order confirmation email for order {order_id}")
+                except Exception as e:
+                    # Don't let email errors affect order creation
+                    print(f"Error sending confirmation email: {e}")
+                
                 return {
                     "success": True,
                     "order_id": order_id,
@@ -311,6 +325,18 @@ async def create_order_endpoint(order_data: dict, request: Request):
                 )
             
             print(f"Order saved successfully: {order_id}")
+            
+            # Send order confirmation email
+            try:
+                from db.email_service import send_order_confirmation_email
+                email_sent = send_order_confirmation_email(saved_order)
+                if email_sent:
+                    print(f"Order confirmation email sent for order {order_id}")
+                else:
+                    print(f"Failed to send order confirmation email for order {order_id}")
+            except Exception as e:
+                # Don't let email errors affect order creation
+                print(f"Error sending confirmation email: {e}")
             
             return {
                 "success": True,
@@ -404,6 +430,7 @@ async def admin_customers_page(request: Request):
     except HTTPException:
         return RedirectResponse(url="/admin/login")
 # Verify payment endpoint@app.post("/api/verify-payment")
+# Verify payment endpoint
 @app.post("/api/verify-payment")
 async def verify_payment(payment_data: dict):
     """Verify Razorpay payment signature"""
@@ -433,6 +460,18 @@ async def verify_payment(payment_data: dict):
                     update_data["order_status"] = "confirmed"
                 
                 updated_order = update_order_payment_status(wearxture_order_id, update_data)
+                
+                # Send payment confirmation email
+                try:
+                    from db.email_service import send_order_confirmation_email
+                    email_sent = send_order_confirmation_email(updated_order)
+                    if email_sent:
+                        print(f"Payment confirmation email sent for order {wearxture_order_id}")
+                    else:
+                        print(f"Failed to send payment confirmation email for order {wearxture_order_id}")
+                except Exception as e:
+                    # Don't let email errors affect payment processing
+                    print(f"Error sending payment confirmation email: {e}")
                 
                 return {
                     "success": True,
@@ -471,6 +510,18 @@ async def verify_payment(payment_data: dict):
                 updated_order = update_order_payment_status(wearxture_order_id, update_data)
                 
                 if updated_order:
+                    # Send payment confirmation email
+                    try:
+                        from db.email_service import send_order_confirmation_email
+                        email_sent = send_order_confirmation_email(updated_order)
+                        if email_sent:
+                            print(f"Payment confirmation email sent for order {wearxture_order_id}")
+                        else:
+                            print(f"Failed to send payment confirmation email for order {wearxture_order_id}")
+                    except Exception as e:
+                        # Don't let email errors affect payment processing
+                        print(f"Error sending payment confirmation email: {e}")
+                    
                     return {
                         "success": True,
                         "payment_id": payment_id,
@@ -495,11 +546,76 @@ async def verify_payment(payment_data: dict):
             }
             
     except Exception as e:
+        print(f"Payment verification error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Payment verification failed: {str(e)}"
         )
 
+
+app.post("/api/orders/{order_id}/email-invoice")
+async def email_order_invoice(
+    order_id: str,
+    request: Request
+):
+    """Email invoice PDF for an order to the customer"""
+    try:
+        # Get order from database
+        order = get_order(order_id)
+        
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        
+        # Verify that the requesting user owns this order
+        token = request.cookies.get("user_access_token")
+        
+        if not token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated"
+            )
+        
+        # Decode the JWT token to get user info
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_email = payload.get("sub")
+        
+        # Verify ownership
+        if order.get("user_email") != user_email:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied"
+            )
+        
+        # Generate PDF
+        from db.order_management import generate_invoice_pdf
+        pdf_data = generate_invoice_pdf(order)
+        
+        # Send email with invoice
+        from db.email_service import send_invoice_email
+        email_sent = send_invoice_email(order, pdf_data)
+        
+        if email_sent:
+            return {"success": True, "message": "Invoice sent to your email"}
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to send invoice email"
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to send invoice: {str(e)}"
+        )
 # Order confirmation page
 @app.get("/order-confirmation", response_class=HTMLResponse)
 async def order_confirmation_page(request: Request):
@@ -1139,7 +1255,7 @@ async def update_admin_order_status(
     status_update: dict,
     admin_email: str = Depends(verify_admin_token)
 ):
-    """Update the status of an order with inventory management"""
+    """Update the status of an order with inventory management and email notification"""
     try:
         new_status = status_update.get("status")
         notes = status_update.get("notes", "")
@@ -1158,6 +1274,24 @@ async def update_admin_order_status(
                 detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
             )
         
+        # Get current order to access old status
+        current_order = get_order(order_id)
+        if not current_order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+            
+        old_status = current_order.get("order_status", "unknown")
+        
+        # Skip update if status hasn't changed
+        if old_status == new_status:
+            return {
+                "success": True,
+                "message": f"Order status already set to {new_status}",
+                "order": current_order
+            }
+        
         # Update the order status with inventory management
         updated_order = update_order_status(order_id, new_status, notes)
         
@@ -1167,6 +1301,25 @@ async def update_admin_order_status(
                 detail="Order not found or update failed"
             )
         
+        # Send status update email to customer
+        try:
+            from db.email_service import send_order_status_update_email
+            email_sent = send_order_status_update_email(
+                updated_order, 
+                old_status, 
+                new_status
+            )
+            if email_sent:
+                print(f"Status update email sent for order {order_id}: {old_status} -> {new_status}")
+            else:
+                print(f"Failed to send status update email for order {order_id}")
+        except Exception as e:
+            # Don't let email errors affect order processing
+            print(f"Error sending status update email: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        # Return success response
         return {
             "success": True,
             "order": updated_order,
@@ -1176,6 +1329,9 @@ async def update_admin_order_status(
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Error updating order status: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update order status: {str(e)}"
