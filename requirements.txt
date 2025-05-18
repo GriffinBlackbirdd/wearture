@@ -5,6 +5,7 @@ annotated-types==0.7.0
 anyio==4.9.0
 attrs==25.3.0
 certifi==2025.4.26
+chardet==5.2.0
 charset-normalizer==3.4.2
 click==8.1.8
 deprecation==2.1.0
@@ -26,6 +27,7 @@ jinja2==3.1.6
 markupsafe==3.0.2
 multidict==6.4.3
 packaging==25.0
+pillow==11.2.1
 pluggy==1.5.0
 postgrest==1.0.1
 propcache==0.3.1
@@ -41,6 +43,7 @@ python-jose==3.4.0
 python-multipart==0.0.20
 razorpay==1.4.2
 realtime==2.4.3
+reportlab==4.4.1
 requests==2.32.3
 rsa==4.9.1
 setuptools==80.4.0

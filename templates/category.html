@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ category.name }} - WEARXTURE</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/profile-view.css') }}">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Modern aesthetic variables */
@@ -1566,7 +1568,58 @@
         </div>
     </footer>
 
+    <div class="profile-dropdown" id="profile-dropdown">
+        <div class="profile-dropdown-content">
+            <div class="profile-header" id="profile-header">
+                <div class="guest-header">
+                    <h4>Your Account</h4>
+                    <p>Login or register to continue</p>
+                </div>
+                <div class="user-header" style="display: none;">
+                    <h4>Welcome Back</h4>
+                    <p id="user-email">user@example.com</p>
+                </div>
+            </div>
+            
+            <div class="profile-menu" id="profile-menu">
+                <!-- Guest options (not logged in) -->
+                <div class="guest-options">
+                    <a href="/login" class="profile-btn primary-btn">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Sign In</span>
+                    </a>
+                    <a href="/register" class="profile-btn secondary-btn">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Create Account</span>
+                    </a>
+                </div>
+                
+                <!-- User options (logged in) -->
+                <div class="user-options" style="display: none;">
+                    <a href="/orders" class="profile-menu-item">
+                        <i class="fas fa-box"></i>
+                        <span>My Orders</span>
+                    </a>
+                    <a href="/account" class="profile-menu-item">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Account Details</span>
+                    </a>
+                    <a href="/wishlist" class="profile-menu-item">
+                        <i class="fas fa-heart"></i>
+                        <span>Wishlist</span>
+                    </a>
+                    <a href="#" class="profile-menu-item" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', path='/js/script.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/profile-view.js') }}"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Cart management
