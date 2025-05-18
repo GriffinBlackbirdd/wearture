@@ -1443,6 +1443,732 @@
                 padding: 20px;
             }
         }
+        /* Enhanced responsive styles for product detail page */
+@media (max-width: 1200px) {
+    .product-detail {
+        gap: 40px;
+    }
+    
+    .related-products-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    
+    .tabs-nav {
+        padding: 15px 20px 0;
+    }
+    
+    .tab-item {
+        padding: 15px 20px;
+        font-size: 15px;
+    }
+    
+    .tab-content-container {
+        padding: 40px 30px;
+    }
+}
+
+@media (max-width: 992px) {
+    .product-detail {
+        grid-template-columns: 1fr;
+        padding: 30px;
+    }
+    
+    .gallery-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    /* Adjust main image container to maintain aspect ratio */
+    .main-image {
+        width: 100%;
+        height: auto;
+        max-height: none;
+        background: none;
+    }
+    
+    .main-image img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+    
+    /* Fix thumbnail container to adapt to image proportions */
+    .thumbnail-container {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 15px 0;
+    }
+    
+    .thumbnail {
+        flex: 0 0 auto;
+        width: auto;
+        height: auto;
+        max-width: 80px;
+        max-height: 80px;
+        background: none;
+        border: 2px solid transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: visible;
+    }
+    
+    .thumbnail img {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        display: block;
+    }
+    
+    .thumbnail.active {
+        border-color: var(--primary-color);
+    }
+    
+    .product-info {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .related-products-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .tabs-nav {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 5px;
+        justify-content: flex-start;
+    }
+    
+    .tab-item {
+        padding: 12px 15px;
+        font-size: 14px;
+    }
+    
+    .product-features {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Fix share button border */
+    .share-btn {
+        border: none;
+        background: rgba(226, 88, 34, 0.1);
+        color: var(--primary-color);
+    }
+    
+    .share-btn:hover {
+        background: rgba(226, 88, 34, 0.2);
+    }
+}
+
+@media (max-width: 768px) {
+    .breadcrumbs {
+        padding: 15px 0;
+    }
+    
+    .product-detail-container {
+        margin: 20px auto;
+    }
+    
+    .product-detail {
+        padding: 20px;
+        gap: 30px;
+    }
+    
+    /* Further improve image container for this breakpoint */
+    .main-image {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: none;
+        padding: 0;
+    }
+    
+    .main-image img {
+        max-width: 100%;
+        max-height: 500px;
+        width: auto;
+        height: auto;
+    }
+    
+    /* Improve thumbnail container to scroll horizontally */
+    .thumbnail-container {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        padding: 10px 0;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        gap: 10px;
+    }
+    
+    .thumbnail {
+        flex: 0 0 auto;
+        padding: 3px;
+        width: auto;
+        height: auto;
+        max-width: 70px;
+        max-height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .thumbnail img {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+    }
+    
+    .product-title {
+        font-size: 28px;
+    }
+    
+    .price-section {
+        padding: 15px 0;
+    }
+    
+    .current-price {
+        font-size: 28px;
+    }
+    
+    .original-price {
+        font-size: 22px;
+    }
+    
+    .product-description {
+        font-size: 15px;
+        line-height: 1.7;
+        margin-bottom: 25px;
+    }
+    
+    .product-features {
+        gap: 15px;
+    }
+    
+    .feature-item {
+        padding: 12px;
+    }
+    
+    .feature-text {
+        font-size: 13px;
+    }
+    
+    .feature-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+    
+    /* Improve the purchase section layout */
+    .purchase-section {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .quantity-selector {
+        flex: 0 0 auto;
+        margin-right: 0;
+    }
+    
+    /* Fix quantity inputs */
+    .quantity-btn {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .quantity-input {
+        width: 60px;
+        height: 40px;
+        text-align: center;
+    }
+    
+    .add-to-cart-btn {
+        flex: 1;
+        height: 40px;
+        min-width: 200px;
+    }
+    
+    /* Fix share button */
+    .share-btn {
+        flex: 0 0 auto;
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: rgba(226, 88, 34, 0.1);
+        color: var(--primary-color);
+    }
+    
+    .tab-content h3 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    
+    .tab-content-container {
+        padding: 30px 20px;
+    }
+    
+    .specs-table td {
+        padding: 15px;
+    }
+    
+    .related-product-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .nav-icons {
+        margin-left: 20vh;
+        padding-right: 25px;
+        display: flex;
+        gap: 25px;
+    }
+    
+    .icon-link {
+        margin: 0; /* Remove any default margins that might cause overlapping */
+    }
+}
+
+@media (max-width: 576px) {
+    .product-badge {
+        font-size: 10px;
+        padding: 6px 12px;
+    }
+    
+    .product-title {
+        font-size: 24px;
+    }
+    
+    .current-price {
+        font-size: 24px;
+    }
+    
+    .original-price {
+        font-size: 18px;
+    }
+    
+    .discount-badge {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    .product-features {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Optimize purchase section for very small screens */
+    .purchase-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .quantity-selector {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .add-to-cart-btn {
+        width: 100%;
+    }
+    
+    .share-btn {
+        align-self: center;
+    }
+    
+    .tabs-nav {
+        padding: 10px 10px 0;
+    }
+    
+    .tab-item {
+        padding: 10px 12px;
+        font-size: 13px;
+        margin: 0 2px;
+    }
+    
+    .related-products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .related-product-card {
+        max-width: 320px;
+        margin: 0 auto;
+    }
+    
+    /* Better navigation for the image gallery on mobile */
+    .thumbnail {
+        max-width: 65px;
+        max-height: 65px;
+    }
+    
+    /* Fix for the share modal on small screens */
+    .share-modal-content {
+        width: 95%;
+        padding: 20px 15px;
+    }
+    
+    .share-options {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    /* Improved specifications table for mobile */
+    .specs-table td {
+        padding: 12px;
+        display: block;
+        width: 100%;
+    }
+    
+    .specs-table td:first-child {
+        background: #f8f9f9;
+        border-bottom: none;
+        padding-bottom: 5px;
+    }
+    
+    .specs-table td:nth-child(2) {
+        padding-top: 5px;
+        padding-bottom: 15px;
+    }
+    
+    /* Better action buttons spacing */
+    .action-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+        min-width: 0;
+    }
+
+    .nav-icons {
+        padding-right: 10px;
+        gap: 12px;
+    }
+}
+
+@media (max-width: 380px) {
+    .breadcrumb-list {
+        font-size: 12px;
+    }
+    
+    .breadcrumb-list li:not(:last-child)::after {
+        margin: 0 8px;
+    }
+    
+    .product-detail {
+        padding: 15px;
+    }
+    
+    .main-image {
+        margin-bottom: 10px;
+    }
+    
+    /* Make thumbnails properly sized for very small screens */
+    .thumbnail {
+        max-width: 55px;
+        max-height: 55px;
+    }
+    
+    .thumbnail-container {
+        justify-content: flex-start;
+        gap: 8px;
+    }
+    
+    .product-info {
+        padding: 15px 0;
+    }
+    
+    .product-title {
+        font-size: 22px;
+        text-align: left;
+    }
+    
+    .price-section {
+        justify-content: flex-start;
+    }
+    
+    /* Ensure quantity selectors are properly sized */
+    .quantity-input {
+        width: 50px;
+    }
+    
+    .quantity-btn {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .tab-content-container {
+        padding: 20px 15px;
+    }
+    
+    .newsletter h2 {
+        font-size: 24px;
+    }
+}
+
+/* Size Chart button and popup styles */
+.size-chart-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: underline;
+    margin-left: 10px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.size-chart-btn:hover {
+    color: #c24d1e;
+}
+
+.size-chart-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+}
+
+.size-chart-modal.active {
+    display: flex;
+}
+
+.size-chart-content {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    width: 90%;
+    max-width: 800px;
+    position: relative;
+    animation: slideUp 0.3s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.size-chart-content h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: var(--text-color);
+}
+
+.size-chart-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.size-chart-tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--light-text);
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.size-chart-tab.active {
+    color: var(--primary-color);
+}
+
+.size-chart-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--primary-color);
+}
+
+.size-chart-images {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.size-chart-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.close-size-chart {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--light-text);
+    transition: color 0.3s ease;
+    z-index: 10;
+}
+
+.close-size-chart:hover {
+    color: var(--text-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .size-chart-content {
+        padding: 20px;
+    }
+    
+    .size-chart-content h3 {
+        font-size: 20px;
+    }
+}
+
+/* Size Chart button and popup styles */
+.size-chart-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.size-chart-btn:hover {
+    color: #c24d1e;
+}
+
+.size-chart-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+}
+
+.size-chart-modal.active {
+    display: flex;
+}
+
+.size-chart-content {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    width: 90%;
+    max-width: 800px;
+    position: relative;
+    animation: slideUp 0.3s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.size-chart-content h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: var(--text-color);
+}
+
+.size-chart-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.size-chart-tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--light-text);
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.size-chart-tab.active {
+    color: var(--primary-color);
+}
+
+.size-chart-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--primary-color);
+}
+
+.size-chart-images {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.size-chart-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.close-size-chart {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--light-text);
+    transition: color 0.3s ease;
+    z-index: 10;
+}
+
+.close-size-chart:hover {
+    color: var(--text-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .size-chart-content {
+        padding: 20px;
+    }
+    
+    .size-chart-content h3 {
+        font-size: 20px;
+    }
+}
 
     </style>
 </head>
@@ -1592,6 +2318,11 @@
                                 {% for size in product.attributes.sizes %}
                                 <div class="size-option" data-size="{{ size }}">{{ size }}</div>
                                 {% endfor %}
+                            </div>
+                            <div class="size-chart-wrapper" style="margin-top: 15px; text-align: left;">
+                                <button class="size-chart-btn" id="open-size-chart">
+                                    <i class="fas fa-ruler"></i> Size Chart
+                                </button>
                             </div>
                         </div>
                         {% endif %}
@@ -1919,6 +2650,20 @@
             </div>
         </div>
     </footer>
+
+    <div class="size-chart-modal" id="size-chart-modal">
+        <div class="size-chart-content">
+            <button class="close-size-chart" id="close-size-chart">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3>Size Chart</h3>
+            
+            <div class="size-chart-images">
+                <img src="/static/images/sizeChart1.jpg" alt="Size Chart" class="size-chart-image">
+                <img src="/static/images/sizeChart2.jpg" alt="Size Chart Measurements" class="size-chart-image">
+            </div>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', path='/js/script.js') }}"></script>
     <script>
@@ -2378,6 +3123,35 @@
         .notification i.fa-exclamation-circle {
             color: var(--error-color);
         }
+        
     </style>
+
+<script>
+    // Size chart modal functionality
+    const openSizeChartBtn = document.getElementById('open-size-chart');
+    const sizeChartModal = document.getElementById('size-chart-modal');
+    const closeSizeChartBtn = document.getElementById('close-size-chart');
+    
+    if (openSizeChartBtn) {
+        openSizeChartBtn.addEventListener('click', function() {
+            sizeChartModal.classList.add('active');
+        });
+    }
+    
+    if (closeSizeChartBtn) {
+        closeSizeChartBtn.addEventListener('click', function() {
+            sizeChartModal.classList.remove('active');
+        });
+    }
+    
+    // Close modal when clicking outside the content
+    if (sizeChartModal) {
+        sizeChartModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                sizeChartModal.classList.remove('active');
+            }
+        });
+    }
+</script>
 </body>
 </html>

@@ -1590,6 +1590,7 @@ footer {
 
 /* Responsive */
 @media (max-width: 768px) {
+
     .reelsSwiper .swiper-slide {
         width: 200px;
     }
@@ -1606,6 +1607,7 @@ footer {
     .reel-content p {
         font-size: 13px;
     }
+    
 }
 
 @media (max-width: 480px) {

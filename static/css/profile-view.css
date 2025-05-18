@@ -339,3 +339,358 @@
                 max-width: 95%;
             }
         }
+/* Enhanced Responsive Styles for Profile View */
+
+/* Tablet and Medium Screen Devices (768px - 991px) */
+@media (max-width: 991px) {
+    /* Profile Dropdown Improvements */
+    .profile-dropdown {
+        width: 260px;
+        right: 15px;
+    }
+    
+    .profile-dropdown::before {
+        right: 30px;
+    }
+    
+    .profile-menu-item {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+    
+    .profile-btn {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+    
+    /* Search Overlay Adjustments */
+    .search-overlay {
+        padding-top: 80px;
+    }
+    
+    .search-container {
+        width: 80%;
+    }
+    
+    .search-title {
+        font-size: 18px;
+    }
+    
+    .search-form input {
+        padding: 10px 14px;
+        font-size: 15px;
+    }
+    
+    .search-form button {
+        width: 44px;
+        height: 44px;
+    }
+    
+    .search-results-grid {
+        gap: 15px;
+    }
+}
+
+/* Mobile Landscape (576px - 767px) */
+@media (max-width: 767px) {
+    /* Profile Dropdown Positioning */
+    .profile-dropdown {
+        top: 55px;
+        right: 10px;
+        width: 240px;
+    }
+    
+    .profile-dropdown::before {
+        right: 25px;
+    }
+    
+    .profile-header {
+        padding: 12px;
+    }
+    
+    .profile-header h4 {
+        font-size: 16px;
+        margin-bottom: 3px;
+    }
+    
+    .profile-header p {
+        font-size: 12px;
+    }
+    
+    .profile-menu {
+        padding: 12px;
+    }
+    
+    .profile-btn {
+        margin-bottom: 10px;
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+    
+    /* Search Overlay on Small Screens */
+    .search-container {
+        width: 90%;
+        max-width: 95%;
+    }
+    
+    .search-header {
+        padding: 15px;
+    }
+    
+    .search-form {
+        padding: 15px;
+    }
+    
+    .search-form input {
+        font-size: 14px;
+    }
+    
+    .search-results {
+        max-height: 300px;
+        padding: 0 15px 15px;
+    }
+    
+    .search-results-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-result-item {
+        padding: 8px;
+    }
+    
+    .search-result-image {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .search-result-name {
+        font-size: 13px;
+    }
+    
+    .search-result-price {
+        font-size: 14px;
+    }
+}
+
+/* Mobile Portrait (Below 576px) */
+@media (max-width: 575px) {
+    /* Profile Dropdown Full-Width */
+    .profile-dropdown {
+        width: calc(100% - 30px);
+        left: 15px;
+        right: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .profile-dropdown::before {
+        right: 30px;
+    }
+    
+    /* Make buttons more touch-friendly */
+    .profile-btn, 
+    .profile-menu-item {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .profile-menu-item i {
+        width: 24px;
+        font-size: 18px;
+    }
+    
+    /* Search Fullscreen on Small Devices */
+    .search-overlay {
+        padding-top: 60px;
+    }
+    
+    .search-container {
+        width: 100%;
+        max-width: 100%;
+        height: calc(100% - 60px);
+        border-radius: 20px 20px 0 0;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .search-form {
+        padding: 15px;
+    }
+    
+    .search-results {
+        flex: 1;
+        max-height: none;
+    }
+    
+    .search-result-item {
+        margin-bottom: 10px;
+    }
+    
+    .search-result-image {
+        width: 60px;
+        height: 60px;
+    }
+    
+    /* Better close button target */
+    .close-search {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Tiny Screens (Below 375px) */
+@media (max-width: 374px) {
+    /* Even more compact for smallest phones */
+    .profile-dropdown {
+        width: calc(100% - 20px);
+        left: 10px;
+        right: 10px;
+    }
+    
+    .profile-header h4 {
+        font-size: 15px;
+    }
+    
+    .profile-header p {
+        font-size: 11px;
+    }
+    
+    .profile-btn {
+        font-size: 11px;
+        padding: 8px 10px;
+    }
+    
+    .profile-menu-item {
+        padding: 8px 6px;
+        font-size: 12px;
+    }
+    
+    /* Minimal search for tiny screens */
+    .search-title {
+        font-size: 16px;
+    }
+    
+    .search-form {
+        padding: 10px;
+        gap: 8px;
+    }
+    
+    .search-form input {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+    
+    .search-form button {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .search-result-name {
+        font-size: 12px;
+    }
+    
+    .search-result-price {
+        font-size: 13px;
+    }
+}
+
+/* Improved Animation for dropdown appearance */
+@keyframes profileDropdownAppear {
+    0% {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.profile-dropdown.active {
+    animation: profileDropdownAppear 0.3s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+/* Fix for search results scrolling */
+.search-results {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.search-results::-webkit-scrollbar {
+    width: 6px;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+}
+
+/* Better tap targets for mobile */
+@media (max-width: 767px) {
+    .profile-dropdown {
+        top: 60px; /* Ensure there's enough space from the header */
+    }
+    
+    .profile-menu-item,
+    .profile-btn,
+    .close-search,
+    .search-form button {
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent; /* Remove tap highlight on iOS */
+    }
+    
+    /* Handle iOS position: fixed issues */
+    .search-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100vh; /* Use viewport height */
+        width: 100vw; /* Use viewport width */
+    }
+}
+
+/* Fix for notch phones and safe areas */
+@supports (padding: max(0px)) {
+    .profile-dropdown {
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+    }
+    
+    .search-container {
+        padding-left: max(0px, env(safe-area-inset-left));
+        padding-right: max(0px, env(safe-area-inset-right));
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+}
+
+/* Improved focus states for better accessibility */
+.profile-btn:focus,
+.profile-menu-item:focus,
+.search-form input:focus,
+.search-form button:focus {
+    outline: 2px solid rgba(226, 88, 34, 0.5);
+    outline-offset: 2px;
+}
+
+/* Dark mode support for OS-level preference */
+@media (prefers-color-scheme: dark) {
+    .profile-dropdown {
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    
+    .profile-menu-item:hover {
+        background: rgba(226, 88, 34, 0.1);
+    }
+    
+    .search-container {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+}

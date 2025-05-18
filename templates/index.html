@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper@11/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/profile-view.css') }}">
     <style>
         /* Shopping Cart Styles */
         .cart-sidebar {
@@ -318,6 +319,468 @@
             50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
+
+        /* Enhanced Responsive Styles */
+
+/* Tablet and Medium Screen Devices (768px - 991px) */
+@media (max-width: 991px) {
+    /* Better Navigation */
+    .nav-links {
+        top: 90px; /* Increased for better spacing from the header */
+        z-index: 1003; /* Ensure it appears above all other elements */
+        padding: 15px 0;
+    }
+    
+    .nav-links li {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .nav-links a {
+        display: block;
+        padding: 12px 15px;
+        font-size: 16px;
+    }
+    
+    /* Category Grid Improvements */
+    .category-grid {
+        gap: 15px;
+    }
+    
+    /* Product Slider Fixes */
+    .product-slider {
+        gap: 15px;
+        overflow-x: hidden;
+    }
+    
+    /* Testimonial Adjustments */
+    .testimonial-container {
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    /* Footer Spacing */
+    .footer-column {
+        padding-bottom: 20px;
+    }
+
+    /* Cart Sidebar Adjustments */
+    .cart-sidebar {
+        width: 350px;
+        right: -350px;
+    }
+    .nav-icons {
+        margin-left: 20vh;
+        padding-right: 25px;
+        display: flex;
+        gap: 15px;
+    }
+    
+    .icon-link {
+        margin: 0; /* Remove any default margins that might cause overlapping */
+    }
+}
+
+/* Mobile Landscape (576px - 767px) */
+@media (max-width: 767px) {
+    /* Header Adjustments */
+    .header-container {
+        padding: 10px 15px;
+    }
+    
+    .logo-img {
+        height: 40px;
+    }
+    
+    /* Hero Section Adjustments */
+    .hero {
+        height: 500px;
+        background-size: cover;
+    }
+    
+    /* Special Offer Section */
+    .offer-content {
+        padding: 25px 15px;
+    }
+    
+    /* Instagram Reels Fixes */
+    .reel-item {
+        height: 320px;
+        width: 180px;
+    }
+    
+    /* Testimonials Single Column */
+    .testimonial-container {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Features Adjustments */
+    .features {
+        gap: 20px;
+        padding: 40px 20px;
+    }
+    
+    /* Cart Sidebar Improvements */
+    .cart-sidebar {
+        width: 90%;
+        right: -90%;
+    }
+    
+    .cart-item-image {
+        width: 70px;
+        height: 90px;
+    }
+    
+    /* Better Notification Positioning */
+    .notification {
+        width: 90%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-20px);
+        right: auto;
+    }
+    
+    .notification.show {
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Mobile Portrait (Below 576px) */
+@media (max-width: 575px) {
+    /* Navigation Fixes */
+    .icon-link {
+        font-size: 16px;
+    }
+    
+    .nav-icons {
+        gap: 15px;
+    }
+    
+    /* Hero Section Adjustments */
+    .hero {
+        height: 450px;
+    }
+    
+    .hero-text {
+        padding: 0 15px;
+    }
+    
+    .hero-text h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+    
+    .hero-text h2 {
+        font-size: 20px;
+    }
+    
+    .hero-description {
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+    
+    .discount-badge {
+        font-size: 18px;
+        padding: 5px 15px;
+        margin-bottom: 15px;
+    }
+    
+    /* Button Size Adjustments */
+    .btn-shop-now, 
+    .btn-explore, 
+    .btn-shop-collection {
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+    
+    /* Special Offer Timer */
+    .countdown-item {
+        min-width: 45px;
+        padding: 5px;
+    }
+    
+    .countdown-number {
+        font-size: 18px;
+    }
+    
+    .countdown-label {
+        font-size: 10px;
+    }
+    
+    /* Product Card Improvements */
+    .product-card {
+        max-width: 280px;
+        margin: 0 auto;
+    }
+    
+    .action-btn {
+        width: 34px;
+        height: 34px;
+    }
+    
+    /* Newsletter Input */
+    .newsletter-form input {
+        padding: 10px 15px;
+    }
+    
+    .newsletter-form button {
+        padding: 10px 20px;
+    }
+    
+    /* Search Results Fix */
+    .search-result-image {
+        width: 60px;
+        height: 60px;
+    }
+    
+    /* Cart Sidebar Full Width */
+    .cart-sidebar {
+        width: 100%;
+        right: -100%;
+    }
+    
+    /* Instagram Reels Smaller */
+    .reel-item {
+        height: 280px;
+        width: 160px;
+    }
+    
+    .reel-play-btn {
+        width: 40px;
+        height: 40px;
+    }
+    
+
+}
+
+/* Tiny Screens (Below 375px) */
+@media (max-width: 374px) {
+    /* Extreme Small Screen Fixes */
+    .header-container {
+        padding: 8px 10px;
+    }
+    
+    .logo-img {
+        height: 30px;
+    }
+    
+    .nav-icons {
+        gap: 12px;
+    }
+    
+    .icon-link {
+        font-size: 15px;
+    }
+    
+    /* Hero Minimal */
+    .hero-text h1 {
+        font-size: 28px;
+    }
+    
+    .hero-text h2 {
+        font-size: 18px;
+    }
+    
+    .discount-badge {
+        font-size: 16px;
+        padding: 4px 12px;
+    }
+    
+    /* Product Grid */
+    .category-grid,
+    .product-slider {
+        gap: 10px;
+    }
+    
+    /* Cart Items */
+    .cart-item {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .cart-item-image {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    
+    /* Instagram Reels */
+    .reel-item {
+        height: 240px;
+        width: 135px;
+    }
+    
+    .reel-content h4 {
+        font-size: 14px;
+    }
+    
+    .reel-content p {
+        font-size: 12px;
+    }
+    
+    .reel-cta {
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+}
+
+/* Fix for testimonials on all screen sizes */
+.testimonial-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* Fix for cart item quantity button spacing */
+@media (max-width: 480px) {
+    .cart-item-quantity {
+        justify-content: center;
+    }
+    
+    .quantity-btn {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* Fix for mobile menu open/close animation */
+@media (max-width: 991px) {
+    .mobile-menu-toggle {
+        transition: transform 0.3s ease;
+    }
+    
+    .mobile-menu-toggle.active {
+        transform: rotate(90deg);
+    }
+    
+    .nav-links {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease, opacity 0.3s ease, transform 0.3s ease;
+    }
+    
+    .nav-links.show {
+        max-height: 300px;
+        opacity: 1;
+    }
+}
+
+/* Fixed header for better mobile experience */
+@media (max-width: 767px) {
+    header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+    
+    .announcement-banner {
+        position: relative;
+        z-index: 1001;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (max-width: 991px) {
+    .action-btn, 
+    .quantity-btn, 
+    .prev-btn, 
+    .next-btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .close-cart, 
+    .close-search,
+    .mobile-menu-toggle {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+/* Add these styles to your CSS file */
+
+/* Improve hero section responsive behavior */
+@media (max-width: 768px) {
+  .hero {
+    /* Adjust height to provide more space */
+    height: 600px;
+    position: relative;
+  }
+  
+  .hero-content {
+    /* Ensure content doesn't push too far down */
+    padding-bottom: 60px;
+  }
+  
+  .hero-scroll-indicator {
+    /* Adjust positioning to avoid overlap */
+    bottom: 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px 15px;
+    border-radius: 20px;
+  }
+}
+
+/* Further adjustments for smaller screens */
+@media (max-width: 576px) {
+  .hero {
+    /* Reduce height slightly on very small screens */
+    height: 550px;
+  }
+  
+  .hero-content {
+    /* Adjust vertical positioning */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80%;
+  }
+  
+  .hero-buttons {
+    margin-bottom: 40px; /* Add more space between buttons and scroll indicator */
+  }
+  
+  .hero-scroll-indicator {
+    /* Fixed positioning for smallest screens */
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    padding: 4px 12px;
+    font-size: 11px;
+  }
+  
+  .hero-scroll-indicator span {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+  
+  .hero-scroll-indicator i {
+    font-size: 14px;
+  }
+}
+
+/* For very small screens, ensure the indicator is still visible but doesn't interfere */
+@media (max-width: 374px) {
+  .hero {
+    /* Further reduce height for tiny screens */
+    height: 520px;
+  }
+  
+  .hero-content {
+    /* Adjust padding to position content higher */
+    padding-top: 40px;
+  }
+  
+  .hero-buttons {
+    margin-bottom: 30px;
+  }
+}
+
     </style>
 </head>
 <body>
@@ -1472,169 +1935,98 @@ document.querySelectorAll('.reel-item').forEach(item => {
 </script>
 
 <script>
-    // Profile dropdown functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        // Elements
-        const profileIcon = document.querySelector('.nav-icons a:nth-child(2)');
-        const profileDropdown = document.getElementById('profile-dropdown');
-        const logoutBtn = document.getElementById('logout-btn');
-        const guestOptions = document.querySelector('.guest-options');
-        const userOptions = document.querySelector('.user-options');
-        const guestHeader = document.querySelector('.guest-header');
-        const userHeader = document.querySelector('.user-header');
-        const userEmail = document.getElementById('user-email');
-        
-        // Check auth status on page load
-        checkAuthStatus();
-        
-        // Toggle profile dropdown
-        profileIcon.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            profileDropdown.classList.toggle('active');
+// QUICK FIX: Add this script at the bottom of your index.html file
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Ultimate fallback fix for mobile product display
+    // This script applies direct inline styles that will guarantee horizontal scrolling works
+    
+    function applyQuickFix() {
+        // Check if we're on mobile
+        if (window.innerWidth <= 767) {
+            // Get the product slider
+            const productSlider = document.querySelector('.product-slider');
             
-            // Close cart if it's open
-            if (window.closeCart && document.getElementById('cart-sidebar').classList.contains('active')) {
-                window.closeCart();
-            }
-            
-            // Close search if it's open
-            const searchOverlay = document.getElementById('search-overlay');
-            if (searchOverlay && searchOverlay.classList.contains('active')) {
-                searchOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        });
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!profileDropdown.contains(e.target) && !profileIcon.contains(e.target)) {
-                profileDropdown.classList.remove('active');
-            }
-        });
-        
-        // Logout functionality
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async function(e) {
-                e.preventDefault();
+            if (productSlider) {
+                // Apply critical inline styles to force horizontal scrolling
+                productSlider.setAttribute('style', `
+                    display: flex !important;
+                    flex-wrap: nowrap !important;
+                    overflow-x: auto !important;
+                    grid-template-columns: unset !important;
+                    padding: 10px 5px !important;
+                    margin: 0 !important;
+                    -webkit-overflow-scrolling: touch !important;
+                `);
                 
-                try {
-                    const response = await fetch('/api/auth/logout', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    });
+                // Add -webkit-scrollbar styles through a stylesheet
+                const styleSheet = document.createElement('style');
+                styleSheet.textContent = `
+                    .product-slider::-webkit-scrollbar { display: none !important; }
+                    .product-slider { scrollbar-width: none !important; }
+                `;
+                document.head.appendChild(styleSheet);
+                
+                // Apply styles to each product card
+                const productCards = productSlider.querySelectorAll('.product-card');
+                productCards.forEach(card => {
+                    card.setAttribute('style', `
+                        flex: 0 0 auto !important;
+                        width: ${window.innerWidth <= 375 ? '150px' : window.innerWidth <= 480 ? '180px' : '200px'} !important;
+                        margin-right: 15px !important;
+                        transform: none !important;
+                    `);
                     
-                    const data = await response.json();
-                    
-                    if (response.ok) {
-                        // Show notification
-                        if (window.showNotification) {
-                            window.showNotification('Logged out successfully');
-                        } else {
-                            alert('Logged out successfully');
-                        }
-                        
-                        // Update UI
-                        updateUIForGuest();
-                        
-                        // Close dropdown
-                        profileDropdown.classList.remove('active');
-                        
-                        // Redirect to home if on a protected page
-                        const currentPath = window.location.pathname;
-                        const protectedPaths = ['/account', '/orders', '/wishlist'];
-                        
-                        if (protectedPaths.some(path => currentPath.startsWith(path))) {
-                            window.location.href = '/';
-                        }
-                    } else {
-                        console.error('Logout failed:', data.message);
+                    // Force product actions to be visible
+                    const actionButtons = card.querySelector('.product-actions');
+                    if (actionButtons) {
+                        actionButtons.setAttribute('style', `
+                            bottom: 0 !important;
+                            opacity: 1 !important;
+                            visibility: visible !important;
+                        `);
                     }
-                } catch (error) {
-                    console.error('Logout error:', error);
-                }
-            });
-        }
-        
-        // Check authentication status
-        async function checkAuthStatus() {
-            try {
-                const response = await fetch('/api/auth/status');
-                const data = await response.json();
+                });
                 
-                if (response.ok && data.authenticated) {
-                    // User is logged in
-                    updateUIForUser(data.user);
-                } else {
-                    // User is not logged in
-                    updateUIForGuest();
+                // Hide slider controls
+                const sliderControls = document.querySelector('.slider-controls');
+                if (sliderControls) {
+                    sliderControls.style.display = 'none';
                 }
-            } catch (error) {
-                console.error('Auth check error:', error);
-                // Default to guest view on error
-                updateUIForGuest();
-            }
-        }
-        
-        // Update UI for logged in user
-        function updateUIForUser(user) {
-            guestOptions.style.display = 'none';
-            userOptions.style.display = 'block';
-            guestHeader.style.display = 'none';
-            userHeader.style.display = 'block';
-            
-            // Set user info
-            if (user && user.email) {
-                userEmail.textContent = user.email;
-            }
-            
-            // Check for pending orders
-            checkPendingOrders();
-        }
-        
-        // Update UI for guest (not logged in)
-        function updateUIForGuest() {
-            guestOptions.style.display = 'block';
-            userOptions.style.display = 'none';
-            guestHeader.style.display = 'block';
-            userHeader.style.display = 'none';
-        }
-        
-        // Check for pending orders (optional)
-        async function checkPendingOrders() {
-            try {
-                const response = await fetch('/api/user/orders');
-                const orders = await response.json();
                 
-                if (response.ok && Array.isArray(orders)) {
-                    // Count pending/new orders
-                    const pendingOrders = orders.filter(order => 
-                        order.order_status === 'pending' || 
-                        order.order_status === 'confirmed' ||
-                        order.order_status === 'processing'
-                    );
+                // Add scroll indicator if it doesn't exist
+                if (!document.querySelector('.scroll-indicator-text')) {
+                    const scrollIndicator = document.createElement('div');
+                    scrollIndicator.className = 'scroll-indicator-text';
+                    scrollIndicator.textContent = '← Scroll to see more →';
+                    scrollIndicator.setAttribute('style', `
+                        text-align: center;
+                        padding: 10px;
+                        color: #777;
+                        font-size: 14px;
+                        margin-top: 15px;
+                        width: 100%;
+                    `);
                     
-                    // Update orders menu item with badge if there are pending orders
-                    const ordersMenuItem = document.querySelector('.user-options a[href="/orders"]');
-                    
-                    if (ordersMenuItem && pendingOrders.length > 0) {
-                        if (!ordersMenuItem.querySelector('.notification-badge')) {
-                            const badge = document.createElement('span');
-                            badge.className = 'notification-badge';
-                            badge.textContent = pendingOrders.length;
-                            ordersMenuItem.appendChild(badge);
-                        } else {
-                            ordersMenuItem.querySelector('.notification-badge').textContent = pendingOrders.length;
-                        }
-                    }
+                    // Insert after product slider
+                    productSlider.parentNode.insertBefore(scrollIndicator, productSlider.nextSibling);
                 }
-            } catch (error) {
-                console.error('Error checking orders:', error);
             }
         }
-    });
+    }
+    
+    // Apply fix immediately
+    applyQuickFix();
+    
+    // Re-apply on resize
+    window.addEventListener('resize', applyQuickFix);
+    
+    // Apply fix again after a short delay to ensure it works
+    // even if other scripts may be manipulating the layout
+    setTimeout(applyQuickFix, 500);
+});
 </script>
+<script src="{{ url_for('static', path='/js/profile-view.js') }}"></script>
+
 </body>
 </html>

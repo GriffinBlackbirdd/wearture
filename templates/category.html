@@ -1188,6 +1188,16 @@
             .product-img {
                 height: 320px;
             }
+            .nav-icons {
+        margin-left: 20vh;
+        padding-right: 25px;
+        display: flex;
+        gap: 15px;
+    }
+    
+    .icon-link {
+        margin: 0; /* Remove any default margins that might cause overlapping */
+    }
         }
 
         @media (max-width: 576px) {
@@ -1272,6 +1282,519 @@
 /* Ensure the overlay remains visible and above the second image */
 .category-container .product-overlay {
     z-index: 5;
+}
+
+/* Enhanced Responsive Styles for Category Page */
+
+/* Larger Tablets (992px - 1199px) */
+@media (max-width: 1199px) {
+    /* Adjust category grid */
+    .category-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+    }
+    
+    /* Product card adjustments */
+    .product-card {
+        transition: all 0.4s ease;
+    }
+    
+    /* Fix filter bar spacing */
+    .filter-bar {
+        padding: 20px 25px;
+    }
+    
+    .filter-options {
+        gap: 25px;
+    }
+    
+    /* Pagination adjustments */
+    .pagination {
+        margin: 50px 0;
+    }
+}
+
+/* Medium Tablets (768px - 991px) */
+@media (max-width: 991px) {
+    /* Hero section adjustments */
+    .category-hero {
+        min-height: 300px;
+    }
+    
+    .category-hero h1 {
+        font-size: 42px;
+    }
+    
+    .category-hero p {
+        font-size: 18px;
+        max-width: 600px;
+    }
+    
+    /* Category container padding */
+    .category-container {
+        padding: 30px 15px;
+    }
+    
+    /* Filter bar optimization */
+    .filter-bar {
+        padding: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-options {
+        margin-bottom: 10px;
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+    
+    /* Product card refinements */
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+    }
+    
+    .product-name {
+        font-size: 18px;
+    }
+    
+    /* Subcategory grid */
+    .subcategory-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    /* Floating shapes adjustments */
+    .shape-1 {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .shape-2 {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .shape-3 {
+        width: 60px;
+        height: 60px;
+    }
+    
+    /* Cart sidebar adjustments */
+    .cart-sidebar {
+        width: 350px;
+        right: -350px;
+    }
+}
+
+/* Mobile Landscape (576px - 767px) */
+@media (max-width: 767px) {
+    /* Hero section adjustments */
+    .category-hero {
+        min-height: 250px;
+    }
+    
+    .category-hero h1 {
+        font-size: 36px;
+    }
+    
+    .category-hero p {
+        font-size: 16px;
+        max-width: 100%;
+    }
+    
+    /* Better mobile container */
+    .category-container {
+        padding: 25px 15px;
+    }
+    
+    /* Filter bar mobile optimization */
+    .filter-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .filter-options {
+        flex-wrap: wrap;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .filter-group {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .filter-select {
+        width: 100%;
+    }
+    
+    .product-count {
+        width: 100%;
+        text-align: center;
+    }
+    
+    /* Product grid mobile */
+    .product-grid {
+        gap: 20px;
+    }
+    
+    /* Product overlay optimization */
+    .overlay-name {
+        font-size: 18px;
+    }
+    
+    .overlay-description {
+        font-size: 13px;
+        -webkit-line-clamp: 2;
+    }
+    
+    .overlay-actions {
+        gap: 8px;
+    }
+    
+    .action-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+        min-width: 110px;
+    }
+    
+    /* Enhance product quick actions */
+    .product-info {
+        padding: 20px 15px;
+    }
+    
+    .quick-actions {
+        bottom: 15px;
+        right: 15px;
+        gap: 8px;
+    }
+    
+    .quick-action {
+        width: 36px;
+        height: 36px;
+    }
+    
+    /* Cart sidebar mobile */
+    .cart-sidebar {
+        width: 300px;
+        right: -300px;
+    }
+    
+    /* Breadcrumbs mobile */
+    .breadcrumbs {
+        margin-bottom: 30px;
+        padding: 15px 0;
+    }
+    
+    .breadcrumb-list {
+        flex-wrap: wrap;
+        row-gap: 5px;
+    }
+    
+    /* Pagination mobile */
+    .pagination {
+        margin: 40px 0;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .page-item {
+        width: 40px;
+        height: 40px;
+        font-size: 14px;
+    }
+}
+
+/* Mobile Portrait (Below 576px) */
+@media (max-width: 575px) {
+    /* Hero section compact */
+    .category-hero {
+        min-height: 220px;
+    }
+    
+    .category-hero h1 {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+    
+    .category-hero p {
+        font-size: 14px;
+    }
+    
+    /* Floating shapes adjustments */
+    .shape-1, .shape-3 {
+        display: none; /* Hide some shapes on very small screens */
+    }
+    
+    .shape-2 {
+        width: 80px;
+        height: 80px;
+    }
+    
+    /* Single column grid */
+    .product-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    /* Make sure cards aren't too tall */
+    .product-image-container {
+        height: 280px;
+    }
+    
+    /* Subcategory adjustments */
+    .subcategory-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .subcategory-img {
+        height: 180px;
+    }
+    
+    /* Section headers */
+    .section-title {
+        font-size: 24px;
+    }
+    
+    .section-subtitle {
+        font-size: 14px;
+    }
+    
+    /* Full width cart */
+    .cart-sidebar {
+        width: 100%;
+        right: -100%;
+    }
+    
+    /* Product badge mobile */
+    .product-badge {
+        top: 10px;
+        left: 10px;
+        padding: 5px 12px;
+        font-size: 10px;
+    }
+    
+    /* Product info compact */
+    .product-name {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    
+    .product-price {
+        font-size: 16px;
+    }
+    
+    .original-price {
+        font-size: 14px;
+    }
+}
+
+/* Very Small Screens (375px and below) */
+@media (max-width: 375px) {
+    /* Super compact hero */
+    .category-hero {
+        min-height: 180px;
+    }
+    
+    .category-hero h1 {
+        font-size: 24px;
+    }
+    
+    .category-hero p {
+        font-size: 13px;
+    }
+    
+    /* Minimal container padding */
+    .category-container {
+        padding: 20px 10px;
+    }
+    
+    /* Filter bar minimal */
+    .filter-bar {
+        padding: 12px;
+        margin-bottom: 25px;
+    }
+    
+    .filter-select {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    /* Compact product card */
+    .product-image-container {
+        height: 240px;
+    }
+    
+    .product-info {
+        padding: 15px 12px;
+    }
+    
+    .overlay-actions {
+        flex-direction: column;
+        width: 60%;
+        margin: 0 auto;
+    }
+    
+    .action-btn {
+        width: 100%;
+    }
+    
+    /* Fix pagination */
+    .pagination {
+        gap: 5px;
+    }
+    
+    .page-item {
+        width: 36px;
+        height: 36px;
+        font-size: 13px;
+    }
+}
+
+/* Optimize for Touch Devices */
+@media (max-width: 991px) {
+    /* Larger touch targets */
+    .filter-select,
+    .product-count,
+    .action-btn,
+    .quick-action,
+    .page-item,
+    .quantity-btn {
+        min-height: 44px;
+    }
+    
+    /* Improve hover effects for touch */
+    .product-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* Better tap feedback */
+    .action-btn:active,
+    .quick-action:active,
+    .page-item:active {
+        transform: scale(0.95);
+    }
+    
+    /* Remove :hover effects that could be sticky on mobile */
+    .subcategory-card:hover .subcategory-img img {
+        transform: none;
+    }
+    
+    /* Only scale on active for touch */
+    .subcategory-card:active .subcategory-img img {
+        transform: scale(1.05);
+    }
+}
+
+/* Fix for product image hover transition on touch devices */
+@media (hover: none) {
+    .product-image,
+    .product-second-image {
+        transition: opacity 0.4s ease;
+    }
+    
+    .product-card:hover .product-image,
+    .product-card:hover .product-second-image.show {
+        transform: none;
+    }
+    
+    /* Make overlay visible on touch with a delay */
+    .product-overlay {
+        opacity: 0;
+        transition: opacity 0.3s ease 0.1s;
+    }
+    
+    .product-card:active .product-overlay {
+        opacity: 1;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    /* You can add dark mode styles here if needed */
+    .notification i.fa-check-circle {
+        color: #4caf50;
+    }
+    
+    .cart-sidebar,
+    .filter-bar,
+    .product-card,
+    .subcategory-card,
+    .page-item {
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+}
+
+/* Fix 100vh issue on mobile browsers */
+@media (max-width: 767px) {
+    .cart-sidebar {
+        height: 100%;
+        max-height: -webkit-fill-available;
+    }
+}
+
+/* Fix for notch phones and safe areas */
+@supports (padding: max(0px)) {
+    .cart-sidebar {
+        padding-top: max(20px, env(safe-area-inset-top));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+        padding-right: max(20px, env(safe-area-inset-right));
+    }
+}
+
+/* Improved Animation Performance */
+@media (prefers-reduced-motion: reduce) {
+    .product-card,
+    .product-image,
+    .product-overlay,
+    .overlay-content,
+    .overlay-actions,
+    .notification,
+    .category-hero::before,
+    .floating-shape,
+    .search-result-item {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* Custom scrollbar for webkit browsers */
+.cart-items::-webkit-scrollbar {
+    width: 5px;
+}
+
+.cart-items::-webkit-scrollbar-track {
+    background: var(--light-bg);
+}
+
+.cart-items::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+
+/* Better accessibility */
+.action-btn:focus,
+.quick-action:focus,
+.filter-select:focus,
+.page-item:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Fix for Firefox */
+@-moz-document url-prefix() {
+    .filter-select {
+        text-indent: 0.01px;
+        text-overflow: '';
+        padding-right: 25px;
+    }
 }
     </style>
 </head>
