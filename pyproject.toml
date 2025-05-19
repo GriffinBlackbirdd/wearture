@@ -17,4 +17,5 @@ dependencies = [
     "setuptools>=80.4.0",
     "supabase>=2.15.1",
     "uvicorn>=0.34.2",
+    "xlsxwriter>=3.2.3",
 ]

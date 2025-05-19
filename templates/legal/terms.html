@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms and Conditions - WEARXTURE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #e25822;
+            --secondary-color: #2c3e50;
+            --accent-color: #f8f9fa;
+            --text-color: #333;
+            --light-text: #666;
+            --border-color: #e0e0e0;
+            --font-body: 'Poppins', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            color: var(--text-color);
+            line-height: 1.6;
+            background-color: #fff;
+        }
+        
+        header {
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .header-nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+        
+        .header-nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .header-nav a:hover {
+            color: var(--primary-color);
+        }
+        
+        .page-title {
+            background-color: var(--accent-color);
+            padding: 2.5rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .page-title h1 {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            margin-top: 0.5rem;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin: 0 0.5rem;
+        }
+        
+        .breadcrumb span {
+            margin: 0 0.5rem;
+        }
+        
+        main {
+            padding: 2rem 0 4rem;
+        }
+        
+        .policy-content {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+        }
+        
+        .policy-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        h2 {
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h3 {
+            color: var(--secondary-color);
+            font-size: 1.25rem;
+            margin: 1.5rem 0 0.75rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+        
+        ul, ol {
+            margin: 1rem 0 1.5rem 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .highlight {
+            background-color: #fff8e1;
+            padding: 1rem;
+            border-left: 4px solid var(--primary-color);
+            margin: 1.5rem 0;
+        }
+        
+        .date {
+            font-style: italic;
+            color: var(--light-text);
+            margin-bottom: 2rem;
+            text-align: right;
+        }
+        
+        .terms-intro {
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 0 0 2rem;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .terms-intro p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .definition-box {
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 1px solid #eee;
+        }
+        
+        .definition-box p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .definition-label {
+            font-weight: 600;
+            color: var(--secondary-color);
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+        
+        table th, table td {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+        }
+        
+        table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+            text-align: left;
+        }
+        
+        table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        footer {
+            background-color: var(--secondary-color);
+            color: #fff;
+            padding: 3rem 0 1.5rem;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+        
+        .footer-column h4 {
+            font-size: 1.1rem;
+            margin-bottom: 1.2rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        .footer-column h4::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+        
+        .footer-column ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-column li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-column a {
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-column a:hover {
+            color: var(--primary-color);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .social-links a:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .anchor-link {
+            display: block;
+            position: relative;
+            top: -70px;
+            visibility: hidden;
+        }
+        
+        @media (max-width: 768px) {
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .policy-content {
+                padding: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .header-nav {
+                display: none;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-title h1 {
+                font-size: 1.75rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+            
+            h3 {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">WEARXTURE</a>
+                <nav class="header-nav">
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/collections">Collections</a></li>
+                        <li><a href="/products">Products</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <div class="page-title">
+        <div class="container">
+            <h1>Terms and Conditions</h1>
+            <div class="breadcrumb">
+                <a href="/">Home</a>
+                <span>/</span>
+                <span>Terms and Conditions</span>
+            </div>
+        </div>
+    </div>
+    
+    <main>
+        <div class="container">
+            <div class="policy-content">
+                <p class="date">Last Updated: May 19, 2025</p>
+                
+                <div class="terms-intro">
+                    <p>Welcome to WEARXTURE! These Terms and Conditions govern your use of our website (wearxture.com), mobile application, and the services we offer. By accessing or using our services, you agree to be bound by these Terms and Conditions.</p>
+                    <p>Please read these Terms carefully before using our website or placing an order.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>1. Introduction</h2>
+                    <p>These Terms and Conditions (the "Terms") constitute a legally binding agreement between you and WEARXTURE ("we," "our," or "us") regarding your use of the WEARXTURE website, mobile application, and any other online services (collectively, the "Services").</p>
+                    
+                    <p>By accessing or using the Services, you acknowledge that you have read, understood, and agree to be bound by these Terms. If you do not agree to these Terms, please do not use our Services.</p>
+                    
+                    <p>We reserve the right to modify these Terms at any time. Any changes will be effective immediately upon posting on our website. Your continued use of our Services following the posting of revised Terms means that you accept and agree to the changes.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>2. Definitions</h2>
+                    <p>Throughout these Terms, we use certain terms with specific meanings:</p>
+                    
+                    <div class="definition-box">
+                        <p><span class="definition-label">"Customer," "You," or "User":</span> Any individual who accesses or uses our Services, whether as a registered user or a guest.</p>
+                    </div>
+                    
+                    <div class="definition-box">
+                        <p><span class="definition-label">"Content":</span> All text, images, graphics, videos, audio, designs, data, software, and other materials that appear on or are part of our Services.</p>
+                    </div>
+                    
+                    <div class="definition-box">
+                        <p><span class="definition-label">"Products":</span> The ethnic wear and accessories offered for sale through our Services.</p>
+                    </div>
+                    
+                    <div class="definition-box">
+                        <p><span class="definition-label">"Order":</span> A request submitted by you to purchase Products through our Services.</p>
+                    </div>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>3. Account Registration</h2>
+                    
+                    <h3>3.1 Account Creation</h3>
+                    <p>To place orders and access certain features of our Services, you may need to create an account. When creating an account, you agree to provide accurate, current, and complete information. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
+                    
+                    <h3>3.2 Account Security</h3>
+                    <p>You are responsible for maintaining the security of your account and password. We cannot and will not be liable for any loss or damage resulting from your failure to comply with this security obligation.</p>
+                    
+                    <h3>3.3 Account Termination</h3>
+                    <p>We reserve the right to suspend or terminate your account and access to our Services at our sole discretion, without notice, for conduct that we believe violates these Terms or is harmful to other users, us, or third parties, or for any other reason.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>4. Products and Orders</h2>
+                    
+                    <h3>4.1 Product Information</h3>
+                    <p>We strive to display our Products and their colors as accurately as possible. However, we cannot guarantee that your computer or mobile device's display of any color will be accurate. All descriptions, images, references, features, content, specifications, and prices of Products are subject to change at any time without notice.</p>
+                    
+                    <h3>4.2 Product Availability</h3>
+                    <p>All Products are subject to availability. We reserve the right to discontinue any Product at any time. If a Product is unavailable after you place an order, we will notify you and provide options for alternative Products or a refund.</p>
+                    
+                    <h3>4.3 Ordering Process</h3>
+                    <p>By placing an order, you are making an offer to purchase the Products at the listed price, plus applicable taxes and shipping charges. We reserve the right to accept or decline your order at our sole discretion.</p>
+                    
+                    <h3>4.4 Order Confirmation</h3>
+                    <p>After you place an order, you will receive an order confirmation email. This email acknowledges that we have received your order but does not constitute acceptance of your order. An order is not accepted until we send you a shipping confirmation email.</p>
+                    
+                    <h3>4.5 Order Cancellation</h3>
+                    <p>You may cancel an order before it is shipped. Once an order has been shipped, you must follow our Return Policy for returns or exchanges. We reserve the right to cancel any order at our discretion, including in cases of pricing errors, product unavailability, or suspected fraud.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>5. Pricing and Payment</h2>
+                    
+                    <h3>5.1 Prices</h3>
+                    <p>All prices are displayed in Indian Rupees (INR) and are inclusive of applicable taxes but exclusive of shipping charges. Shipping charges will be calculated and displayed during the checkout process.</p>
+                    
+                    <h3>5.2 Price Changes</h3>
+                    <p>We reserve the right to change prices for Products at any time. The price applicable to your order will be the price displayed at the time you place your order.</p>
+                    
+                    <h3>5.3 Pricing Errors</h3>
+                    <p>Despite our best efforts, some Products may be incorrectly priced on our website. If we discover a pricing error for a Product you have ordered, we will inform you and give you the option to continue with the order at the correct price or cancel the order.</p>
+                    
+                    <h3>5.4 Payment Methods</h3>
+                    <p>We accept the following payment methods:</p>
+                    <ul>
+                        <li>Credit and Debit Cards (Visa, MasterCard, American Express, RuPay)</li>
+                        <li>UPI</li>
+                        <li>Net Banking</li>
+                        <li>Digital Wallets (PhonePe, Google Pay, Paytm)</li>
+                        <li>Cash on Delivery (COD) (for eligible orders)</li>
+                    </ul>
+                    
+                    <h3>5.5 Payment Processing</h3>
+                    <p>Payment information is encrypted and securely processed through our payment service providers. We do not store your complete payment information on our servers.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>6. Shipping and Delivery</h2>
+                    
+                    <h3>6.1 Shipping Options</h3>
+                    <p>We offer standard shipping throughout India. Shipping options, timeframes, and costs will be displayed during the checkout process.</p>
+                    
+                    <h3>6.2 Delivery Timeframes</h3>
+                    <p>Estimated delivery timeframes are provided during checkout. These are estimates only and not guaranteed delivery dates. Factors such as payment verification, order processing, and delivery location may affect actual delivery times.</p>
+                    
+                    <h3>6.3 Shipping Restrictions</h3>
+                    <p>We may not be able to ship to certain locations. If we are unable to ship to your location, we will notify you during the checkout process or after you place your order.</p>
+                    
+                    <h3>6.4 Delivery Confirmation</h3>
+                    <p>You are responsible for ensuring that someone is available to receive and sign for the package (if required). If no one is available to receive the package, the delivery carrier may leave a notice and attempt delivery again or hold the package for pickup.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>7. Returns and Refunds</h2>
+                    <p>Our Return Policy is incorporated into these Terms by reference. Please refer to our <a href="/return" style="color: var(--primary-color); text-decoration: none;">Return Policy</a> for details on returns, exchanges, and refunds.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>8. Intellectual Property</h2>
+                    
+                    <h3>8.1 Ownership</h3>
+                    <p>All Content on our Services, including but not limited to text, graphics, logos, images, designs, photographs, videos, illustrations, and software, is owned by WEARXTURE or our licensors and is protected by copyright, trademark, and other intellectual property laws.</p>
+                    
+                    <h3>8.2 Limited License</h3>
+                    <p>We grant you a limited, non-exclusive, non-transferable, and revocable license to access and use our Services for personal, non-commercial purposes. This license does not include the right to:</p>
+                    <ul>
+                        <li>Modify, reproduce, or distribute any Content from our Services</li>
+                        <li>Use our Services or Content for commercial purposes</li>
+                        <li>Attempt to decompile or reverse engineer any software contained in our Services</li>
+                        <li>Remove any copyright or other proprietary notations from the Content</li>
+                        <li>Transfer the Content to another person or "mirror" the Content on any other server</li>
+                    </ul>
+                    
+                    <h3>8.3 Trademark</h3>
+                    <p>WEARXTURE, our logo, and other marks, graphics, logos, and icons are registered or unregistered trademarks of WEARXTURE. You may not use these trademarks without our prior written consent.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>9. User Conduct</h2>
+                    <p>When using our Services, you agree not to:</p>
+                    <ul>
+                        <li>Violate any applicable law, regulation, or these Terms</li>
+                        <li>Use our Services for any illegal purpose</li>
+                        <li>Attempt to gain unauthorized access to any portion of our Services</li>
+                        <li>Interfere with the proper functioning of our Services</li>
+                        <li>Engage in any activity that disrupts or interferes with our Services</li>
+                        <li>Submit false or misleading information</li>
+                        <li>Impersonate any person or entity</li>
+                        <li>Collect or store personal data about other users</li>
+                        <li>Use any device, software, or process to interfere with the proper functioning of our Services</li>
+                        <li>Introduce any viruses, Trojan horses, worms, or other malicious code to our Services</li>
+                    </ul>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>10. User-Generated Content</h2>
+                    
+                    <h3>10.1 Reviews and Comments</h3>
+                    <p>Our Services may allow you to post reviews, comments, and other content. By posting content, you grant us a non-exclusive, royalty-free, perpetual, irrevocable, and fully sublicensable right to use, reproduce, modify, adapt, publish, translate, create derivative works from, distribute, and display such content throughout the world in any media.</p>
+                    
+                    <h3>10.2 Content Guidelines</h3>
+                    <p>You agree that content you post will not:</p>
+                    <ul>
+                        <li>Be false, misleading, or inaccurate</li>
+                        <li>Infringe any third-party's copyright, patent, trademark, trade secret, or other proprietary rights</li>
+                        <li>Violate any law or regulation</li>
+                        <li>Be defamatory, obscene, threatening, abusive, or hateful</li>
+                        <li>Contain any viruses, worms, or other malicious code</li>
+                    </ul>
+                    
+                    <h3>10.3 Content Monitoring</h3>
+                    <p>We do not regularly review posted content but reserve the right to monitor, edit, or remove any content at our sole discretion.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>11. Limitation of Liability</h2>
+                    <p>To the maximum extent permitted by law, WEARXTURE, our directors, employees, and agents will not be liable for any direct, indirect, incidental, special, consequential, or punitive damages, including but not limited to, loss of profits, data, or use, arising out of or in any way connected with your use of our Services.</p>
+                    
+                    <p>Our liability is limited to the maximum extent permitted by law and shall not exceed the amount you paid for the specific Products giving rise to the claim.</p>
+                    
+                    <div class="highlight">
+                        <p>Some jurisdictions do not allow the exclusion or limitation of certain warranties or liability for incidental or consequential damages, so the above limitations may not apply to you.</p>
+                    </div>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>12. Indemnification</h2>
+                    <p>You agree to indemnify, defend, and hold harmless WEARXTURE, our affiliates, and our respective officers, directors, employees, and agents from and against any claims, liabilities, damages, judgments, awards, losses, costs, expenses, or fees (including reasonable attorneys' fees) arising out of or relating to your violation of these Terms or your use of our Services.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>13. Dispute Resolution</h2>
+                    
+                    <h3>13.1 Governing Law</h3>
+                    <p>These Terms shall be governed by and construed in accordance with the laws of India, without regard to its conflict of law principles.</p>
+                    
+                    <h3>13.2 Dispute Resolution Process</h3>
+                    <p>Any dispute arising from or relating to these Terms or your use of our Services shall be resolved through the following process:</p>
+                    <ol>
+                        <li>Informal Resolution: We encourage you to contact us directly to resolve any disputes.</li>
+                        <li>Formal Dispute: If informal resolution is unsuccessful, any dispute shall be resolved through arbitration in accordance with the Arbitration and Conciliation Act, 1996 of India.</li>
+                    </ol>
+                    
+                    <h3>13.3 Venue</h3>
+                    <p>Any legal proceedings shall be brought exclusively in the courts of New Delhi, India, and you consent to the jurisdiction of such courts.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>14. Termination</h2>
+                    <p>We reserve the right to terminate or suspend your access to our Services immediately, without prior notice or liability, for any reason, including but not limited to a breach of these Terms.</p>
+                    
+                    <p>All provisions of these Terms that by their nature should survive termination shall survive termination, including, without limitation, ownership provisions, warranty disclaimers, indemnity, and limitations of liability.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>15. Severability</h2>
+                    <p>If any provision of these Terms is found to be invalid or unenforceable, that provision shall be enforced to the maximum extent possible, and the remaining provisions shall remain in full force and effect.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>16. Entire Agreement</h2>
+                    <p>These Terms, together with our Privacy Policy and Return Policy, constitute the entire agreement between you and WEARXTURE regarding your use of our Services and supersede all prior agreements and understandings.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>17. Contact Information</h2>
+                    <p>If you have any questions about these Terms, please contact us at:</p>
+                    <p>Email: legal@wearxture.com</p>
+                    <p>Address: WEARXTURE, Sector 62, Noida, Uttar Pradesh, India</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h4>WEARXTURE</h4>
+                    <p>Authentic ethnic wear for every occasion. Handcrafted with love, delivered with care.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-pinterest"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/collections">Collections</a></li>
+                        <li><a href="/products">Products</a></li>
+                        <li><a href="/orders">My Orders</a></li>
+                        <li><a href="/contact">Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Customer Care</h4>
+                    <ul>
+                        <li><a href="/faq">FAQ</a></li>
+                        <li><a href="/shipping">Shipping Policy</a></li>
+                        <li><a href="/return">Return Policy</a></li>
+                        <li><a href="/privacy-policy">Privacy Policy</a></li>
+                        <li><a href="/terms">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Contact Info</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> Sector 62, Noida, UP, India</p>
+                    <p><i class="fas fa-phone"></i> +91 123-456-7890</p>
+                    <p><i class="fas fa-envelope"></i> info@wearxture.com</p>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2025 WEARXTURE. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

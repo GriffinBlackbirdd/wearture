@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return Policy - WEARXTURE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #e25822;
+            --secondary-color: #2c3e50;
+            --accent-color: #f8f9fa;
+            --text-color: #333;
+            --light-text: #666;
+            --border-color: #e0e0e0;
+            --font-body: 'Poppins', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            color: var(--text-color);
+            line-height: 1.6;
+            background-color: #fff;
+        }
+        
+        header {
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .header-nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+        
+        .header-nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .header-nav a:hover {
+            color: var(--primary-color);
+        }
+        
+        .page-title {
+            background-color: var(--accent-color);
+            padding: 2.5rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .page-title h1 {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            margin-top: 0.5rem;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin: 0 0.5rem;
+        }
+        
+        .breadcrumb span {
+            margin: 0 0.5rem;
+        }
+        
+        main {
+            padding: 2rem 0 4rem;
+        }
+        
+        .policy-content {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+        }
+        
+        .policy-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        h2 {
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h3 {
+            color: var(--secondary-color);
+            font-size: 1.25rem;
+            margin: 1.5rem 0 0.75rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+        
+        ul, ol {
+            margin: 1rem 0 1.5rem 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .highlight {
+            background-color: #fff8e1;
+            padding: 1rem;
+            border-left: 4px solid var(--primary-color);
+            margin: 1.5rem 0;
+        }
+        
+        .date {
+            font-style: italic;
+            color: var(--light-text);
+            margin-bottom: 2rem;
+            text-align: right;
+        }
+        
+        .return-box {
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .return-box h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        
+        .contact-methods {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .contact-card {
+            flex: 1;
+            min-width: 250px;
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .contact-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(226, 88, 34, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        
+        .contact-icon i {
+            font-size: 24px;
+            color: var(--primary-color);
+        }
+        
+        .contact-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--secondary-color);
+        }
+        
+        .contact-card p {
+            margin-bottom: 1rem;
+            color: var(--light-text);
+        }
+        
+        .contact-card a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .contact-card a:hover {
+            text-decoration: underline;
+        }
+        
+        .step-box {
+            display: flex;
+            margin-bottom: 1.5rem;
+            align-items: flex-start;
+        }
+        
+        .step-number {
+            width: 36px;
+            height: 36px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-content h3 {
+            margin-top: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        footer {
+            background-color: var(--secondary-color);
+            color: #fff;
+            padding: 3rem 0 1.5rem;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+        
+        .footer-column h4 {
+            font-size: 1.1rem;
+            margin-bottom: 1.2rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        .footer-column h4::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+        
+        .footer-column ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-column li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-column a {
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-column a:hover {
+            color: var(--primary-color);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .social-links a:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        @media (max-width: 768px) {
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .policy-content {
+                padding: 1.5rem;
+            }
+            
+            .contact-methods {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .header-nav {
+                display: none;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-title h1 {
+                font-size: 1.75rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+            
+            h3 {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">WEARXTURE</a>
+                <nav class="header-nav">
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/collections">Collections</a></li>
+                        <li><a href="/products">Products</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <div class="page-title">
+        <div class="container">
+            <h1>Return Policy</h1>
+            <div class="breadcrumb">
+                <a href="/">Home</a>
+                <span>/</span>
+                <span>Return Policy</span>
+            </div>
+        </div>
+    </div>
+    
+    <main>
+        <div class="container">
+            <div class="policy-content">
+                <p class="date">Last Updated: May 19, 2025</p>
+                
+                <div class="return-box">
+                    <h3>7-Day Return Window</h3>
+                    <p>At WEARXTURE, we accept returns within 7 days from the date of delivery. Contact us via email or Instagram to initiate your return.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>1. Return Policy Overview</h2>
+                    <p>We want you to love your WEARXTURE purchases as much as we love creating them. If you're not completely satisfied with your order, we're here to help.</p>
+                    
+                    <p>This Return Policy outlines the process and conditions for returning products purchased from our website (wearxture.com) or our mobile application.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>2. Return Eligibility</h2>
+                    
+                    <h3>2.1 Eligible Returns</h3>
+                    <p>To be eligible for a return, your item must meet the following criteria:</p>
+                    <ul>
+                        <li>The return request must be initiated within 7 days of delivery</li>
+                        <li>The item must be in its original condition</li>
+                        <li>The item must be unworn, unwashed, and unaltered</li>
+                        <li>The item must have all original tags attached</li>
+                        <li>The item must be in its original packaging (if applicable)</li>
+                    </ul>
+                    
+                    <h3>2.2 Non-Returnable Items</h3>
+                    <p>The following items cannot be returned:</p>
+                    <ul>
+                        <li>Items that have been worn, washed, or altered</li>
+                        <li>Custom-made or personalized items</li>
+                        <li>Items marked as "Final Sale" or "Non-Returnable"</li>
+                        <li>Intimate wear and jewelry for hygiene reasons</li>
+                        <li>Sale items (unless defective)</li>
+                        <li>Gift cards</li>
+                    </ul>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>3. Return Process</h2>
+                    <p>Follow these simple steps to return your WEARXTURE purchase:</p>
+                    
+                    <div class="step-box">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Contact Us</h3>
+                            <p>Initiate your return by contacting us via email at returns@wearxture.com or through Instagram @wearxture. Please include your order number, the items you wish to return, and the reason for your return.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step-box">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Receive Return Authorization</h3>
+                            <p>Once we receive your return request, we'll review it and send you a Return Authorization (RA) number along with return shipping instructions.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step-box">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Package Your Return</h3>
+                            <p>Carefully pack the items you're returning in their original condition with all tags attached. Include a copy of your order confirmation or packing slip, and write the RA number on the outside of the package.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step-box">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Ship Your Return</h3>
+                            <p>Ship your return package using the shipping method provided in the return instructions. We recommend using a trackable shipping method.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step-box">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h3>Return Processing</h3>
+                            <p>Once we receive your return, we'll inspect the items to ensure they meet our return eligibility requirements. This typically takes 2-3 business days.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="step-box">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <h3>Refund Issuance</h3>
+                            <p>If your return is approved, we'll process your refund to the original payment method. Please allow 5-10 business days for the refund to appear on your account statement.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>4. Refunds</h2>
+                    
+                    <h3>4.1 Refund Methods</h3>
+                    <p>Refunds will be issued to the original payment method used for the purchase:</p>
+                    <ul>
+                        <li>Credit/Debit Card: Refunded to the same card</li>
+                        <li>UPI/Net Banking: Refunded to the same account</li>
+                        <li>Cash on Delivery: Refunded via bank transfer (we'll request your bank details)</li>
+                    </ul>
+                    
+                    <h3>4.2 Refund Timeline</h3>
+                    <p>Once your return is approved, your refund will be processed within 3-5 business days. The time it takes for the refund to appear in your account depends on your payment provider's processing time, typically 5-10 business days.</p>
+                    
+                    <h3>4.3 Refund Amount</h3>
+                    <p>You will be refunded the full purchase price of the returned items, excluding any shipping charges unless the return is due to a defect or error on our part.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>5. Exchanges</h2>
+                    <p>We currently do not offer direct exchanges. If you would like a different size, color, or item, please return your original purchase for a refund and place a new order for the desired item.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>6. Damaged or Defective Items</h2>
+                    <p>If you receive a damaged or defective item, please contact us within 48 hours of receiving your order. Include detailed photos of the damage or defect. We'll provide instructions for returning the item and will cover the return shipping costs for damaged or defective items.</p>
+                    
+                    <div class="highlight">
+                        <p>For faster resolution of issues with damaged or defective items, we recommend contacting us through Instagram @wearxture with photos of the item.</p>
+                    </div>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>7. Return Shipping</h2>
+                    <p>Customers are responsible for return shipping costs unless the return is due to a defect or error on our part. We recommend using a trackable shipping method to ensure the package reaches us safely.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>8. Contact Us</h2>
+                    <p>If you have any questions about our Return Policy, please contact us using one of the methods below:</p>
+                    
+                    <div class="contact-methods">
+                        <div class="contact-card">
+                            <div class="contact-icon">
+                                <i class="fab fa-instagram"></i>
+                            </div>
+                            <h4>Instagram</h4>
+                            <p>Message us directly for quick responses</p>
+                            <a href="https://www.instagram.com/wearxture" target="_blank">@wearxture</a>
+                        </div>
+                        
+                        <div class="contact-card">
+                            <div class="contact-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <h4>Email</h4>
+                            <p>Send us a detailed message</p>
+                            <a href="mailto:returns@wearxture.com">returns@wearxture.com</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>9. Changes to This Return Policy</h2>
+                    <p>We may update this Return Policy from time to time. We will notify you of any changes by posting the new Return Policy on this page and updating the "Last Updated" date at the top. You are advised to review this Return Policy periodically for any changes.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h4>WEARXTURE</h4>
+                    <p>Authentic ethnic wear for every occasion. Handcrafted with love, delivered with care.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-pinterest"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/collections">Collections</a></li>
+                        <li><a href="/products">Products</a></li>
+                        <li><a href="/orders">My Orders</a></li>
+                        <li><a href="/contact">Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Customer Care</h4>
+                    <ul>
+                        <li><a href="/faq">FAQ</a></li>
+                        <li><a href="/shipping">Shipping Policy</a></li>
+                        <li><a href="/return">Return Policy</a></li>
+                        <li><a href="/privacy-policy">Privacy Policy</a></li>
+                        <li><a href="/terms">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Contact Info</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> Sector 62, Noida, UP, India</p>
+                    <p><i class="fas fa-phone"></i> +91 123-456-7890</p>
+                    <p><i class="fas fa-envelope"></i> info@wearxture.com</p>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2025 WEARXTURE. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

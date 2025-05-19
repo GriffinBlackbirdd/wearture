@@ -166,6 +166,28 @@ async def checkout_page(request: Request):
     """Serve the checkout page"""
     return templates.TemplateResponse("checkout.html", {"request": request})
 
+
+
+@app.get("/terms", response_class=HTMLResponse)
+async def terms_page(request: Request):
+    return templates.TemplateResponse("legal/terms.html", {"request": request})
+
+@app.get("/return-policy", response_class=HTMLResponse)
+async def returnPolicy_page(request: Request):
+    return templates.TemplateResponse("legal/returnPolicy.html", {"request": request})
+
+@app.get("/shipping-policy", response_class=HTMLResponse)
+async def shippingPolicy_page(request: Request):
+    return templates.TemplateResponse("legal/shippingPolicy.html", {"request": request})
+
+@app.get("/privacy-policy", response_class=HTMLResponse)
+async def privacyPolicy_page(request: Request):
+    return templates.TemplateResponse("legal/privacyPolicy.html", {"request": request})
+
+@app.get("/contact", response_class=HTMLResponse)
+async def contact_page(request: Request):
+    return templates.TemplateResponse("legal/contact.html", {"request": request})
+
 # Create order endpoint (placeholder for now)
 # Create order endpoint
 @app.post("/api/orders")
@@ -1707,7 +1729,8 @@ async def create_admin_category(
     
     return category_from_db(db_category)
 
-# Update Update Category endpoint
+# Replace both instances of the update_admin_category function with this single version:
+
 @app.put("/admin/api/categories/{category_id}", response_model=CategoryResponse)
 async def update_admin_category(
     category_id: int,
@@ -1718,42 +1741,16 @@ async def update_admin_category(
     existing_category = get_category(category_id)
     if not existing_category:
         raise HTTPException(status_code=404, detail="Category not found")
+    
+    # If category changed, get new filter
+    filter_value = category.filter if hasattr(category, "filter") and category.filter else "all"
     
     # Prepare category data for database
     category_data = {
         "name": category.name,
         "description": category.description,
         "parent_id": category.parent_id,
-        "filter": category.filter  # Add this line
-    }
-    
-    # Update in database
-    db_category = update_category(category_id, category_data)
-    if not db_category:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update category"
-        )
-    
-    return category_from_db(db_category)
-
-# Update a category
-@app.put("/admin/api/categories/{category_id}", response_model=CategoryResponse)
-async def update_admin_category(
-    category_id: int,
-    category: CategoryUpdate,
-    admin_email: str = Depends(verify_admin_token)
-):
-    # Check if category exists
-    existing_category = get_category(category_id)
-    if not existing_category:
-        raise HTTPException(status_code=404, detail="Category not found")
-    
-    # Prepare category data for database
-    category_data = {
-        "name": category.name,
-        "description": category.description,
-        "parent_id": category.parent_id
+        "filter": filter_value
     }
     
     # Update in database
@@ -2384,6 +2381,8 @@ async def upload_category_cover_image_endpoint(  # Changed function name to avoi
         )
     finally:
         await file.close()
+
+
 
 # Run the application
 if __name__ == "__main__":

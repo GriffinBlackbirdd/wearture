@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Policy - WEARXTURE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #e25822;
+            --secondary-color: #2c3e50;
+            --accent-color: #f8f9fa;
+            --text-color: #333;
+            --light-text: #666;
+            --border-color: #e0e0e0;
+            --font-body: 'Poppins', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            color: var(--text-color);
+            line-height: 1.6;
+            background-color: #fff;
+        }
+        
+        header {
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .header-nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+        
+        .header-nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .header-nav a:hover {
+            color: var(--primary-color);
+        }
+        
+        .page-title {
+            background-color: var(--accent-color);
+            padding: 2.5rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .page-title h1 {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            margin-top: 0.5rem;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin: 0 0.5rem;
+        }
+        
+        .breadcrumb span {
+            margin: 0 0.5rem;
+        }
+        
+        main {
+            padding: 2rem 0 4rem;
+        }
+        
+        .policy-content {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+        }
+        
+        .policy-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        h2 {
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h3 {
+            color: var(--secondary-color);
+            font-size: 1.25rem;
+            margin: 1.5rem 0 0.75rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+        
+        ul, ol {
+            margin: 1rem 0 1.5rem 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .highlight {
+            background-color: #fff8e1;
+            padding: 1rem;
+            border-left: 4px solid var(--primary-color);
+            margin: 1.5rem 0;
+        }
+        
+        .date {
+            font-style: italic;
+            color: var(--light-text);
+            margin-bottom: 2rem;
+            text-align: right;
+        }
+        
+        .shipping-box {
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 0 0 2rem;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .shipping-box p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .shipping-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border: 1px solid #f0f0f0;
+        }
+        
+        .shipping-card h3 {
+            color: var(--primary-color);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .shipping-card h3 i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+        
+        .shipping-card p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .shipping-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+        
+        .shipping-table th, .shipping-table td {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        .shipping-table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+        
+        .shipping-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .delivery-map {
+            width: 100%;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .delivery-icon {
+            background-color: rgba(226, 88, 34, 0.1);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            float: left;
+        }
+        
+        .delivery-icon i {
+            color: var(--primary-color);
+            font-size: 20px;
+        }
+        
+        .delivery-info {
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        
+        .delivery-info h3 {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .delivery-info p {
+            margin-bottom: 0;
+        }
+        
+        footer {
+            background-color: var(--secondary-color);
+            color: #fff;
+            padding: 3rem 0 1.5rem;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+        
+        .footer-column h4 {
+            font-size: 1.1rem;
+            margin-bottom: 1.2rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        .footer-column h4::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+        
+        .footer-column ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-column li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-column a {
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-column a:hover {
+            color: var(--primary-color);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .social-links a:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        @media (max-width: 768px) {
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .policy-content {
+                padding: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .header-nav {
+                display: none;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-title h1 {
+                font-size: 1.75rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+            
+            h3 {
+                font-size: 1.1rem;
+            }
+            
+            .shipping-table {
+                font-size: 0.9rem;
+            }
+            
+            .delivery-icon {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .delivery-icon i {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">WEARXTURE</a>
+                <nav class="header-nav">
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/collections">Collections</a></li>
+                        <li><a href="/products">Products</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <div class="page-title">
+        <div class="container">
+            <h1>Shipping Policy</h1>
+            <div class="breadcrumb">
+                <a href="/">Home</a>
+                <span>/</span>
+                <span>Shipping Policy</span>
+            </div>
+        </div>
+    </div>
+    
+    <main>
+        <div class="container">
+            <div class="policy-content">
+                <p class="date">Last Updated: May 19, 2025</p>
+                
+                <div class="shipping-box">
+                    <p>WEARXTURE offers shipping throughout India with free standard shipping on orders above ₹999. Most orders are delivered within 5-7 business days. Expedited shipping options are available during checkout.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>1. Shipping Overview</h2>
+                    <p>At WEARXTURE, we're committed to delivering your ethnic wear with care and efficiency. This Shipping Policy outlines our shipping methods, timeframes, costs, and procedures to ensure a smooth delivery experience.</p>
+                    
+                    <p>We currently ship to most locations within India. For international shipping inquiries, please contact our customer service team at shipping@wearxture.com.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>2. Shipping Methods and Timeframes</h2>
+                    
+                    <div class="shipping-card">
+                        <h3><i class="fas fa-truck"></i> Standard Shipping</h3>
+                        <p><strong>Delivery Time:</strong> 5-7 business days</p>
+                        <p><strong>Cost:</strong> ₹99 (FREE on orders above ₹999)</p>
+                        <p>Our standard shipping service is available for all deliverable pin codes across India. This is our most economical shipping option and includes order tracking.</p>
+                    </div>
+                    
+                    <div class="shipping-card">
+                        <h3><i class="fas fa-shipping-fast"></i> Express Shipping</h3>
+                        <p><strong>Delivery Time:</strong> 2-3 business days</p>
+                        <p><strong>Cost:</strong> ₹199 (FREE on orders above ₹2,999)</p>
+                        <p>For faster delivery, choose our express shipping option. Available for most major cities and select tier-2 cities in India.</p>
+                    </div>
+                    
+                    <div class="shipping-card">
+                        <h3><i class="fas fa-hourglass-half"></i> Same-Day/Next-Day Delivery</h3>
+                        <p><strong>Delivery Time:</strong> Same day or next day (order by 12 PM)</p>
+                        <p><strong>Cost:</strong> ₹299</p>
+                        <p>Currently available only in select areas of Delhi NCR, Mumbai, Bangalore, Chennai, Hyderabad, and Kolkata. Availability will be confirmed during checkout.</p>
+                    </div>
+                    
+                    <div class="highlight">
+                        <p><strong>Note:</strong> Business days are Monday through Saturday, excluding national holidays. Orders placed after 2 PM may be processed the next business day.</p>
+                    </div>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>3. Shipping Costs</h2>
+                    
+                    <p>Shipping costs are calculated based on your selected shipping method, delivery location, and order value:</p>
+                    
+                    <table class="shipping-table">
+                        <thead>
+                            <tr>
+                                <th>Order Value</th>
+                                <th>Standard Shipping</th>
+                                <th>Express Shipping</th>
+                                <th>Same-Day/Next-Day</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Below ₹999</td>
+                                <td>₹99</td>
+                                <td>₹199</td>
+                                <td>₹299</td>
+                            </tr>
+                            <tr>
+                                <td>₹999 - ₹2,998</td>
+                                <td>FREE</td>
+                                <td>₹199</td>
+                                <td>₹299</td>
+                            </tr>
+                            <tr>
+                                <td>₹2,999 and above</td>
+                                <td>FREE</td>
+                                <td>FREE</td>
+                                <td>₹299</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <p>Actual shipping costs will be calculated and displayed during the checkout process based on your delivery address and the items in your cart.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>4. Order Processing</h2>
+                    
+                    <h3>4.1 Order Confirmation</h3>
+                    <p>Once you place your order, you will receive an order confirmation email. This confirms that we have received your order but does not mean that your order has been accepted or shipped.</p>
+                    
+                    <h3>4.2 Processing Time</h3>
+                    <p>Orders are typically processed within 24-48 hours of being placed. During sale periods or holidays, processing may take slightly longer. Custom or made-to-order items may require additional processing time, which will be specified on the product page.</p>
+                    
+                    <h3>4.3 Shipping Confirmation</h3>
+                    <p>You will receive a shipping confirmation email with tracking information once your order has been shipped. You can use this tracking number to monitor the status of your delivery.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>5. Delivery Information</h2>
+                    
+                    <h3>5.1 Delivery Areas</h3>
+                    <p>We currently ship to most locations within India. During checkout, you will be able to see if we deliver to your pin code. If your area is not serviceable, you will be notified before completing your purchase.</p>
+                    
+                    <div class="delivery-info">
+                        <div class="delivery-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h3>Metro Cities</h3>
+                        <p>Delhi NCR, Mumbai, Bangalore, Chennai, Hyderabad, Kolkata</p>
+                        <p>Standard: 3-5 days | Express: 1-2 days | Same-day: Available</p>
+                    </div>
+                    
+                    <div class="delivery-info">
+                        <div class="delivery-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h3>Tier-2 Cities</h3>
+                        <p>Pune, Ahmedabad, Jaipur, Lucknow, Chandigarh, etc.</p>
+                        <p>Standard: 4-6 days | Express: 2-3 days | Same-day: Limited areas</p>
+                    </div>
+                    
+                    <div class="delivery-info">
+                        <div class="delivery-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h3>Other Cities & Rural Areas</h3>
+                        <p>All other serviceable pin codes</p>
+                        <p>Standard: 5-7 days | Express: 3-4 days | Same-day: Not available</p>
+                    </div>
+                    
+                    <h3>5.2 Delivery Attempts</h3>
+                    <p>Our courier partners will attempt delivery up to three times. If the delivery cannot be completed after three attempts, the package will be returned to us, and we will contact you to arrange redelivery or process a refund.</p>
+                    
+                    <h3>5.3 Undeliverable Addresses</h3>
+                    <p>If your package is returned to us due to an incorrect address, refusal of delivery, or other delivery issues, we will contact you to resolve the situation. Additional shipping charges may apply for redelivery.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>6. Order Tracking</h2>
+                    <p>All orders include tracking capabilities. You can track your order in the following ways:</p>
+                    <ul>
+                        <li>Click the tracking link in your shipping confirmation email</li>
+                        <li>Log in to your WEARXTURE account and view your order history</li>
+                        <li>Contact our customer service team with your order number</li>
+                    </ul>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>7. Shipping Delays</h2>
+                    <p>While we strive to deliver all orders within the estimated timeframes, delays can occasionally occur due to:</p>
+                    <ul>
+                        <li>Adverse weather conditions</li>
+                        <li>Natural disasters</li>
+                        <li>Transportation strikes</li>
+                        <li>High volume periods (festivals, sales, etc.)</li>
+                        <li>Other unforeseen circumstances</li>
+                    </ul>
+                    
+                    <p>We will make every effort to communicate any significant delays and provide updated delivery estimates. For time-sensitive orders, we recommend selecting expedited shipping options.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>8. Damaged or Missing Items</h2>
+                    <p>All packages are thoroughly inspected before shipping to ensure they are in perfect condition. If you receive a damaged package or if items are missing from your order:</p>
+                    <ol>
+                        <li>Take photos of the damaged package/items</li>
+                        <li>Contact our customer service team within 48 hours of delivery</li>
+                        <li>Include your order number and photos of the damage</li>
+                    </ol>
+                    
+                    <p>We will promptly address the issue and arrange for a replacement, return, or refund as appropriate.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>9. Customs, Duties, and Taxes</h2>
+                    <p>For deliveries within India, all applicable taxes are included in the displayed prices. There are no additional customs or duties for domestic shipments.</p>
+                    
+                    <p>For any international shipping inquiries, please note that customs duties and taxes may be charged when your package reaches your country. These charges are the responsibility of the recipient and are not included in our shipping fees.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>10. Shipping to Multiple Addresses</h2>
+                    <p>Currently, we can only ship an order to a single address. If you wish to ship items to different addresses, please place separate orders for each delivery address.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>11. Address Changes</h2>
+                    <p>If you need to change your shipping address after placing an order:</p>
+                    <ul>
+                        <li>For orders not yet shipped: Contact our customer service team immediately with your order number and the new address. We will try to accommodate the change if the order has not been processed.</li>
+                        <li>For orders already shipped: We cannot change the delivery address. You will need to contact the courier service directly with your tracking number.</li>
+                    </ul>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>12. Contact Us</h2>
+                    <p>If you have any questions about our Shipping Policy or need assistance with a specific order, please contact us:</p>
+                    <p>Email: shipping@wearxture.com</p>
+                    <p>Phone: +91 123-456-7890 (Monday to Saturday, 10 AM - 6 PM IST)</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>13. Changes to This Shipping Policy</h2>
+                    <p>We may update this Shipping Policy from time to time. We will notify you of any changes by posting the new Shipping Policy on this page and updating the "Last Updated" date at the top.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h4>WEARXTURE</h4>
+                    <p>Authentic ethnic wear for every occasion. Handcrafted with love, delivered with care.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-pinterest"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/collections">Collections</a></li>
+                        <li><a href="/products">Products</a></li>
+                        <li><a href="/orders">My Orders</a></li>
+                        <li><a href="/contact">Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Customer Care</h4>
+                    <ul>
+                        <li><a href="/faq">FAQ</a></li>
+                        <li><a href="/shipping">Shipping Policy</a></li>
+                        <li><a href="/return">Return Policy</a></li>
+                        <li><a href="/privacy-policy">Privacy Policy</a></li>
+                        <li><a href="/terms">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Contact Info</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> Sector 62, Noida, UP, India</p>
+                    <p><i class="fas fa-phone"></i> +91 123-456-7890</p>
+                    <p><i class="fas fa-envelope"></i> info@wearxture.com</p>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2025 WEARXTURE. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

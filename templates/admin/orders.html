@@ -6,13 +6,14 @@
     <title>WEARXTURE Admin - Orders</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/admin/css/admin.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="admin-container">
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <img src="{{ url_for('static', path='/images/WEARXTURE LOGOai.png') }}" alt="WEARXTURE Logo" class="sidebar-logo">
+                <img src="{{ url_for('static', path='/images/no bg white logo.png') }}" alt="WEARXTURE Logo" class="sidebar-logo">
                 <p>Admin Panel</p>
             </div>
             
@@ -789,7 +790,110 @@
                 link.click();
                 showNotification('Invoice downloading...', 'info');
             }
+// Export orders to Excel
+document.getElementById('export-orders-btn').addEventListener('click', function() {
+    exportOrdersToExcel();
+});
 
+function exportOrdersToExcel() {
+    try {
+        // Get the current filtered orders (or all orders if no filter)
+        const ordersToExport = document.getElementById('orders-tbody').querySelectorAll('tr');
+        
+        if (ordersToExport.length === 0 || (ordersToExport.length === 1 && ordersToExport[0].querySelector('td[colspan]'))) {
+            showNotification('No orders to export', 'warning');
+            return;
+        }
+        
+        // Create workbook and worksheet
+        const wb = XLSX.utils.book_new();
+        
+        // Create data array for Excel
+        const excelData = [];
+        
+        // Add header row
+        excelData.push([
+            'Order ID', 
+            'Date',
+            'Customer Email',
+            'Phone',
+            'Total Amount',
+            'Payment Method',
+            'Payment Status',
+            'Order Status'
+        ]);
+        
+        // Process each order row
+        ordersToExport.forEach(row => {
+            // Skip rows with colspan (no data rows)
+            if (row.querySelector('td[colspan]')) return;
+            
+            // Extract data from row cells
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 7) {
+                const orderId = cells[0].textContent.trim();
+                const date = cells[1].textContent.trim();
+                
+                // Extract customer info (email and phone)
+                const customerInfo = cells[2].querySelector('.customer-info');
+                const customerEmail = customerInfo ? customerInfo.querySelector('div:first-child').textContent.trim() : '';
+                const customerPhone = customerInfo ? customerInfo.querySelector('.text-small').textContent.trim() : '';
+                
+                const totalAmount = cells[4].textContent.trim().replace('₹', '');
+                
+                // Extract payment info
+                const paymentInfo = cells[5].querySelector('.payment-info');
+                const paymentMethod = paymentInfo ? paymentInfo.querySelector('.payment-method').textContent.trim() : '';
+                const paymentStatus = paymentInfo ? paymentInfo.querySelector('.payment-status').textContent.trim() : '';
+                
+                // Extract order status
+                const orderStatus = cells[6].querySelector('.order-status').textContent.trim();
+                
+                // Add to data array
+                excelData.push([
+                    orderId,
+                    date,
+                    customerEmail,
+                    customerPhone,
+                    totalAmount,
+                    paymentMethod,
+                    paymentStatus,
+                    orderStatus
+                ]);
+            }
+        });
+        
+        // Create worksheet from data
+        const ws = XLSX.utils.aoa_to_sheet(excelData);
+        
+        // Set column widths for better readability
+        const colWidths = [
+            { wch: 20 }, // Order ID
+            { wch: 20 }, // Date
+            { wch: 30 }, // Customer Email
+            { wch: 15 }, // Phone
+            { wch: 12 }, // Total Amount
+            { wch: 10 }, // Payment Method
+            { wch: 15 }, // Payment Status
+            { wch: 15 }  // Order Status
+        ];
+        
+        ws['!cols'] = colWidths;
+        
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+        
+        // Generate Excel file
+        const fileName = `WEARXTURE_Orders_${new Date().toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        showNotification('Orders exported successfully', 'success');
+        
+    } catch (error) {
+        console.error('Error exporting orders:', error);
+        showNotification('Failed to export orders', 'error');
+    }
+}
     </script>
     
     <style>

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - WEARXTURE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #e25822;
+            --secondary-color: #2c3e50;
+            --accent-color: #f8f9fa;
+            --text-color: #333;
+            --light-text: #666;
+            --border-color: #e0e0e0;
+            --font-body: 'Poppins', sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            color: var(--text-color);
+            line-height: 1.6;
+            background-color: #fff;
+        }
+        
+        header {
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .header-nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+        
+        .header-nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .header-nav a:hover {
+            color: var(--primary-color);
+        }
+        
+        .page-title {
+            background-color: var(--accent-color);
+            padding: 2.5rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .page-title h1 {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            margin-top: 0.5rem;
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin: 0 0.5rem;
+        }
+        
+        .breadcrumb span {
+            margin: 0 0.5rem;
+        }
+        
+        main {
+            padding: 2rem 0 4rem;
+        }
+        
+        .policy-content {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+        }
+        
+        .policy-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .policy-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        h2 {
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h3 {
+            color: var(--secondary-color);
+            font-size: 1.25rem;
+            margin: 1.5rem 0 0.75rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+        
+        ul, ol {
+            margin: 1rem 0 1.5rem 1.5rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .highlight {
+            background-color: #fff8e1;
+            padding: 1rem;
+            border-left: 4px solid var(--primary-color);
+            margin: 1.5rem 0;
+        }
+        
+        .date {
+            font-style: italic;
+            color: var(--light-text);
+            margin-bottom: 2rem;
+            text-align: right;
+        }
+        
+        footer {
+            background-color: var(--secondary-color);
+            color: #fff;
+            padding: 3rem 0 1.5rem;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+        
+        .footer-column h4 {
+            font-size: 1.1rem;
+            margin-bottom: 1.2rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        .footer-column h4::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 2px;
+            background-color: var(--primary-color);
+        }
+        
+        .footer-column ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .footer-column li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-column a {
+            color: #ddd;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-column a:hover {
+            color: var(--primary-color);
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .social-links a:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        @media (max-width: 768px) {
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .policy-content {
+                padding: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .header-nav {
+                display: none;
+            }
+            
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-title h1 {
+                font-size: 1.75rem;
+            }
+            
+            h2 {
+                font-size: 1.3rem;
+            }
+            
+            h3 {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">WEARXTURE</a>
+                <nav class="header-nav">
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/collections">Collections</a></li>
+                        <li><a href="/products">Products</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <div class="page-title">
+        <div class="container">
+            <h1>Privacy Policy</h1>
+            <div class="breadcrumb">
+                <a href="/">Home</a>
+                <span>/</span>
+                <span>Privacy Policy</span>
+            </div>
+        </div>
+    </div>
+    
+    <main>
+        <div class="container">
+            <div class="policy-content">
+                <p class="date">Last Updated: May 19, 2025</p>
+                
+                <div class="policy-section">
+                    <h2>1. Introduction</h2>
+                    <p>WEARXTURE ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how your personal information is collected, used, and disclosed by WEARXTURE when you use our website (wearxture.com), mobile application, or other online services (collectively, the "Services"), or when you otherwise interact with us.</p>
+                    <p>By accessing or using our Services, you signify that you have read, understood, and agree to our collection, storage, use, and disclosure of your personal information as described in this Privacy Policy.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>2. Information We Collect</h2>
+                    
+                    <h3>2.1 Information You Provide to Us</h3>
+                    <p>We collect information you provide directly to us when you:</p>
+                    <ul>
+                        <li>Create an account or profile</li>
+                        <li>Make a purchase</li>
+                        <li>Fill out forms or surveys</li>
+                        <li>Participate in contests or promotions</li>
+                        <li>Sign up for our newsletter</li>
+                        <li>Contact customer support</li>
+                        <li>Otherwise communicate with us</li>
+                    </ul>
+                    
+                    <p>This information may include:</p>
+                    <ul>
+                        <li><strong>Identity Information:</strong> Your name, email address, phone number, shipping/billing address, and other similar contact information.</li>
+                        <li><strong>Account Information:</strong> Your username, password, and account preferences.</li>
+                        <li><strong>Payment Information:</strong> Your credit card details, bank account information, and other financial information (note: we use secure payment processors and do not store complete payment information on our servers).</li>
+                        <li><strong>Transaction Information:</strong> Your purchase history, order details, and payment information.</li>
+                        <li><strong>Profile Information:</strong> Your preferences, interests, feedback, and survey responses.</li>
+                    </ul>
+                    
+                    <h3>2.2 Information We Collect Automatically</h3>
+                    <p>When you access or use our Services, we automatically collect certain information, including:</p>
+                    <ul>
+                        <li><strong>Device Information:</strong> Information about your device, including your IP address, device type, operating system, browser type, mobile network information, and device identifiers.</li>
+                        <li><strong>Usage Information:</strong> Information about your interactions with our Services, such as the pages or content you view, your searches, purchases, and browsing activity.</li>
+                        <li><strong>Location Information:</strong> Approximate location derived from your IP address.</li>
+                        <li><strong>Log Data:</strong> Information our servers automatically record when you access or use our Services, such as your IP address, device information, browser type, operating system, pages visited, time of visit, and referring/exit pages.</li>
+                        <li><strong>Cookies and Similar Technologies:</strong> We use cookies, pixel tags, web beacons, and other technologies to collect information about you. Please refer to our Cookie Policy for more details.</li>
+                    </ul>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>3. How We Use Your Information</h2>
+                    <p>We use the information we collect for various purposes, including to:</p>
+                    <ul>
+                        <li>Process and fulfill your orders, including sending order confirmations and shipping updates</li>
+                        <li>Create and manage your account</li>
+                        <li>Provide, maintain, and improve our Services</li>
+                        <li>Process payments and prevent fraudulent transactions</li>
+                        <li>Communicate with you about products, services, promotions, events, and other news and information</li>
+                        <li>Personalize your experience and provide content and product recommendations</li>
+                        <li>Monitor and analyze trends, usage, and activities in connection with our Services</li>
+                        <li>Detect, investigate and prevent fraudulent transactions and other illegal activities</li>
+                        <li>Comply with legal obligations</li>
+                        <li>Protect the rights, property, and safety of WEARXTURE, our users, and others</li>
+                        <li>Respond to customer service inquiries and resolve disputes</li>
+                    </ul>
+                    
+                    <div class="highlight">
+                        <p>We process your personal information for these purposes in reliance on our legitimate business interests, in order to enter into or perform a contract with you, with your consent, and/or for compliance with our legal obligations.</p>
+                    </div>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>4. How We Share Your Information</h2>
+                    <p>We may share your personal information in the following situations:</p>
+                    <ul>
+                        <li><strong>Third-Party Service Providers:</strong> We share information with service providers that perform services on our behalf, such as payment processing, data analysis, email delivery, hosting services, and customer service.</li>
+                        <li><strong>Business Transfers:</strong> We may share information in connection with any merger, sale of company assets, financing, or acquisition of all or a portion of our business by another company.</li>
+                        <li><strong>Compliance with Laws:</strong> We may disclose information where required to do so by law or subpoena or if we reasonably believe that such action is necessary to comply with the law and the reasonable requests of law enforcement.</li>
+                        <li><strong>To Protect Rights and Safety:</strong> We may disclose information to protect the safety, rights, or property of WEARXTURE, our customers, or others.</li>
+                        <li><strong>With Your Consent:</strong> We may share information with your consent or at your direction.</li>
+                    </ul>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>5. Data Retention</h2>
+                    <p>We will retain your personal information only for as long as necessary to fulfill the purposes for which we collected it, including for the purposes of satisfying any legal, accounting, or reporting requirements.</p>
+                    <p>To determine the appropriate retention period for personal information, we consider the amount, nature, and sensitivity of the personal information, the potential risk of harm from unauthorized use or disclosure of your personal information, the purposes for which we process your personal information, and whether we can achieve those purposes through other means, and the applicable legal requirements.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>6. Your Rights and Choices</h2>
+                    <p>Depending on your location, you may have certain rights regarding your personal information, including:</p>
+                    <ul>
+                        <li><strong>Access:</strong> You may request a copy of the personal information we hold about you.</li>
+                        <li><strong>Correction:</strong> You may request that we correct inaccurate or incomplete information about you.</li>
+                        <li><strong>Deletion:</strong> You may request that we delete your personal information.</li>
+                        <li><strong>Restriction:</strong> You may request that we restrict the processing of your personal information.</li>
+                        <li><strong>Data Portability:</strong> You may request a copy of your personal information in a structured, commonly used, and machine-readable format.</li>
+                        <li><strong>Objection:</strong> You may object to our processing of your personal information.</li>
+                        <li><strong>Withdrawal of Consent:</strong> You may withdraw your consent at any time where we relied on your consent to process your personal information.</li>
+                    </ul>
+                    
+                    <p>To exercise these rights, please contact us at privacy@wearxture.com. We will respond to your request within the timeframe required by applicable law.</p>
+                    
+                    <h3>Account Information</h3>
+                    <p>You may update, correct, or delete your account information at any time by logging into your account or contacting us. Note that we may retain certain information as required by law or for legitimate business purposes.</p>
+                    
+                    <h3>Marketing Communications</h3>
+                    <p>You may opt out of receiving promotional emails from us by following the instructions provided in those emails or by contacting us. If you opt out, we may still send you non-promotional emails, such as those about your account or our ongoing business relations.</p>
+                    
+                    <h3>Cookies</h3>
+                    <p>Most web browsers are set to accept cookies by default. If you prefer, you can usually choose to set your browser to remove or reject cookies. Please note that if you choose to remove or reject cookies, this could affect the availability and functionality of our Services.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>7. Children's Privacy</h2>
+                    <p>Our Services are not directed to children under the age of 13 (or 16 in the European Union). We do not knowingly collect personal information from children under these ages. If we learn we have collected personal information from a child under these ages, we will delete that information as quickly as possible. If you believe a child under these ages has provided us with personal information, please contact us.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>8. Security</h2>
+                    <p>We take reasonable measures to help protect your personal information from loss, theft, misuse, unauthorized access, disclosure, alteration, and destruction. However, no internet or email transmission is ever fully secure or error-free. In particular, emails sent to or from our Services may not be secure. Therefore, you should take special care in deciding what information you send to us via email.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>9. International Transfers</h2>
+                    <p>Your information may be transferred to, and maintained on, computers located outside of your state, province, country, or other governmental jurisdiction where the data protection laws may differ from those of your jurisdiction.</p>
+                    <p>If you are located outside India and choose to provide information to us, please note that we transfer the information, including personal information, to India and process it there.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>10. Changes to This Privacy Policy</h2>
+                    <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date at the top. You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.</p>
+                </div>
+                
+                <div class="policy-section">
+                    <h2>11. Contact Us</h2>
+                    <p>If you have any questions about this Privacy Policy, please contact us at:</p>
+                    <p>Email: privacy@wearxture.com</p>
+                    <p>Address: WEARXTURE, Sector 62, Noida, Uttar Pradesh, India</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h4>WEARXTURE</h4>
+                    <p>Authentic ethnic wear for every occasion. Handcrafted with love, delivered with care.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-pinterest"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/collections">Collections</a></li>
+                        <li><a href="/products">Products</a></li>
+                        <li><a href="/orders">My Orders</a></li>
+                        <li><a href="/contact">Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Customer Care</h4>
+                    <ul>
+                        <li><a href="/shipping-policy">Shipping Policy</a></li>
+                        <li><a href="/return-policy">Return Policy</a></li>
+                        <li><a href="/privacy-policy">Privacy Policy</a></li>
+                        <li><a href="/terms">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Contact Info</h4>
+                    <li><i class="fas fa-map-marker-alt"></i>Gram Rampura Bujurg, Rampura Bujurg, Uttarpradesh(UP), India</li>
+                    <li><i class="fas fa-phone"></i>+91 70550 18752</li>
+                    <li><i class="fas fa-envelope"></i> support@wearxture.com</li>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2025 WEARXTURE. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
