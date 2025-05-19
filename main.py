@@ -1101,7 +1101,7 @@ async def admin_login(request: Request):
 async def login(username: str = Form(...), password: str = Form(...)):
     # Hardcoded admin credentials for development
     ADMIN_EMAIL = "sohil19158192@gmail.com"
-    ADMIN_PASSWORD = "admin123"
+    ADMIN_PASSWORD = "Faraz@1915"
     
     # Simple hardcoded credential check
     if username != ADMIN_EMAIL or password != ADMIN_PASSWORD:
