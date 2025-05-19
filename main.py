@@ -157,6 +157,10 @@ async def login_page(request: Request):
 async def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
+@app.get("/return", response_class=HTMLResponse)
+async def return_page(request: Request):
+    return templates.TemplateResponse("return.html", {"request": request})
+
 @app.get("/checkout", response_class=HTMLResponse)
 async def checkout_page(request: Request):
     """Serve the checkout page"""
