@@ -12,8 +12,8 @@ from typing import Dict, Any, Optional
 load_dotenv()
 
 # Razorpay configuration
-RAZORPAY_KEY_ID = "rzp_test_kuFBWGnWltF0jo"
-RAZORPAY_SECRET_KEY = "8WrBj49808XbknAwLGqYFi6N"
+RAZORPAY_KEY_ID="rzp_test_qxiasai5bhyo5C"
+RAZORPAY_SECRET_KEY="QuvcIrBKf9p6CpQPNjsCDNWF"
 RAZORPAY_TEST_MODE = os.getenv("RAZORPAY_TEST_MODE", "true").lower() == "true"
 
 # Initialize Razorpay client only if credentials are available

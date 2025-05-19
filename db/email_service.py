@@ -11,11 +11,11 @@ import base64
 load_dotenv()
 
 # Initialize Resend with API key
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+RESEND_API_KEY = "re_gLrjYmbX_ApmFGqTxHBCjANnTqmY9hhkc"
 resend.api_key = RESEND_API_KEY
 
 # Sender email address (use your verified domain)
-FROM_EMAIL = os.getenv("FROM_EMAIL", "orders@wearxture.com")
+FROM_EMAIL = os.getenv("FROM_EMAIL", "support@wearxture.com")
 
 def send_order_confirmation_email(order_data: Dict[str, Any]) -> bool:
     """
