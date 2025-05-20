@@ -1100,7 +1100,7 @@ async def admin_login(request: Request):
 @app.post("/admin/login")
 async def login(username: str = Form(...), password: str = Form(...)):
     # Hardcoded admin credentials for development
-    ADMIN_EMAIL = "sohil19158192@gmail.com"
+    ADMIN_EMAIL = "sohil19158912@gmail.com"
     ADMIN_PASSWORD = "Faraz@1915"
     
     # Simple hardcoded credential check
