@@ -272,6 +272,23 @@ def update_order_status(order_id: str, status: str, notes: str = "") -> Optional
         print(f"Error updating order status: {e}")
         return None
 
+
+def update_shiprocket_info(order_id: str, shiprocket_data: Dict[str, Any]) -> bool:
+    """Update order with Shiprocket information"""
+    try:
+        update_data = {
+            "shiprocket_order_id": shiprocket_data.get("order_id"),
+            "shiprocket_shipment_id": shiprocket_data.get("shipment_id"),
+            "tracking_url": shiprocket_data.get("tracking_url"),
+            "updated_at": datetime.now().isoformat()
+        }
+        
+        response = supabase.table('orders').update(update_data).eq('order_id', order_id).execute()
+        return bool(response.data)
+    except Exception as e:
+        print(f"Error updating Shiprocket info: {e}")
+        return False
+        
 def get_all_orders() -> List[Dict[str, Any]]:
     """
     Get all orders (admin function)

@@ -36,6 +36,8 @@ from db.order_management import (
     create_order, get_order, update_order_payment_status,
     get_user_orders, get_pending_orders, update_order_status, get_all_orders
 )
+
+from db.shiprocket_client import create_shiprocket_order, track_order
 # Load environment variables
 load_dotenv()
 
@@ -363,6 +365,20 @@ async def create_order_endpoint(order_data: dict, request: Request):
             except Exception as e:
                 # Don't let email errors affect order creation
                 print(f"Error sending confirmation email: {e}")
+
+            # Around line 280, after email sending, add:
+            try:
+                # Create Shiprocket order automatically
+                shiprocket_result = create_shiprocket_order(saved_order)
+                if shiprocket_result:
+                    print(f"Shiprocket order created: {shiprocket_result}")
+                    # Optionally store the Shiprocket order ID in your database
+                    # You can add a field to your orders table for this
+                else:
+                    print("Shiprocket order creation failed, but main order is still valid")
+            except Exception as e:
+                print(f"Shiprocket integration error (non-critical): {e}")
+                # Don't let Shiprocket errors affect the main order flow
             
             return {
                 "success": True,
@@ -399,6 +415,34 @@ async def create_order_endpoint(order_data: dict, request: Request):
             detail=f"Order creation failed: {str(e)}"
         )
 
+
+@app.get("/api/orders/{order_id}/tracking")
+async def get_order_tracking(order_id: str, request: Request):
+    """Get tracking information for an order"""
+    try:
+        # Verify user owns this order (same logic as other order endpoints)
+        token = request.cookies.get("user_access_token")
+        if not token:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_email = payload.get("sub")
+        
+        # Get order from database
+        order = get_order(order_id)
+        if not order or order.get("user_email") != user_email:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        # Get tracking info from Shiprocket
+        tracking_info = track_order(order_id)
+        
+        if tracking_info:
+            return {"success": True, "tracking": tracking_info}
+        else:
+            return {"success": False, "message": "Tracking not available yet"}
+            
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 @app.post("/api/check-inventory")
 async def check_inventory(cart_items: List[dict]):
     """Check inventory availability for cart items"""
