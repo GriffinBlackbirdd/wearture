@@ -4,8 +4,8 @@ import json
 url = "https://apiv2.shiprocket.in/v1/external/auth/login"
 
 payload = json.dumps({
-  "email": "sohil19158912@gmail.com",
-  "password": "Faraz@19158912"
+  "email": "arreyanhamid@icloud.com",
+  "password": "6j6ax5F&m6%VNep6"
 })
 headers = {
   'Content-Type': 'application/json'

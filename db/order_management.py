@@ -593,3 +593,24 @@ def generate_invoice_pdf(order_data: Dict[str, Any]) -> bytes:
         raise
     finally:
         pdf_buffer.close()
+
+def update_shiprocket_info(order_id: str, shiprocket_data: Dict[str, Any]) -> bool:
+    """Update order with enhanced Shiprocket information"""
+    try:
+        update_data = {
+            "shiprocket_order_id": shiprocket_data.get("order_id"),
+            "shiprocket_shipment_id": shiprocket_data.get("shipment_id"),
+            "awb_code": shiprocket_data.get("awb_code"),
+            "courier_name": shiprocket_data.get("courier_name"),
+            "tracking_url": shiprocket_data.get("tracking_url"),
+            "updated_at": datetime.now().isoformat()
+        }
+        
+        # Remove None values
+        update_data = {k: v for k, v in update_data.items() if v is not None}
+        
+        response = supabase.table('orders').update(update_data).eq('order_id', order_id).execute()
+        return bool(response.data)
+    except Exception as e:
+        print(f"Error updating Shiprocket info: {e}")
+        return False

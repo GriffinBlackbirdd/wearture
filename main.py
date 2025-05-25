@@ -34,10 +34,11 @@ from db.supabase_client import (
 )
 from db.order_management import (
     create_order, get_order, update_order_payment_status,
-    get_user_orders, get_pending_orders, update_order_status, get_all_orders
+    get_user_orders, get_pending_orders, update_order_status, get_all_orders, update_shiprocket_info 
 )
+from db.supabase_client import get_oauth_url, handle_oauth_callback, create_or_update_oauth_user
 
-from db.shiprocket_client import create_shiprocket_order, track_order
+from db.shiprocket_client import create_shiprocket_order, track_order, create_automatic_shipping
 # Load environment variables
 load_dotenv()
 
@@ -149,6 +150,104 @@ class ReelResponse(ReelBase):
     created_at: datetime
     updated_at: datetime
     
+@app.get("/auth/oauth/{provider}")
+async def oauth_login(provider: str, request: Request):
+    """
+    Initiate OAuth login (Google or Facebook)
+    """
+    if provider not in ['google', 'facebook']:
+        raise HTTPException(status_code=400, detail="Unsupported OAuth provider")
+    
+    try:
+        # Get the redirect URL from query params (where to go after successful login)
+        redirect_to = request.query_params.get('redirect', '/')
+        
+        # For OAuth, we need to redirect to Supabase OAuth URL
+        # Since Supabase handles the OAuth flow, we redirect directly
+        oauth_url = f"{SUPABASE_URL}/auth/v1/authorize?provider={provider}&redirect_to={request.url_for('oauth_callback')}?redirect={redirect_to}"
+        
+        return RedirectResponse(url=oauth_url)
+        
+    except Exception as e:
+        print(f"OAuth initiation error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to initiate OAuth")
+
+@app.get("/auth/callback")
+async def oauth_callback(request: Request):
+    """
+    Handle OAuth callback from Supabase
+    """
+    try:
+        # Get tokens from URL fragments (Supabase sends them as URL fragments)
+        access_token = request.query_params.get('access_token')
+        refresh_token = request.query_params.get('refresh_token')
+        error = request.query_params.get('error')
+        redirect_to = request.query_params.get('redirect', '/')
+        
+        if error:
+            print(f"OAuth error: {error}")
+            return RedirectResponse(url=f"/login?error=oauth_failed")
+        
+        if not access_token:
+            return RedirectResponse(url=f"/login?error=no_token")
+        
+        # Handle the OAuth callback and get user info
+        user_data = handle_oauth_callback(access_token, refresh_token)
+        
+        if not user_data:
+            return RedirectResponse(url=f"/login?error=callback_failed")
+        
+        # Create or update user record if needed
+        user_record = create_or_update_oauth_user(user_data)
+        
+        # Create JWT token for your app
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expires = datetime.utcnow() + access_token_expires
+        
+        to_encode = {
+            "sub": user_data["email"],
+            "name": user_data["name"],
+            "provider": user_data["provider"],
+            "exp": expires
+        }
+        
+        jwt_token = jwt.encode(to_encode, JWT_SECRET, algorithm="HS256")
+        
+        # Set cookie and redirect
+        response = RedirectResponse(url=redirect_to)
+        response.set_cookie(
+            key="user_access_token",
+            value=jwt_token,
+            httponly=True,
+            max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            secure=False,  # Set to True in production
+            samesite="lax"
+        )
+        
+        return response
+        
+    except Exception as e:
+        print(f"OAuth callback error: {e}")
+        import traceback
+        traceback.print_exc()
+        return RedirectResponse(url=f"/login?error=callback_error")
+
+# Alternative simpler approach using direct Supabase URLs
+@app.get("/auth/google")
+async def google_login(request: Request):
+    """Direct redirect to Supabase Google OAuth"""
+    redirect_to = request.query_params.get('redirect', '/')
+    callback_url = request.url_for('oauth_callback') + f"?redirect={redirect_to}"
+    oauth_url = f"{SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to={callback_url}"
+    return RedirectResponse(url=oauth_url)
+
+@app.get("/auth/facebook") 
+async def facebook_login(request: Request):
+    """Direct redirect to Supabase Facebook OAuth"""
+    redirect_to = request.query_params.get('redirect', '/')
+    callback_url = request.url_for('oauth_callback') + f"?redirect={redirect_to}"
+    oauth_url = f"{SUPABASE_URL}/auth/v1/authorize?provider=facebook&redirect_to={callback_url}"
+    return RedirectResponse(url=oauth_url)
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
@@ -194,8 +293,10 @@ async def contact_page(request: Request):
 # Create order endpoint
 @app.post("/api/orders")
 async def create_order_endpoint(order_data: dict, request: Request):
-    """Create a new order with Razorpay integration and inventory management"""
+    """Create a new order with Razorpay integration, inventory management, and Shiprocket integration"""
     try:
+        print(f"📋 Starting order creation process...")
+        
         # Extract order details
         cart = order_data.get("cart", [])
         email = order_data.get("email")
@@ -205,13 +306,25 @@ async def create_order_endpoint(order_data: dict, request: Request):
             "city": order_data.get("city"),
             "state": order_data.get("state"),
             "pincode": order_data.get("pincode"),
-            "country": order_data.get("country")
+            "country": order_data.get("country"),
+            "first_name": order_data.get("firstName", ""),
+            "last_name": order_data.get("lastName", ""),
+            "name": f"{order_data.get('firstName', '')} {order_data.get('lastName', '')}".strip()
         }
         
         is_cod = order_data.get("isCOD", False)
         
+        print(f"📦 Order details:")
+        print(f"   Customer: {email}")
+        print(f"   Items: {len(cart)}")
+        print(f"   Payment: {'COD' if is_cod else 'Online'}")
+        print(f"   Location: {delivery_address.get('city')}, {delivery_address.get('state')}")
+        
         # First, validate inventory for all items
+        print(f"📊 Validating inventory for {len(cart)} items...")
         from db.supabase_client import get_product
+        
+        inventory_issues = []
         for item in cart:
             product_id = item.get("id") or item.get("product_id")
             quantity = item.get("quantity", 1)
@@ -221,18 +334,29 @@ async def create_order_endpoint(order_data: dict, request: Request):
                 product = get_product(product_id)
                 
                 if not product:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Product {product_id} not found"
-                    )
+                    inventory_issues.append(f"Product {product_id} not found")
+                    continue
                 
                 inventory_count = product.get("inventory_count", 0)
                 
                 if inventory_count < quantity:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Insufficient inventory for {item.get('name', 'product')}. Available: {inventory_count}, Requested: {quantity}"
+                    inventory_issues.append(
+                        f"Insufficient inventory for {item.get('name', 'product')}. "
+                        f"Available: {inventory_count}, Requested: {quantity}"
                     )
+        
+        # If there are inventory issues, return error immediately
+        if inventory_issues:
+            print(f"❌ Inventory validation failed:")
+            for issue in inventory_issues:
+                print(f"   - {issue}")
+            
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="; ".join(inventory_issues)
+            )
+        
+        print(f"✅ Inventory validation passed")
         
         # Get the actual order total and the amount to charge on Razorpay
         actual_order_total = order_data.get("actualOrderTotal", 0)
@@ -242,13 +366,17 @@ async def create_order_endpoint(order_data: dict, request: Request):
         # Generate order ID
         order_id = "ORD" + datetime.now().strftime("%Y%m%d%H%M%S")
         
+        print(f"🆔 Generated Order ID: {order_id}")
+        
         # Prepare cart items with product IDs for inventory management
         cart_with_ids = []
         for item in cart:
+            # Ensure both id and product_id are set for database operations
+            product_id = item.get("id") or item.get("product_id")
             cart_item = {
                 **item,
-                "product_id": item.get("id") or item.get("product_id"),
-                "id": item.get("id") or item.get("product_id")
+                "product_id": product_id,
+                "id": product_id
             }
             cart_with_ids.append(cart_item)
         
@@ -268,118 +396,171 @@ async def create_order_endpoint(order_data: dict, request: Request):
             "order_status": "pending"
         }
         
-        # Add COD-specific fields (we'll handle these differently if they don't exist in DB)
+        # Add COD-specific fields
         if is_cod:
-            # Store COD info in the order record
-            order_record["cod_fee"] = 80
-            order_record["cod_remaining"] = remaining_amount
-            order_record["cod_status"] = "fee_pending"
+            order_record.update({
+                "cod_fee": 80,
+                "cod_remaining": remaining_amount,
+                "cod_status": "fee_pending"
+            })
         
-        print(f"Order data to save: {order_record}")
+        print(f"💾 Preparing to save order to database...")
         
         # Create Razorpay order for all payment types (including COD fee)
+        razorpay_order = None
+        demo_mode = False
+        
         try:
             # Check if Razorpay is configured
             if not RAZORPAY_KEY_ID or not razorpay_client:
-                print("Razorpay not configured. Using demo mode.")
+                print("⚠️ Razorpay not configured. Using demo mode.")
+                demo_mode = True
+            else:
+                print(f"💳 Creating Razorpay order for ₹{razorpay_amount}...")
                 
-                # Save order to database even in demo mode
-                saved_order = create_order(order_record)
-                
-                if not saved_order:
-                    # Check if it's an inventory issue
-                    if isinstance(saved_order, dict) and saved_order.get("error"):
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=saved_order.get("error")
-                        )
-                    raise Exception("Failed to save order to database")
-                
-                # Send order confirmation email
-                try:
-                    from db.email_service import send_order_confirmation_email
-                    email_sent = send_order_confirmation_email(saved_order)
-                    if email_sent:
-                        print(f"Order confirmation email sent for order {order_id}")
-                    else:
-                        print(f"Failed to send order confirmation email for order {order_id}")
-                except Exception as e:
-                    # Don't let email errors affect order creation
-                    print(f"Error sending confirmation email: {e}")
-                
-                return {
-                    "success": True,
-                    "order_id": order_id,
-                    "demo_mode": True,
-                    "message": "Demo order created successfully.",
-                    "amount": int(razorpay_amount * 100),
-                    "is_cod": is_cod
-                }
-            
-            # Create Razorpay order
-            razorpay_order = create_razorpay_order(
-                amount=razorpay_amount,  # COD: 80, Otherwise: full amount
-                order_info={
-                    "receipt": order_id,
-                    "notes": {
-                        "customer_email": email,
-                        "customer_phone": phone,
-                        "is_cod": "true" if is_cod else "false",
-                        "actual_order_total": str(actual_order_total)
+                # Create Razorpay order
+                razorpay_order = create_razorpay_order(
+                    amount=razorpay_amount,  # COD: 80, Otherwise: full amount
+                    order_info={
+                        "receipt": order_id,
+                        "notes": {
+                            "customer_email": email,
+                            "customer_phone": phone,
+                            "is_cod": "true" if is_cod else "false",
+                            "actual_order_total": str(actual_order_total)
+                        }
                     }
-                }
-            )
-            
-            # Save Razorpay order ID
-            order_record["razorpay_order_id"] = razorpay_order["id"]
-            
-            # Save order to database
-            saved_order = create_order(order_record)
-            
-            if not saved_order:
-                # Check if it's an inventory issue
-                if isinstance(saved_order, dict) and saved_order.get("error"):
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=saved_order.get("error")
-                    )
-                raise Exception("Failed to save order to database")
-            
-            # Check for inventory issues that were caught during order creation
-            if isinstance(saved_order, dict) and saved_order.get("error"):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=saved_order.get("error")
                 )
+                
+                print(f"✅ Razorpay order created: {razorpay_order['id']}")
+                
+                # Save Razorpay order ID
+                order_record["razorpay_order_id"] = razorpay_order["id"]
+                
+        except Exception as razorpay_error:
+            print(f"⚠️ Razorpay order creation failed: {str(razorpay_error)}")
+            print("Falling back to demo mode...")
+            demo_mode = True
+        
+        # Save order to database
+        print(f"💾 Saving order to database...")
+        saved_order = create_order(order_record)
+        
+        if not saved_order or (isinstance(saved_order, dict) and saved_order.get("error")):
+            error_msg = saved_order.get("error") if isinstance(saved_order, dict) else "Failed to save order to database"
+            print(f"❌ Order creation failed: {error_msg}")
             
-            print(f"Order saved successfully: {order_id}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error_msg
+            )
+        
+        print(f"✅ Order saved successfully with ID: {order_id}")
+        
+        # Send order confirmation email
+        try:
+            print(f"📧 Sending order confirmation email...")
+            from db.email_service import send_order_confirmation_email
+            email_sent = send_order_confirmation_email(saved_order)
             
-            # Send order confirmation email
-            try:
-                from db.email_service import send_order_confirmation_email
-                email_sent = send_order_confirmation_email(saved_order)
-                if email_sent:
-                    print(f"Order confirmation email sent for order {order_id}")
-                else:
-                    print(f"Failed to send order confirmation email for order {order_id}")
-            except Exception as e:
-                # Don't let email errors affect order creation
-                print(f"Error sending confirmation email: {e}")
+            if email_sent:
+                print(f"✅ Order confirmation email sent to {email}")
+            else:
+                print(f"⚠️ Failed to send order confirmation email")
+                
+        except Exception as email_error:
+            # Don't let email errors affect order creation
+            print(f"⚠️ Error sending confirmation email: {email_error}")
 
-            # Around line 280, after email sending, add:
-            try:
-                # Create Shiprocket order automatically
-                shiprocket_result = create_shiprocket_order(saved_order)
-                if shiprocket_result:
-                    print(f"Shiprocket order created: {shiprocket_result}")
-                    # Optionally store the Shiprocket order ID in your database
-                    # You can add a field to your orders table for this
-                else:
-                    print("Shiprocket order creation failed, but main order is still valid")
-            except Exception as e:
-                print(f"Shiprocket integration error (non-critical): {e}")
-                # Don't let Shiprocket errors affect the main order flow
+        # Enhanced Shiprocket integration with proper pickup location handling
+        try:
+            print("🚚 Starting Shiprocket integration...")
+            from db.shiprocketManagement import ShiprocketClient, format_wearxture_order_for_shiprocket
             
+            # Initialize Shiprocket client
+            shiprocket_client = ShiprocketClient()
+            
+            # Get the correct pickup location from Shiprocket
+            pickup_location = shiprocket_client.get_primary_pickup_location()
+            
+            if pickup_location:
+                print(f"📍 Using pickup location: '{pickup_location}'")
+                
+                # Format the order data for Shiprocket
+                shiprocket_order_data = format_wearxture_order_for_shiprocket(
+                    saved_order, 
+                    pickup_location=pickup_location
+                )
+                
+                if shiprocket_order_data:
+                    print(f"📋 Formatted order data for Shiprocket")
+                    
+                    # Create the order in Shiprocket
+                    shiprocket_result = shiprocket_client.create_order(shiprocket_order_data)
+                    
+                    if shiprocket_result.get('success'):
+                        print(f"✅ Shiprocket order created successfully!")
+                        print(f"   Shiprocket Order ID: {shiprocket_result.get('order_id')}")
+                        print(f"   Shipment ID: {shiprocket_result.get('shipment_id')}")
+                        
+                        # Update your order record with Shiprocket details
+                        try:
+                            from db.order_management import update_shiprocket_info
+                            shiprocket_info = {
+                                'order_id': shiprocket_result.get('order_id'),
+                                'shipment_id': shiprocket_result.get('shipment_id'),
+                                'tracking_url': f"https://shiprocket.co/tracking/{shiprocket_result.get('shipment_id')}" if shiprocket_result.get('shipment_id') else None
+                            }
+                            
+                            success = update_shiprocket_info(saved_order['order_id'], shiprocket_info)
+                            if success:
+                                print("✅ Order updated with Shiprocket tracking info")
+                            else:
+                                print("⚠️ Failed to update order with Shiprocket info")
+                                
+                        except Exception as update_error:
+                            print(f"⚠️ Error updating order with Shiprocket info: {update_error}")
+                        
+                    else:
+                        error_msg = shiprocket_result.get('error', 'Unknown error')
+                        print(f"❌ Shiprocket order creation failed: {error_msg}")
+                        
+                        # Log additional details for debugging
+                        if 'details' in shiprocket_result:
+                            print(f"   Details: {shiprocket_result['details']}")
+                        
+                        if 'valid_pickup_locations' in shiprocket_result:
+                            print(f"   Valid pickup locations: {shiprocket_result['valid_pickup_locations']}")
+                            
+                        # Log the order data that failed
+                        print(f"   Failed order data keys: {list(shiprocket_order_data.keys())}")
+                else:
+                    print("❌ Failed to format order data for Shiprocket")
+            else:
+                print("❌ No pickup locations available in Shiprocket account")
+                print("   Please configure at least one pickup location in your Shiprocket dashboard")
+            
+        except Exception as shiprocket_error:
+            print(f"⚠️ Shiprocket integration error (non-critical): {shiprocket_error}")
+            import traceback
+            traceback.print_exc()
+            # Continue with order processing even if Shiprocket fails
+        
+        # Prepare response based on demo mode or real payment
+        if demo_mode:
+            print(f"🎭 Returning demo mode response")
+            return {
+                "success": True,
+                "order_id": order_id,
+                "demo_mode": True,
+                "message": "Demo order created successfully. In production, you would be redirected to Razorpay.",
+                "amount": int(razorpay_amount * 100),
+                "is_cod": is_cod,
+                "actual_order_total": actual_order_total,
+                "remaining_amount": remaining_amount if is_cod else 0
+            }
+        else:
+            print(f"💳 Returning Razorpay payment response")
             return {
                 "success": True,
                 "order_id": order_id,
@@ -393,23 +574,17 @@ async def create_order_endpoint(order_data: dict, request: Request):
                 "actual_order_total": actual_order_total,
                 "remaining_amount": remaining_amount if is_cod else 0
             }
-        except HTTPException:
-            # Re-raise HTTP exceptions as is
-            raise
-        except Exception as e:
-            print(f"Razorpay order creation failed: {str(e)}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Payment gateway error: {str(e)}"
-            )
             
-    except HTTPException:
-        # Re-raise HTTP exceptions
-        raise
+    except HTTPException as http_error:
+        # Re-raise HTTP exceptions as is
+        print(f"❌ HTTP Exception: {http_error.detail}")
+        raise http_error
+        
     except Exception as e:
-        print(f"Order creation error: {str(e)}")
+        print(f"❌ Unexpected error in order creation: {str(e)}")
         import traceback
         traceback.print_exc()
+        
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Order creation failed: {str(e)}"
@@ -503,7 +678,7 @@ async def admin_customers_page(request: Request):
 # Verify payment endpoint
 @app.post("/api/verify-payment")
 async def verify_payment(payment_data: dict):
-    """Verify Razorpay payment signature"""
+    """Verify Razorpay payment signature - simplified version"""
     try:
         order_id = payment_data.get("razorpay_order_id")
         payment_id = payment_data.get("razorpay_payment_id")
@@ -511,13 +686,15 @@ async def verify_payment(payment_data: dict):
         wearxture_order_id = payment_data.get("order_id")
         is_cod = payment_data.get("is_cod", False)
         
+        print(f"🔍 Verifying payment for order {wearxture_order_id}, COD: {is_cod}")
+        
         # Demo mode handling
         if payment_data.get("demo_mode"):
-            # Get order from database
+            print("🎭 Processing demo mode payment...")
+            
             order = get_order(wearxture_order_id)
             
             if order:
-                # Update order status for demo
                 update_data = {
                     "payment_status": "cod_fee_paid" if is_cod else "completed",
                     "razorpay_payment_id": "DEMO_PAYMENT_ID"
@@ -531,31 +708,36 @@ async def verify_payment(payment_data: dict):
                 
                 updated_order = update_order_payment_status(wearxture_order_id, update_data)
                 
-                # Send payment confirmation email
-                try:
-                    from db.email_service import send_order_confirmation_email
-                    email_sent = send_order_confirmation_email(updated_order)
-                    if email_sent:
-                        print(f"Payment confirmation email sent for order {wearxture_order_id}")
-                    else:
-                        print(f"Failed to send payment confirmation email for order {wearxture_order_id}")
-                except Exception as e:
-                    # Don't let email errors affect payment processing
-                    print(f"Error sending payment confirmation email: {e}")
+                if updated_order:
+                    # Send payment confirmation email
+                    try:
+                        print("📧 Sending payment confirmation email...")
+                        from db.email_service import send_order_confirmation_email
+                        email_sent = send_order_confirmation_email(updated_order)
+                        if email_sent:
+                            print(f"✅ Payment confirmation email sent for order {wearxture_order_id}")
+                    except Exception as e:
+                        print(f"⚠️ Error sending payment confirmation email: {e}")
+                    
+                    # NOTE: Removed auto-shipping code - Direct Ship will handle it automatically
+                    print(f"✅ Order confirmed. Direct Ship will handle shipping automatically.")
                 
                 return {
                     "success": True,
                     "demo": True,
-                    "message": "Demo payment verified",
+                    "message": "Demo payment verified. Shipping will be handled automatically by Direct Ship.",
                     "is_cod": is_cod
                 }
             
             return {"success": False, "message": "Order not found"}
         
         # Real payment verification
+        print("💳 Processing real payment verification...")
         is_valid = verify_payment_signature(order_id, payment_id, signature)
         
         if is_valid:
+            print("✅ Payment signature verified successfully")
+            
             # Get payment details from Razorpay
             payment_details = get_payment_details(payment_id)
             
@@ -563,14 +745,12 @@ async def verify_payment(payment_data: dict):
             order = get_order(wearxture_order_id)
             
             if order:
-                # Update order payment status
                 update_data = {
                     "payment_status": "cod_fee_paid" if is_cod else "completed",
                     "razorpay_payment_id": payment_id,
                     "razorpay_signature": signature
                 }
                 
-                # For COD, update status to reflect that fee is paid
                 if is_cod:
                     update_data["cod_status"] = "fee_paid"
                     update_data["order_status"] = "confirmed"
@@ -582,48 +762,40 @@ async def verify_payment(payment_data: dict):
                 if updated_order:
                     # Send payment confirmation email
                     try:
+                        print("📧 Sending payment confirmation email...")
                         from db.email_service import send_order_confirmation_email
                         email_sent = send_order_confirmation_email(updated_order)
                         if email_sent:
-                            print(f"Payment confirmation email sent for order {wearxture_order_id}")
-                        else:
-                            print(f"Failed to send payment confirmation email for order {wearxture_order_id}")
+                            print(f"✅ Payment confirmation email sent for order {wearxture_order_id}")
                     except Exception as e:
-                        # Don't let email errors affect payment processing
-                        print(f"Error sending payment confirmation email: {e}")
+                        print(f"⚠️ Error sending payment confirmation email: {e}")
+                    
+                    # NOTE: Removed auto-shipping code - Direct Ship will handle it automatically
+                    print(f"✅ Payment confirmed. Direct Ship will automatically process shipping within a few minutes.")
                     
                     return {
                         "success": True,
                         "payment_id": payment_id,
-                        "status": payment_details.get("status"),
-                        "message": "COD fee paid successfully" if is_cod else "Payment verified successfully",
+                        "status": payment_details.get("status") if payment_details else "captured",
+                        "message": "COD fee paid successfully. Shipping will be processed automatically." if is_cod else "Payment verified successfully. Shipping will be processed automatically.",
                         "is_cod": is_cod
                     }
                 else:
-                    return {
-                        "success": False,
-                        "message": "Failed to update order status"
-                    }
+                    return {"success": False, "message": "Failed to update order status"}
             else:
-                return {
-                    "success": False,
-                    "message": "Order not found"
-                }
+                return {"success": False, "message": "Order not found"}
         else:
-            return {
-                "success": False,
-                "message": "Payment verification failed"
-            }
+            print("❌ Payment signature verification failed")
+            return {"success": False, "message": "Payment verification failed"}
             
     except Exception as e:
-        print(f"Payment verification error: {str(e)}")
+        print(f"❌ Payment verification error: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Payment verification failed: {str(e)}"
         )
-
 
 app.post("/api/orders/{order_id}/email-invoice")
 async def email_order_invoice(
@@ -2426,7 +2598,60 @@ async def upload_category_cover_image_endpoint(  # Changed function name to avoi
     finally:
         await file.close()
 
-
+@app.post("/admin/api/test-auto-shipping/{order_id}")
+async def test_auto_shipping(
+    order_id: str,
+    admin_email: str = Depends(verify_admin_token)
+):
+    """Test automatic shipping for an existing order"""
+    try:
+        # Get order from database
+        order = get_order(order_id)
+        
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found"
+            )
+        
+        # Test automatic shipping
+        from db.shiprocket_client import create_automatic_shipping
+        shipping_result = create_automatic_shipping(order)
+        
+        if shipping_result.get("success"):
+            # Update order with shipping details
+            shiprocket_info = {
+                'shipment_id': shipping_result.get('shipment_id'),
+                'awb_code': shipping_result.get('awb_code'),
+                'courier_name': shipping_result.get('courier_name'),
+                'tracking_url': shipping_result.get('tracking_url')
+            }
+            
+            update_success = update_shiprocket_info(order_id, shiprocket_info)
+            
+            if update_success:
+                # Update order status
+                update_order_status(order_id, "dispatched", "Test shipping via admin panel")
+                
+            return {
+                "success": True,
+                "message": "Test shipping successful",
+                "shipping_details": shipping_result
+            }
+        else:
+            return {
+                "success": False,
+                "error": shipping_result.get("error"),
+                "details": shipping_result
+            }
+            
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Test shipping failed: {str(e)}"
+        )
 
 # Run the application
 if __name__ == "__main__":

@@ -599,3 +599,76 @@ def upload_category_cover_image(file_content: bytes, file_name: str) -> Optional
     except Exception as e:
         print(f"Error uploading category cover image: {e}")
         return None
+
+# Add these OAuth functions to your existing supabase_client.py
+
+def get_oauth_url(provider: str, redirect_to: str = None) -> Optional[str]:
+    """
+    Get OAuth URL for Google or Facebook login
+    """
+    try:
+        # Set redirect URL (where user goes after successful OAuth)
+        options = {}
+        if redirect_to:
+            options['redirectTo'] = redirect_to
+        
+        # Generate OAuth URL
+        response = supabase.auth.sign_in_with_oauth({
+            'provider': provider,
+            'options': options
+        })
+        
+        return response.url if hasattr(response, 'url') else None
+        
+    except Exception as e:
+        print(f"Error generating OAuth URL for {provider}: {e}")
+        return None
+
+def handle_oauth_callback(access_token: str, refresh_token: str) -> Optional[Dict[str, Any]]:
+    """
+    Handle OAuth callback and extract user information
+    """
+    try:
+        # Set the session with the tokens from the callback
+        response = supabase.auth.set_session(access_token, refresh_token)
+        
+        if response.user:
+            return {
+                "id": response.user.id,
+                "email": response.user.email,
+                "name": response.user.user_metadata.get('full_name') or response.user.user_metadata.get('name'),
+                "provider": response.user.app_metadata.get('provider'),
+                "access_token": access_token,
+                "refresh_token": refresh_token
+            }
+        return None
+    except Exception as e:
+        print(f"Error handling OAuth callback: {e}")
+        return None
+
+def create_or_update_oauth_user(user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Create or update user record for OAuth users
+    This function can be used to store additional user info in your own tables if needed
+    """
+    try:
+        # Supabase handles user creation automatically for OAuth
+        # But you can add custom logic here if you need to store additional data
+        
+        # Example: Store user in a custom 'profiles' table
+        # profile_data = {
+        #     'id': user_data['id'],
+        #     'email': user_data['email'],
+        #     'full_name': user_data['name'],
+        #     'provider': user_data['provider'],
+        #     'created_at': datetime.now().isoformat()
+        # }
+        # 
+        # response = supabase.table('profiles').upsert(profile_data).execute()
+        # return response.data[0] if response.data else None
+        
+        return user_data
+        
+    except Exception as e:
+        print(f"Error creating/updating OAuth user: {e}")
+        return None
