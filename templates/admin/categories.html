@@ -75,9 +75,9 @@
                                 <div class="category-image">
                                     <img src="{{ category.image_url }}" alt="{{ category.name }}">
                                     <div class="category-actions">
-                                        <!-- <div class="category-action edit" data-id="{{ category.id }}" title="Edit Category">
+                                        <div class="category-action edit" data-id="{{ category.id }}" title="Edit Category">
                                             <i class="fas fa-edit"></i>
-                                        </div> -->
+                                        </div>
                                         <div class="category-action delete" data-id="{{ category.id }}" title="Delete Category">
                                             <i class="fas fa-trash"></i>
                                         </div>
@@ -349,41 +349,47 @@
                 });
             }
             
-            // Function to load existing category image
-            function loadExistingCategoryImage(imageUrl) {
-                if (!imageUrl) return;
-                
-                console.log('Loading existing category image:', imageUrl);
-                
-                if (previewPlaceholder) {
-                    previewPlaceholder.style.display = 'none';
-                }
-                
-                // Remove any existing image preview
-                const existingPreviews = categoryPreviewContainer.querySelectorAll('.category-image-preview');
-                existingPreviews.forEach(preview => preview.remove());
-                
-                // Create preview element
-                const preview = document.createElement('div');
-                preview.className = 'category-image-preview';
-                preview.style.backgroundImage = `url(${imageUrl})`;
-                
-                // Add remove button
-                const removeBtn = document.createElement('div');
-                removeBtn.className = 'remove-image';
-                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                removeBtn.addEventListener('click', function() {
-                    preview.remove();
-                    categoryImageInput.value = ''; // Reset file input
-                    if (previewPlaceholder) {
-                        previewPlaceholder.style.display = 'flex';
-                    }
-                });
-                
-                preview.appendChild(removeBtn);
-                categoryPreviewContainer.appendChild(preview);
-            }
-            
+// Make sure this function exists and is working properly
+function loadExistingCategoryImage(imageUrl) {
+    if (!imageUrl) return;
+    
+    console.log('Loading existing category image:', imageUrl);
+    
+    const categoryPreviewContainer = document.getElementById('category-image-preview-container');
+    const previewPlaceholder = document.getElementById('preview-placeholder');
+    
+    if (previewPlaceholder) {
+        previewPlaceholder.style.display = 'none';
+    }
+    
+    // Remove any existing image preview
+    const existingPreviews = categoryPreviewContainer.querySelectorAll('.category-image-preview');
+    existingPreviews.forEach(preview => preview.remove());
+    
+    // Create preview element
+    const preview = document.createElement('div');
+    preview.className = 'category-image-preview';
+    preview.style.backgroundImage = `url(${imageUrl})`;
+    
+    // Add remove button
+    const removeBtn = document.createElement('div');
+    removeBtn.className = 'remove-image';
+    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+    removeBtn.addEventListener('click', function() {
+        preview.remove();
+        const categoryImageInput = document.getElementById('category-image');
+        if (categoryImageInput) {
+            categoryImageInput.value = ''; // Reset file input
+        }
+        if (previewPlaceholder) {
+            previewPlaceholder.style.display = 'flex';
+        }
+    });
+    
+    preview.appendChild(removeBtn);
+    categoryPreviewContainer.appendChild(preview);
+}
+
             // Make this function available globally
             window.loadExistingCategoryImage = loadExistingCategoryImage;
             
@@ -623,47 +629,50 @@ if (saveButton && categoryForm) {
             }
             
             // Load category for editing
-// Load category for editing
-async function loadCategoryForEdit(categoryId) {
-    try {
-        resetCategoryForm();
-        
-        const response = await fetch(`/admin/api/categories/${categoryId}`);
-        
-        if (!response.ok) {
-            throw new Error(`Error: ${response.status}`);
+        // Load category for editing - MODIFY YOUR EXISTING FUNCTION OR ADD THIS ONE
+        async function loadCategoryForEdit(categoryId) {
+            try {
+                resetCategoryForm();
+                
+                showNotification('Loading category...', 'info');
+                
+                const response = await fetch(`/admin/api/categories/${categoryId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+                
+                const category = await response.json();
+                console.log('Loading category for edit:', category);
+                
+                // Populate the form
+                document.getElementById('category-id').value = category.id;
+                document.getElementById('category-name').value = category.name || '';
+                document.getElementById('category-description').value = category.description || '';
+                document.getElementById('category-parent').value = category.parent_id || '';
+                document.getElementById('category-filter').value = category.filter || 'all';
+                
+                // Show category main image if available
+                if (category.image_url) {
+                    loadExistingCategoryImage(category.image_url);
+                }
+                
+                // Show category cover image if available
+                if (category.cover_image_url) {
+                    loadExistingCategoryCoverImage(category.cover_image_url);
+                }
+                
+                // Update modal title
+                modalTitle.textContent = 'Edit Category';
+                
+                // Show modal
+                categoryModal.classList.add('show');
+                
+            } catch (error) {
+                console.error('Error loading category:', error);
+                showNotification('Failed to load category: ' + error.message, 'error');
+            }
         }
-        
-        const category = await response.json();
-        
-        // Populate the form
-        document.getElementById('category-id').value = category.id;
-        document.getElementById('category-name').value = category.name;
-        document.getElementById('category-description').value = category.description || '';
-        document.getElementById('category-parent').value = category.parent_id || '';
-        document.getElementById('category-filter').value = category.filter || 'all';
-        
-        // Show category main image if available using our function
-        if (category.image_url) {
-            loadExistingCategoryImage(category.image_url);
-        }
-        
-        // Show category cover image if available
-        if (category.cover_image_url) {
-            loadExistingCategoryCoverImage(category.cover_image_url);
-        }
-        
-        // Update modal title
-        modalTitle.textContent = 'Edit Category';
-        
-        // Show modal
-        categoryModal.classList.add('show');
-        
-    } catch (error) {
-        console.error('Error loading category:', error);
-        showNotification('Failed to load category: ' + error.message, 'error');
-    }
-}
             
             // Reset category form
 // Reset category form
@@ -872,11 +881,14 @@ if (categoryCoverImageInput && categoryCoverPreviewContainer) {
     });
 }
 
-// Function to load existing category cover image
+// Make sure this function exists and is working properly  
 function loadExistingCategoryCoverImage(imageUrl) {
     if (!imageUrl) return;
     
     console.log('Loading existing category cover image:', imageUrl);
+    
+    const categoryCoverPreviewContainer = document.getElementById('category-cover-image-preview-container');
+    const coverPreviewPlaceholder = document.getElementById('cover-preview-placeholder');
     
     if (coverPreviewPlaceholder) {
         coverPreviewPlaceholder.style.display = 'none';
@@ -897,7 +909,10 @@ function loadExistingCategoryCoverImage(imageUrl) {
     removeBtn.innerHTML = '<i class="fas fa-times"></i>';
     removeBtn.addEventListener('click', function() {
         preview.remove();
-        categoryCoverImageInput.value = ''; // Reset file input
+        const categoryCoverImageInput = document.getElementById('category-cover-image');
+        if (categoryCoverImageInput) {
+            categoryCoverImageInput.value = ''; // Reset file input
+        }
         if (coverPreviewPlaceholder) {
             coverPreviewPlaceholder.style.display = 'flex';
         }

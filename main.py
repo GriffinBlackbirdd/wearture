@@ -36,7 +36,8 @@ from db.order_management import (
     create_order, get_order, update_order_payment_status,
     get_user_orders, get_pending_orders, update_order_status, get_all_orders, update_shiprocket_info 
 )
-from db.supabase_client import get_oauth_url, handle_oauth_callback, create_or_update_oauth_user
+from db.supabase_client import get_oauth_url, handle_oauth_callback, get_oauth_url, handle_oauth_callback, get_user_from_token, sign_out_user, register_user_with_email, login_user_with_email
+from urllib.parse import urlparse, parse_qs
 
 from db.shiprocket_client import create_shiprocket_order, track_order, create_automatic_shipping
 # Load environment variables
@@ -44,7 +45,7 @@ load_dotenv()
 
 # JWT Settings
 JWT_SECRET = os.getenv("JWT_SECRET")
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8  # 8 hours
+ACCESS_TOKEN_EXPIRE_MINUTES = 1 #60 * 8  # 8 hours
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -150,7 +151,547 @@ class ReelResponse(ReelBase):
     created_at: datetime
     updated_at: datetime
     
+@app.get("/auth/{provider}")
+async def oauth_login(provider: str, request: Request):
+    """
+    Initiate OAuth login with Google or Facebook
+    """
+    if provider not in ['google', 'facebook']:
+        raise HTTPException(status_code=400, detail="Invalid provider")
+    
+    try:
+        # Get the redirect URL from query params
+        redirect_to = str(request.url_for('oauth_callback'))
+        
+        # Generate OAuth URL
+        oauth_url = get_oauth_url(provider, redirect_to)
+        
+        if oauth_url:
+            # Redirect to OAuth URL
+            return RedirectResponse(url=oauth_url)
+        else:
+            raise HTTPException(status_code=500, detail=f"{provider.title()} OAuth not configured")
+            
+    except Exception as e:
+        print(f"OAuth initiation error: {e}")
+        raise HTTPException(status_code=500, detail="OAuth initiation failed")
 
+# Replace your OAuth callback route in main.py with this simpler version
+
+@app.get("/auth/callback")
+async def oauth_callback(request: Request):
+    """
+    Handle OAuth callback - Simple version that just syncs users
+    """
+    try:
+        print("=== OAuth Callback Started ===")
+        
+        # Get the current user from Supabase (they should be logged in after OAuth)
+        try:
+            # Try to get the current session
+            user = supabase.auth.get_user()
+            print(f"Current Supabase user: {user}")
+            
+            if user and user.user:
+                auth_user = user.user
+                print(f"Auth user found: {auth_user.email}")
+                
+                # Sync this user to our users table
+                from db.supabase_client import get_or_create_oauth_user
+                synced_user = get_or_create_oauth_user(auth_user.email, auth_user)
+                
+                if synced_user:
+                    print(f"User synced successfully: {synced_user}")
+                    
+                    # Create JWT token for our app
+                    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+                    expires = datetime.utcnow() + access_token_expires
+                    
+                    jwt_payload = {
+                        "sub": auth_user.email,
+                        "exp": expires,
+                        "user_id": auth_user.id,
+                        "internal_user_id": synced_user.get("id"),
+                        "provider": synced_user.get("provider", "google"),
+                        "role": synced_user.get("role", "customer"),
+                        "name": synced_user.get("name", ""),
+                        "is_verified": synced_user.get("is_verified", True)
+                    }
+                    
+                    jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm="HS256")
+                    print(f"JWT token created for: {auth_user.email}")
+                    
+                    # Create response and set cookie
+                    response = RedirectResponse(url="/", status_code=303)
+                    response.set_cookie(
+                        key="user_access_token",
+                        value=jwt_token,
+                        httponly=True,
+                        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+                        secure=False,
+                        samesite="lax",
+                        path="/"
+                    )
+                    
+                    print("OAuth callback completed successfully")
+                    return response
+                else:
+                    print("Failed to sync user to users table")
+                    return RedirectResponse(url="/login?error=Failed to sync user account")
+            else:
+                print("No authenticated user found")
+                return RedirectResponse(url="/login?error=No authenticated user")
+                
+        except Exception as auth_error:
+            print(f"Error getting current user: {auth_error}")
+            return RedirectResponse(url="/login?error=Authentication failed")
+            
+    except Exception as e:
+        print(f"OAuth callback error: {e}")
+        import traceback
+        traceback.print_exc()
+        return RedirectResponse(url="/login?error=Authentication failed")
+
+# Add this manual sync endpoint for testing/fixing existing OAuth users
+@app.post("/api/sync-oauth-users")
+async def sync_oauth_users():
+    """
+    Manual endpoint to sync existing OAuth users from Auth to users table
+    """
+    try:
+        from db.supabase_client import sync_oauth_user_to_users_table
+        
+        # This requires admin access to list users
+        # You might need to use the service role key for this
+        
+        results = {
+            "synced": 0,
+            "errors": 0,
+            "details": []
+        }
+        
+        # For now, return instructions since we need service role key
+        return JSONResponse({
+            "message": "To sync existing OAuth users, you need to:",
+            "steps": [
+                "1. Go to your Supabase dashboard",
+                "2. Navigate to Authentication > Users",
+                "3. Find OAuth users (provider != 'email')",
+                "4. For each OAuth user, call the sync function manually",
+                "5. Or use the service role key to list all users programmatically"
+            ],
+            "note": "New OAuth users will be automatically synced going forward"
+        })
+        
+    except Exception as e:
+        return JSONResponse({
+            "error": str(e)
+        }, status_code=500)
+
+
+
+@app.get("/debug/auth-test")
+async def debug_auth_test(request: Request):
+    """
+    Debug endpoint to test authentication state
+    """
+    try:
+        # Check cookie
+        token = request.cookies.get("user_access_token")
+        
+        result = {
+            "has_cookie": bool(token),
+            "cookie_preview": token[:50] + "..." if token else None,
+            "all_cookies": dict(request.cookies),
+        }
+        
+        if token:
+            try:
+                payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+                result["token_valid"] = True
+                result["token_payload"] = payload
+                result["token_expired"] = False
+            except jwt.ExpiredSignatureError:
+                result["token_valid"] = False
+                result["token_expired"] = True
+            except jwt.JWTError as e:
+                result["token_valid"] = False
+                result["jwt_error"] = str(e)
+        
+        return JSONResponse(result)
+        
+    except Exception as e:
+        return JSONResponse({
+            "error": str(e),
+            "traceback": str(e.__traceback__)
+        })
+
+@app.get("/debug/simulate-oauth")
+async def debug_simulate_oauth():
+    """
+    Debug endpoint to simulate OAuth callback
+    """
+    try:
+        # Create a fake OAuth user
+        fake_user_data = {
+            "id": "fake-oauth-user-123",
+            "email": "test.oauth@gmail.com",
+            "name": "Test OAuth User",
+            "avatar_url": "",
+            "provider": "google"
+        }
+        
+        # Sync to users table
+        from db.supabase_client import sync_oauth_user_to_users_table
+        synced_user = sync_oauth_user_to_users_table(fake_user_data)
+        
+        if synced_user:
+            # Create JWT token
+            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            expires = datetime.utcnow() + access_token_expires
+            
+            jwt_payload = {
+                "sub": fake_user_data["email"],
+                "exp": expires,
+                "user_id": fake_user_data["id"],
+                "internal_user_id": synced_user.get("id"),
+                "provider": fake_user_data["provider"],
+                "role": synced_user.get("role", "customer"),
+                "name": fake_user_data["name"],
+                "is_verified": True
+            }
+            
+            jwt_token = jwt.encode(jwt_payload, JWT_SECRET, algorithm="HS256")
+            
+            # Set cookie and redirect
+            response = RedirectResponse(url="/", status_code=303)
+            response.set_cookie(
+                key="user_access_token",
+                value=jwt_token,
+                httponly=True,
+                max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+                secure=False,
+                samesite="lax",
+                path="/"
+            )
+            
+            return response
+        else:
+            return JSONResponse({
+                "error": "Failed to sync fake user",
+                "user_data": fake_user_data
+            })
+            
+    except Exception as e:
+        import traceback
+        return JSONResponse({
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        })
+
+@app.get("/debug/clear-auth")
+async def debug_clear_auth():
+    """
+    Debug endpoint to clear authentication
+    """
+    response = RedirectResponse(url="/", status_code=303)
+    response.delete_cookie("user_access_token", path="/")
+    return response
+
+@app.post("/api/auth/register")
+async def register_user(request: Request):
+    """
+    Register user with email and password
+    """
+    try:
+        data = await request.json()
+        name = data.get("name")
+        email = data.get("email")
+        password = data.get("password")
+        
+        if not all([name, email, password]):
+            raise HTTPException(status_code=400, detail="All fields are required")
+        
+        # Register user with Supabase
+        user_data = register_user_with_email(email, password, name)
+        
+        if user_data:
+            return JSONResponse({
+                "success": True,
+                "message": "Registration successful",
+                "email_confirmed": user_data.get("email_confirmed", False)
+            })
+        else:
+            raise HTTPException(status_code=400, detail="Registration failed")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Registration error: {e}")
+        raise HTTPException(status_code=500, detail="Registration failed")
+
+@app.post("/api/auth/login")
+async def login_user(request: Request):
+    """
+    Login user with email and password - updated for consistency
+    """
+    try:
+        data = await request.json()
+        email = data.get("email")
+        password = data.get("password")
+        remember = data.get("remember", False)
+        
+        if not all([email, password]):
+            raise HTTPException(status_code=400, detail="Email and password are required")
+        
+        # Login user with Supabase
+        user_data = login_user_with_email(email, password)
+        
+        if user_data:
+            # Create JWT token for our application
+            expires_minutes = ACCESS_TOKEN_EXPIRE_MINUTES * 24 if remember else ACCESS_TOKEN_EXPIRE_MINUTES
+            access_token_expires = timedelta(minutes=expires_minutes)
+            expires = datetime.utcnow() + access_token_expires
+            
+            to_encode = {
+                "sub": user_data["email"],
+                "exp": expires,
+                "user_id": user_data["id"],  # Supabase Auth ID
+                "internal_user_id": user_data.get("user_id"),  # Internal users table ID
+                "provider": user_data["provider"],
+                "role": user_data.get("role", "customer"),
+                "name": user_data.get("name", ""),
+                "is_verified": user_data.get("is_verified", False)
+            }
+            
+            jwt_token = jwt.encode(to_encode, JWT_SECRET, algorithm="HS256")
+            
+            return JSONResponse({
+                "success": True,
+                "message": "Login successful",
+                "access_token": jwt_token,
+                "user": {
+                    "email": user_data["email"],
+                    "name": user_data.get("name", ""),
+                    "provider": user_data["provider"],
+                    "role": user_data.get("role", "customer")
+                }
+            })
+        else:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Login error: {e}")
+        raise HTTPException(status_code=500, detail="Login failed")
+
+@app.post("/api/auth/logout")
+async def logout_user(request: Request):
+    """
+    Logout user
+    """
+    try:
+        # Get token from cookie
+        token = request.cookies.get("user_access_token")
+        
+        if token:
+            # Optionally, you could invalidate the token on Supabase side
+            # For now, we'll just clear the cookie on the client side
+            pass
+        
+        return JSONResponse({
+            "success": True,
+            "message": "Logged out successfully"
+        })
+        
+    except Exception as e:
+        print(f"Logout error: {e}")
+        raise HTTPException(status_code=500, detail="Logout failed")
+
+@app.get("/api/auth/status")
+async def auth_status(request: Request):
+    """
+    Check user authentication status with enhanced user data
+    """
+    try:
+        token = request.cookies.get("user_access_token")
+        
+        if not token:
+            return JSONResponse({
+                "authenticated": False,
+                "user": None
+            })
+        
+        # Verify JWT token
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            email = payload.get("sub")
+            user_id = payload.get("user_id")  # Supabase Auth ID
+            internal_user_id = payload.get("internal_user_id")  # Users table ID
+            provider = payload.get("provider", "email")
+            role = payload.get("role", "customer")
+            name = payload.get("name", "")
+            is_verified = payload.get("is_verified", False)
+            
+            if email and user_id:
+                # Try to get fresh user data from users table if we have the internal ID
+                user_table_data = None
+                if internal_user_id:
+                    from db.supabase_client import get_user_by_supabase_id
+                    user_table_data = get_user_by_supabase_id(user_id)
+                
+                user_info = {
+                    "id": user_id,
+                    "email": email,
+                    "name": name,
+                    "provider": provider,
+                    "role": role,
+                    "is_verified": is_verified
+                }
+                
+                # Update with fresh data from users table if available
+                if user_table_data:
+                    user_info.update({
+                        "internal_id": user_table_data.get("id"),
+                        "name": user_table_data.get("name", name),
+                        "role": user_table_data.get("role", role),
+                        "is_verified": user_table_data.get("is_verified", is_verified),
+                        "avatar_url": user_table_data.get("avatar_url", "")
+                    })
+                
+                return JSONResponse({
+                    "authenticated": True,
+                    "user": user_info
+                })
+        except jwt.ExpiredSignatureError:
+            return JSONResponse({
+                "authenticated": False,
+                "user": None,
+                "error": "Token expired"
+            })
+        except jwt.JWTError as e:
+            print(f"JWT Error: {e}")
+            return JSONResponse({
+                "authenticated": False,
+                "user": None,
+                "error": "Invalid token"
+            })
+        
+        return JSONResponse({
+            "authenticated": False,
+            "user": None
+        })
+        
+    except Exception as e:
+        print(f"Auth status error: {e}")
+        return JSONResponse({
+            "authenticated": False,
+            "user": None,
+            "error": str(e)
+        })
+
+@app.get("/api/user/profile")
+async def get_user_profile_endpoint(request: Request):
+    """
+    Get user profile information
+    """
+    try:
+        token = request.cookies.get("user_access_token")
+        
+        if not token:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_id = payload.get("user_id")
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        # Get user profile
+        profile = get_user_profile(user_id)
+        
+        if profile:
+            return JSONResponse({
+                "success": True,
+                "profile": profile
+            })
+        else:
+            # Fallback to basic info from token
+            return JSONResponse({
+                "success": True,
+                "profile": {
+                    "email": payload.get("sub"),
+                    "provider": payload.get("provider", "email")
+                }
+            })
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        print(f"Profile fetch error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch profile")
+
+@app.put("/api/user/profile")
+async def update_user_profile_endpoint(request: Request):
+    """
+    Update user profile information
+    """
+    try:
+        token = request.cookies.get("user_access_token")
+        
+        if not token:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_id = payload.get("user_id")
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        # Get update data
+        data = await request.json()
+        
+        # Update user profile in Supabase Auth (if needed)
+        update_data = {}
+        if 'full_name' in data:
+            update_data['full_name'] = data['full_name']
+        
+        if update_data:
+            try:
+                # Update user metadata in Supabase Auth
+                response = supabase.auth.update_user({
+                    "data": update_data
+                })
+                print(f"Auth update response: {response}")
+            except Exception as e:
+                print(f"Auth update error: {e}")
+        
+        # Update custom profile table
+        profile_success = create_or_update_user_profile({
+            'id': user_id,
+            'email': payload.get("sub"),
+            'name': data.get('full_name', ''),
+            'provider': payload.get("provider", "email")
+        })
+        
+        if profile_success:
+            return JSONResponse({
+                "success": True,
+                "message": "Profile updated successfully"
+            })
+        else:
+            raise HTTPException(status_code=500, detail="Failed to update profile")
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        print(f"Profile update error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update profile")
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
@@ -1849,7 +2390,18 @@ async def create_admin_category(
     return category_from_db(db_category)
 
 # Replace both instances of the update_admin_category function with this single version:
+# Get a specific category by ID for admin
+@app.get("/admin/api/categories/{category_id}", response_model=CategoryResponse)
+async def get_admin_category_by_id(
+    category_id: int,
+    admin_email: str = Depends(verify_admin_token)
+):
+    db_category = get_category(category_id)
+    if not db_category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return category_from_db(db_category)
 
+    
 @app.put("/admin/api/categories/{category_id}", response_model=CategoryResponse)
 async def update_admin_category(
     category_id: int,

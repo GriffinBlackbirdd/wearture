@@ -609,12 +609,15 @@
                 
                 if (response.ok && data.success) {
                     // Show success message
+                    successMessage.querySelector('span').textContent = data.email_confirmed ? 
+                        'Account created successfully! Redirecting to login...' : 
+                        'Account created! Please check your email to verify your account.';
                     successMessage.classList.add('show');
                     
                     // Redirect to login after a delay
                     setTimeout(() => {
                         window.location.href = '/login';
-                    }, 2000);
+                    }, 3000);
                 } else {
                     // Show error message
                     errorMessage.querySelector('span').textContent = data.detail || 'Error creating account';
@@ -627,19 +630,31 @@
             }
         });
 
-        // Social login placeholders
+        // Google OAuth signup
         document.querySelector('.google-btn').addEventListener('click', function() {
-            console.log('Google signup not implemented');
-            // In production, this would initiate OAuth flow
+            console.log('Initiating Google OAuth signup...');
+            // Redirect to our OAuth endpoint
+            window.location.href = '/auth/google';
         });
 
+        // Facebook OAuth signup
         document.querySelector('.facebook-btn').addEventListener('click', function() {
-            console.log('Facebook signup not implemented');
-            // In production, this would initiate OAuth flow
+            console.log('Initiating Facebook OAuth signup...');
+            // Redirect to our OAuth endpoint
+            window.location.href = '/auth/facebook';
         });
+
+        // Check for OAuth errors in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const oauthError = urlParams.get('error');
+        if (oauthError) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.querySelector('span').textContent = decodeURIComponent(oauthError);
+            errorMessage.classList.add('show');
+        }
 
         // Auto-focus on name field
         document.getElementById('name').focus();
-    </script>
+</script>
 </body>
 </html>

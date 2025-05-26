@@ -434,6 +434,9 @@
                 const data = await response.json();
                 
                 if (response.ok && data.success) {
+                    // Set cookie manually for immediate use
+                    document.cookie = `user_access_token=${data.access_token}; path=/; max-age=${remember ? 86400*7 : 28800}; SameSite=Lax`;
+                    
                     // Show success message
                     successMessage.classList.add('show');
                     
@@ -472,19 +475,43 @@
             }
         });
 
-        // Social login placeholders
+        // Google OAuth login
         document.querySelector('.google-btn').addEventListener('click', function() {
-            console.log('Google login not implemented');
-            // In production, this would initiate OAuth flow
+            console.log('Initiating Google OAuth...');
+            // Store redirect URL in sessionStorage if needed
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect');
+            if (redirect) {
+                sessionStorage.setItem('oauth_redirect', redirect);
+            }
+            // Redirect to our OAuth endpoint
+            window.location.href = '/auth/google';
         });
 
+        // Facebook OAuth login
         document.querySelector('.facebook-btn').addEventListener('click', function() {
-            console.log('Facebook login not implemented');
-            // In production, this would initiate OAuth flow
+            console.log('Initiating Facebook OAuth...');
+            // Store redirect URL in sessionStorage if needed
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect');
+            if (redirect) {
+                sessionStorage.setItem('oauth_redirect', redirect);
+            }
+            // Redirect to our OAuth endpoint
+            window.location.href = '/auth/facebook';
         });
+
+        // Check for OAuth errors in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const oauthError = urlParams.get('error');
+        if (oauthError) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.querySelector('span').textContent = decodeURIComponent(oauthError);
+            errorMessage.classList.add('show');
+        }
 
         // Auto-focus on email field
         document.getElementById('email').focus();
-    </script>
+</script>
 </body>
 </html>
