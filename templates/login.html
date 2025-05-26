@@ -472,63 +472,19 @@
             }
         });
 
-        // Google OAuth login
+        // Social login placeholders
         document.querySelector('.google-btn').addEventListener('click', function() {
-            // Get current redirect parameter if any
-            const urlParams = new URLSearchParams(window.location.search);
-            const redirect = urlParams.get('redirect') || '/';
-            
-            // Redirect to Google OAuth
-            window.location.href = `/auth/google?redirect=${encodeURIComponent(redirect)}`;
+            console.log('Google login not implemented');
+            // In production, this would initiate OAuth flow
         });
 
-
-        // Facebook OAuth login  
         document.querySelector('.facebook-btn').addEventListener('click', function() {
-            // Get current redirect parameter if any
-            const urlParams = new URLSearchParams(window.location.search);
-            const redirect = urlParams.get('redirect') || '/';
-            
-            // Redirect to Facebook OAuth
-            window.location.href = `/auth/facebook?redirect=${encodeURIComponent(redirect)}`;
+            console.log('Facebook login not implemented');
+            // In production, this would initiate OAuth flow
         });
 
         // Auto-focus on email field
         document.getElementById('email').focus();
-        // Handle OAuth errors in URL parameters
-window.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const error = urlParams.get('error');
-    
-    if (error) {
-        const errorMessage = document.getElementById('error-message');
-        const errorSpan = errorMessage.querySelector('span');
-        
-        switch(error) {
-            case 'oauth_failed':
-                errorSpan.textContent = 'Social login failed. Please try again.';
-                break;
-            case 'no_token':
-                errorSpan.textContent = 'Authentication failed. Please try again.';
-                break;
-            case 'callback_failed':
-                errorSpan.textContent = 'Login verification failed. Please try again.';
-                break;
-            case 'callback_error':
-                errorSpan.textContent = 'An error occurred during login. Please try again.';
-                break;
-            default:
-                errorSpan.textContent = 'An error occurred. Please try again.';
-        }
-        
-        errorMessage.classList.add('show');
-        
-        // Clear the error from URL after showing it
-        const url = new URL(window.location);
-        url.searchParams.delete('error');
-        window.history.replaceState({}, '', url);
-    }
-});
     </script>
 </body>
 </html>

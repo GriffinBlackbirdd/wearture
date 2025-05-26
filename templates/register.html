@@ -627,54 +627,19 @@
             }
         });
 
-        // Google OAuth signup
+        // Social login placeholders
         document.querySelector('.google-btn').addEventListener('click', function() {
-            // Redirect to Google OAuth (same as login, but can redirect to different page after)
-            window.location.href = '/auth/google?redirect=/';
+            console.log('Google signup not implemented');
+            // In production, this would initiate OAuth flow
         });
 
-        // Facebook OAuth signup
         document.querySelector('.facebook-btn').addEventListener('click', function() {
-            // Redirect to Facebook OAuth
-            window.location.href = '/auth/facebook?redirect=/';
+            console.log('Facebook signup not implemented');
+            // In production, this would initiate OAuth flow
         });
 
         // Auto-focus on name field
         document.getElementById('name').focus();
-        // Handle OAuth errors (same as login page)
-window.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const error = urlParams.get('error');
-    
-    if (error) {
-        const errorMessage = document.getElementById('error-message');
-        const errorSpan = errorMessage.querySelector('span');
-        
-        switch(error) {
-            case 'oauth_failed':
-                errorSpan.textContent = 'Social signup failed. Please try again.';
-                break;
-            case 'no_token':
-                errorSpan.textContent = 'Authentication failed. Please try again.';
-                break;
-            case 'callback_failed':
-                errorSpan.textContent = 'Signup verification failed. Please try again.';
-                break;
-            case 'callback_error':
-                errorSpan.textContent = 'An error occurred during signup. Please try again.';
-                break;
-            default:
-                errorSpan.textContent = 'An error occurred. Please try again.';
-        }
-        
-        errorMessage.classList.add('show');
-        
-        // Clear the error from URL
-        const url = new URL(window.location);
-        url.searchParams.delete('error');
-        window.history.replaceState({}, '', url);
-    }
-});
     </script>
 </body>
 </html>
