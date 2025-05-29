@@ -18,389 +18,177 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 # Initialize Supabase client
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-def sync_oauth_user_to_users_table(auth_user) -> Optional[Dict[str, Any]]:
+
+
+import hashlib
+from typing import Dict, Optional, Any
+def update_user(user_id: int, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
-    Sync OAuth user from Supabase Auth to users table
+    Update user data in the custom users table
     """
     try:
-        email = auth_user.email
-        user_id = auth_user.id
+        # If password is being updated, hash it
+        if 'password' in user_data:
+            user_data['password_hash'] = hash_password(user_data['password'])
+            del user_data['password']
         
-        # Extract name from user metadata
-        name = ""
-        if hasattr(auth_user, 'user_metadata') and auth_user.user_metadata:
-            name = (auth_user.user_metadata.get('full_name') or 
-                   auth_user.user_metadata.get('name') or 
-                   auth_user.user_metadata.get('display_name') or
-                   email.split('@')[0])
+        # Add updated timestamp
+        user_data['updated_at'] = datetime.now().isoformat()
         
-        # Get provider from app metadata
-        provider = "google"  # default
-        if hasattr(auth_user, 'app_metadata') and auth_user.app_metadata:
-            provider = auth_user.app_metadata.get('provider', 'google')
+        print(f"🔧 Updating user {user_id} with data: {list(user_data.keys())}")
         
-        # Get avatar URL
-        avatar_url = ""
-        if hasattr(auth_user, 'user_metadata') and auth_user.user_metadata:
-            avatar_url = auth_user.user_metadata.get('avatar_url', '')
+        response = supabase.table('users').update(user_data).eq('id', user_id).execute()
         
-        print(f"Syncing OAuth user: {email} with provider: {provider}")
+        if response.data and len(response.data) > 0:
+            user = response.data[0]
+            print(f"✅ User updated successfully: {user.get('id')}")
+            # Remove password hash from response
+            user.pop('password_hash', None)
+            return user
         
-        # Check if user already exists in users table
-        existing_user = supabase.table('users').select('*').eq('email', email).execute()
+        print(f"❌ No data returned from update")
+        return None
         
-        if existing_user.data:
-            # User exists, update their info
-            print(f"Updating existing user: {email}")
-            
-            update_data = {
-                'name': name,
-                'provider': provider,
-                'supabase_user_id': user_id,
-                'avatar_url': avatar_url,
-                'is_verified': True,  # OAuth users are pre-verified
-                'updated_at': datetime.now().isoformat()
-            }
-            
-            response = supabase.table('users').update(update_data).eq('email', email).execute()
-            
-            if response.data:
-                print(f"Successfully updated user: {email}")
-                return response.data[0]
-            else:
-                print(f"Failed to update user: {email}")
-                return None
-        else:
-            # User doesn't exist, create new one
-            print(f"Creating new OAuth user: {email}")
-            
-            new_user_data = {
-                'email': email,
-                'name': name,
-                'provider': provider,
-                'supabase_user_id': user_id,
-                'avatar_url': avatar_url,
-                'is_verified': True,  # OAuth users are pre-verified
-                'is_active': True,
-                'role': 'customer',
-                'created_at': datetime.now().isoformat(),
-                'updated_at': datetime.now().isoformat()
-            }
-            
-            response = supabase.table('users').insert(new_user_data).execute()
-            
-            if response.data:
-                print(f"Successfully created user: {email}")
-                return response.data[0]
-            else:
-                print(f"Failed to create user: {email}")
-                return None
-                
     except Exception as e:
-        print(f"Error syncing OAuth user: {e}")
+        print(f"❌ Error updating user {user_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+        
+def hash_password(password: str) -> str:
+    """Hash a password using bcrypt"""
+    try:
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
+    except Exception as e:
+        print(f"Bcrypt error, falling back to SHA256: {e}")
+        # Fallback to SHA256 if bcrypt fails
+        return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verify a password against its hash"""
+    try:
+        # Try bcrypt first
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    except:
+        # Fallback to SHA256 comparison
+        return hashlib.sha256(password.encode()).hexdigest() == hashed
+
+def create_user_simple(email: str, password: str, name: str, phone: str = None) -> Optional[Dict[str, Any]]:
+    """
+    Create a new user - ONLY using our custom users table, NO Supabase Auth
+    """
+    try:
+        print(f"🔧 Creating user: {email}")
+        
+        # Hash the password
+        password_hash = hash_password(password)
+        print(f"✅ Password hashed")
+        
+        # Create user data - only fields that exist in our table
+        user_data = {
+            'email': email.lower().strip(),
+            'password_hash': password_hash,
+            'name': name.strip(),
+            'is_active': True,
+            'role': 'customer'
+        }
+        
+        # Add phone only if provided
+        if phone and phone.strip():
+            user_data['phone'] = phone.strip()
+        
+        print(f"🔧 User data: {list(user_data.keys())}")
+        
+        # Insert ONLY into our custom users table - NO auth table involved
+        response = supabase.table('users').insert(user_data).execute()
+        
+        print(f"🔧 Supabase response received")
+        print(f"🔧 Response data: {response.data}")
+        
+        if response.data and len(response.data) > 0:
+            user = response.data[0]
+            print(f"✅ User created with ID: {user.get('id')}")
+            
+            # Remove password hash from response
+            user.pop('password_hash', None)
+            return user
+        else:
+            print(f"❌ No data in response")
+            return None
+            
+    except Exception as e:
+        print(f"❌ Error creating user: {e}")
+        print(f"❌ Error type: {type(e).__name__}")
         import traceback
         traceback.print_exc()
         return None
 
-def get_or_create_oauth_user(email: str, auth_user) -> Optional[Dict[str, Any]]:
+def authenticate_user_simple(email: str, password: str) -> Optional[Dict[str, Any]]:
     """
-    Get user from users table, or create if doesn't exist (for OAuth users)
+    Authenticate user - ONLY using our custom users table
     """
     try:
-        # First try to get existing user
-        existing_user = supabase.table('users').select('*').eq('email', email).execute()
+        print(f"🔧 Authenticating user: {email}")
         
-        if existing_user.data:
-            print(f"Found existing user: {email}")
-            return existing_user.data[0]
+        # Get user from OUR custom users table only
+        response = supabase.table('users').select('*').eq('email', email.lower().strip()).execute()
+        
+        if not response.data or len(response.data) == 0:
+            print(f"❌ User not found in custom users table")
+            return None
+        
+        user = response.data[0]
+        print(f"✅ User found: {user.get('id')}")
+        
+        # Verify password
+        if verify_password(password, user['password_hash']):
+            print(f"✅ Password verified")
+            # Remove password hash from response
+            user.pop('password_hash', None)
+            return user
         else:
-            print(f"User not found in users table, creating: {email}")
-            # Create the user by syncing from auth
-            return sync_oauth_user_to_users_table(auth_user)
-            
+            print(f"❌ Password verification failed")
+            return None
+        
     except Exception as e:
-        print(f"Error getting/creating OAuth user: {e}")
+        print(f"❌ Error authenticating user: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
-def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
+def get_user_by_email_simple(email: str) -> Optional[Dict[str, Any]]:
     """
-    Get user from users table by email
+    Get user by email - ONLY from our custom users table
     """
     try:
-        response = supabase.table('users').select('*').eq('email', email).execute()
-        return response.data[0] if response.data else None
+        response = supabase.table('users').select('*').eq('email', email.lower().strip()).execute()
+        
+        if response.data and len(response.data) > 0:
+            user = response.data[0]
+            # Remove password hash from response
+            user.pop('password_hash', None)
+            return user
+        
+        return None
     except Exception as e:
         print(f"Error getting user by email: {e}")
         return None
 
-def get_user_by_supabase_id(supabase_user_id: str) -> Optional[Dict[str, Any]]:
-    """
-    Get user from users table by Supabase Auth user ID
-    """
+def get_user_by_id_simple(user_id: int) -> Optional[Dict[str, Any]]:
+    """Get user by ID"""
     try:
-        response = supabase.table('users').select('*').eq('supabase_user_id', supabase_user_id).execute()
-        return response.data[0] if response.data else None
-    except Exception as e:
-        print(f"Error getting user by Supabase ID: {e}")
+        response = supabase.table('users').select('*').eq('id', user_id).execute()
+        
+        if response.data and len(response.data) > 0:
+            user = response.data[0]
+            user.pop('password_hash', None)
+            return user
+        
         return None
-
-def get_oauth_url(provider: str, redirect_to: str = None) -> str:
-    """
-    Generate OAuth URL for Google or Facebook login
-    
-    Args:
-        provider: 'google' or 'facebook'
-        redirect_to: URL to redirect to after successful login
-    
-    Returns:
-        OAuth URL string
-    """
-    try:
-        options = {}
-        if redirect_to:
-            options['redirectTo'] = redirect_to
         
-        response = supabase.auth.sign_in_with_oauth({
-            'provider': provider,
-            'options': options
-        })
-        
-        return response.url if hasattr(response, 'url') else None
     except Exception as e:
-        print(f"Error generating {provider} OAuth URL: {e}")
-        return None
-
-def handle_oauth_callback(access_token: str, refresh_token: str) -> Optional[Dict[str, Any]]:
-    """
-    Handle OAuth callback and set session - IMPROVED VERSION
-    """
-    try:
-        print(f"Setting Supabase session with token: {access_token[:20]}...")
-        
-        # Set the session in Supabase
-        response = supabase.auth.set_session(access_token, refresh_token)
-        
-        print(f"Supabase session response: {response}")
-        
-        if response.user:
-            print(f"Supabase user: {response.user}")
-            print(f"User metadata: {response.user.user_metadata}")
-            print(f"App metadata: {response.user.app_metadata}")
-            
-            # Extract user information
-            oauth_user_data = {
-                "id": response.user.id,
-                "email": response.user.email,
-                "name": (
-                    response.user.user_metadata.get('full_name') or 
-                    response.user.user_metadata.get('name') or 
-                    response.user.user_metadata.get('display_name') or
-                    response.user.email.split('@')[0]  # Fallback to email username
-                ),
-                "avatar_url": response.user.user_metadata.get('avatar_url', ''),
-                "provider": response.user.app_metadata.get('provider', 'google'),
-                "access_token": access_token,
-                "refresh_token": refresh_token
-            }
-            
-            print(f"Extracted OAuth user data: {oauth_user_data}")
-            
-            # Sync user to users table
-            print("Syncing user to users table...")
-            synced_user = sync_oauth_user_to_users_table(oauth_user_data)
-            
-            if synced_user:
-                print(f"User synced successfully: {synced_user}")
-                # Return combined data
-                return {
-                    **oauth_user_data,
-                    "user_id": synced_user.get('id'),
-                    "role": synced_user.get('role', 'customer'),
-                    "is_verified": synced_user.get('is_verified', True)
-                }
-            else:
-                print("User sync failed, returning OAuth data only")
-                return oauth_user_data
-        else:
-            print("No user data in Supabase response")
-            return None
-            
-    except Exception as e:
-        print(f"Error in handle_oauth_callback: {e}")
-        import traceback
-        traceback.print_exc()
-        return None
-
-def get_user_from_token(access_token: str) -> Optional[Dict[str, Any]]:
-    """
-    Get user data from access token
-    
-    Args:
-        access_token: JWT access token
-    
-    Returns:
-        User data if valid, None otherwise
-    """
-    try:
-        response = supabase.auth.get_user(access_token)
-        
-        if response.user:
-            return {
-                "id": response.user.id,
-                "email": response.user.email,
-                "name": response.user.user_metadata.get('full_name', ''),
-                "avatar_url": response.user.user_metadata.get('avatar_url', ''),
-                "provider": response.user.app_metadata.get('provider', 'email')
-            }
-        return None
-    except Exception as e:
-        print(f"Error getting user from token: {e}")
-        return None
-
-def sign_out_user(access_token: str) -> bool:
-    """
-    Sign out user
-    
-    Args:
-        access_token: User's access token
-    
-    Returns:
-        True if successful, False otherwise
-    """
-    try:
-        supabase.auth.sign_out()
-        return True
-    except Exception as e:
-        print(f"Error signing out user: {e}")
-        return False
-
-# ========= Email/Password Authentication Functions =========
-
-def register_user_with_email(email: str, password: str, name: str) -> Optional[Dict[str, Any]]:
-    """
-    Register user with email and password, ensuring both Auth and users table are populated
-    """
-    try:
-        # First, register with Supabase Auth
-        response = supabase.auth.sign_up({
-            "email": email,
-            "password": password,
-            "options": {
-                "data": {
-                    "full_name": name
-                }
-            }
-        })
-        
-        if response.user:
-            # Create user in users table
-            user_data = {
-                'email': email,
-                'name': name,
-                'provider': 'email',
-                'supabase_user_id': response.user.id,
-                'is_verified': response.user.email_confirmed_at is not None,
-                'is_active': True,
-                'role': 'customer',
-                'created_at': datetime.now().isoformat(),
-                'updated_at': datetime.now().isoformat()
-            }
-            
-            users_table_response = supabase.table('users').insert(user_data).execute()
-            
-            return {
-                "id": response.user.id,
-                "email": response.user.email,
-                "name": name,
-                "access_token": response.session.access_token if response.session else None,
-                "refresh_token": response.session.refresh_token if response.session else None,
-                "email_confirmed": response.user.email_confirmed_at is not None,
-                "user_id": users_table_response.data[0]['id'] if users_table_response.data else None
-            }
-        return None
-    except Exception as e:
-        print(f"Error registering user: {e}")
-        import traceback
-        traceback.print_exc()
-        return None
-
-def login_user_with_email(email: str, password: str) -> Optional[Dict[str, Any]]:
-    """
-    Login user with email and password, including users table data
-    """
-    try:
-        response = supabase.auth.sign_in_with_password({
-            "email": email,
-            "password": password
-        })
-        
-        if response.user and response.session:
-            # Get user from users table
-            user_table_data = get_user_by_email(email)
-            
-            base_data = {
-                "id": response.user.id,
-                "email": response.user.email,
-                "name": response.user.user_metadata.get('full_name', ''),
-                "access_token": response.session.access_token,
-                "refresh_token": response.session.refresh_token,
-                "provider": "email"
-            }
-            
-            if user_table_data:
-                base_data.update({
-                    "user_id": user_table_data.get('id'),
-                    "role": user_table_data.get('role', 'customer'),
-                    "is_verified": user_table_data.get('is_verified', False)
-                })
-            
-            return base_data
-        return None
-    except Exception as e:
-        print(f"Error logging in user: {e}")
-        return None
-
-
-def create_or_update_user_profile(user_data: Dict[str, Any]) -> bool:
-    """
-    Create or update user profile in a custom users table
-    This allows you to store additional user information
-    """
-    try:
-        # Check if user profile exists
-        existing_profile = supabase.table('user_profiles').select('*').eq('auth_user_id', user_data['id']).execute()
-        
-        profile_data = {
-            'auth_user_id': user_data['id'],
-            'email': user_data['email'],
-            'full_name': user_data.get('name', ''),
-            'avatar_url': user_data.get('avatar_url', ''),
-            'provider': user_data.get('provider', 'email'),
-            'updated_at': datetime.now().isoformat()
-        }
-        
-        if existing_profile.data:
-            # Update existing profile
-            response = supabase.table('user_profiles').update(profile_data).eq('auth_user_id', user_data['id']).execute()
-        else:
-            # Create new profile
-            profile_data['created_at'] = datetime.now().isoformat()
-            response = supabase.table('user_profiles').insert(profile_data).execute()
-        
-        return bool(response.data)
-    except Exception as e:
-        print(f"Error creating/updating user profile: {e}")
-        return False
-
-def get_user_profile(user_id: str) -> Optional[Dict[str, Any]]:
-    """
-    Get user profile from custom users table
-    """
-    try:
-        response = supabase.table('user_profiles').select('*').eq('auth_user_id', user_id).execute()
-        return response.data[0] if response.data else None
-    except Exception as e:
-        print(f"Error getting user profile: {e}")
         return None
 
 

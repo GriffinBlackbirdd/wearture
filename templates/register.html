@@ -447,7 +447,7 @@
             </button>
         </form>
 
-        <div class="divider">
+        <!-- <div class="divider">
             <span>OR</span>
         </div>
 
@@ -460,7 +460,7 @@
                 <i class="fab fa-facebook-f"></i>
                 <span>Facebook</span>
             </button>
-        </div>
+        </div> -->
 
         <div class="signin-link">
             Already have an account? <a href="/login">Sign in</a>
@@ -550,86 +550,85 @@
         });
 
         // Form submission
-        document.getElementById('register-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
-            const termsAccepted = document.getElementById('terms').checked;
-            
-            const errorMessage = document.getElementById('error-message');
-            const successMessage = document.getElementById('success-message');
-            
-            // Hide previous messages
-            errorMessage.classList.remove('show');
-            successMessage.classList.remove('show');
-            
-            // Validate passwords match
-            if (password !== confirmPassword) {
-                errorMessage.querySelector('span').textContent = 'Passwords do not match';
-                errorMessage.classList.add('show');
-                return;
-            }
-            
-            // Validate password requirements
-            const hasUppercase = /[A-Z]/.test(password);
-            const hasLowercase = /[a-z]/.test(password);
-            const hasNumber = /[0-9]/.test(password);
-            const hasMinLength = password.length >= 8;
-            
-            if (!hasUppercase || !hasLowercase || !hasNumber || !hasMinLength) {
-                errorMessage.querySelector('span').textContent = 'Password does not meet requirements';
-                errorMessage.classList.add('show');
-                return;
-            }
-            
-            // Check terms acceptance
-            if (!termsAccepted) {
-                errorMessage.querySelector('span').textContent = 'Please accept the terms and conditions';
-                errorMessage.classList.add('show');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        name: name,
-                        email: email,
-                        password: password
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok && data.success) {
-                    // Show success message
-                    successMessage.querySelector('span').textContent = data.email_confirmed ? 
-                        'Account created successfully! Redirecting to login...' : 
-                        'Account created! Please check your email to verify your account.';
-                    successMessage.classList.add('show');
-                    
-                    // Redirect to login after a delay
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 3000);
-                } else {
-                    // Show error message
-                    errorMessage.querySelector('span').textContent = data.detail || 'Error creating account';
-                    errorMessage.classList.add('show');
-                }
-            } catch (error) {
-                console.error('Registration error:', error);
-                errorMessage.querySelector('span').textContent = 'Something went wrong. Please try again.';
-                errorMessage.classList.add('show');
-            }
-        });
+// Replace the registration form JavaScript in your register.html with this:
 
+document.getElementById('register-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    const termsAccepted = document.getElementById('terms').checked;
+    
+    const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message');
+    
+    // Hide previous messages
+    errorMessage.classList.remove('show');
+    successMessage.classList.remove('show');
+    
+    // Validate passwords match
+    if (password !== confirmPassword) {
+        errorMessage.querySelector('span').textContent = 'Passwords do not match';
+        errorMessage.classList.add('show');
+        return;
+    }
+    
+    // Validate password requirements
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasMinLength = password.length >= 8;
+    
+    if (!hasUppercase || !hasLowercase || !hasNumber || !hasMinLength) {
+        errorMessage.querySelector('span').textContent = 'Password does not meet requirements';
+        errorMessage.classList.add('show');
+        return;
+    }
+    
+    // Check terms acceptance
+    if (!termsAccepted) {
+        errorMessage.querySelector('span').textContent = 'Please accept the terms and conditions';
+        errorMessage.classList.add('show');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: name,
+                email: email,
+                password: password
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            // Show success message
+            successMessage.querySelector('span').textContent = 'Account created successfully! Redirecting to login...';
+            successMessage.classList.add('show');
+            
+            // Redirect to login after a delay
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+        } else {
+            // Show error message
+            errorMessage.querySelector('span').textContent = data.detail || 'Error creating account';
+            errorMessage.classList.add('show');
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        errorMessage.querySelector('span').textContent = 'Something went wrong. Please try again.';
+        errorMessage.classList.add('show');
+    }
+});
         // Google OAuth signup
         document.querySelector('.google-btn').addEventListener('click', function() {
             console.log('Initiating Google OAuth signup...');

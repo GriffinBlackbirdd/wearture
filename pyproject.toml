@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "clerk>=0.1.0",
     "fastapi>=0.115.12",
     "jinja2>=3.1.6",
     "pydantic[email]>=2.11.4",

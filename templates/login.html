@@ -381,12 +381,12 @@
                 Sign In
             </button>
         </form>
-
+<!-- 
         <div class="divider">
             <span>OR</span>
-        </div>
+        </div> -->
 
-        <div class="social-login">
+        <!-- <div class="social-login">
             <button class="social-btn google-btn">
                 <i class="fab fa-google"></i>
                 <span>Google</span>
@@ -395,7 +395,7 @@
                 <i class="fab fa-facebook-f"></i>
                 <span>Facebook</span>
             </button>
-        </div>
+        </div> -->
 
         <div class="signup-link">
             Don't have an account? <a href="/register">Create one now</a>
@@ -403,62 +403,61 @@
     </div>
 
     <script>
-        // Login form functionality
-        document.getElementById('login-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const remember = document.getElementById('remember').checked;
-            
-            const errorMessage = document.getElementById('error-message');
-            const successMessage = document.getElementById('success-message');
-            
-            // Hide previous messages
-            errorMessage.classList.remove('show');
-            successMessage.classList.remove('show');
-            
-            try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password,
-                        remember: remember
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok && data.success) {
-                    // Set cookie manually for immediate use
-                    document.cookie = `user_access_token=${data.access_token}; path=/; max-age=${remember ? 86400*7 : 28800}; SameSite=Lax`;
-                    
-                    // Show success message
-                    successMessage.classList.add('show');
-                    
-                    // Redirect to appropriate page
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const redirect = urlParams.get('redirect') || '/';
-                    
-                    setTimeout(() => {
-                        window.location.href = redirect === 'checkout' ? '/checkout' : redirect;
-                    }, 1500);
-                } else {
-                    // Show error message
-                    errorMessage.querySelector('span').textContent = data.detail || 'Invalid email or password';
-                    errorMessage.classList.add('show');
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                errorMessage.querySelector('span').textContent = 'Something went wrong. Please try again.';
-                errorMessage.classList.add('show');
-            }
-        });
+// Replace the login form JavaScript in login.html:
 
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message');
+    
+    errorMessage.classList.remove('show');
+    successMessage.classList.remove('show');
+    
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            successMessage.classList.add('show');
+            
+            // Get redirect parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect');
+            
+            // Redirect based on parameter
+            setTimeout(() => {
+                if (redirect === 'profile') {
+                    window.location.href = '/profile';
+                } else if (redirect === 'checkout') {
+                    window.location.href = '/checkout';
+                } else {
+                    window.location.href = '/';
+                }
+            }, 500);
+            
+        } else {
+            errorMessage.querySelector('span').textContent = data.detail || 'Invalid email or password';
+            errorMessage.classList.add('show');
+        }
+    } catch (error) {
+        errorMessage.querySelector('span').textContent = 'Something went wrong. Please try again.';
+        errorMessage.classList.add('show');
+    }
+});
         // Password visibility toggle
         const passwordInput = document.getElementById('password');
         const passwordToggle = document.getElementById('password-toggle');

@@ -7,310 +7,410 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Profile Page Specific Styles */
         .profile-container {
             max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        .profile-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .profile-header h1 {
-            font-family: var(--font-heading);
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-
-        .profile-grid {
+            margin: 0 auto;
+            padding: 40px 20px;
             display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 30px;
+            grid-template-columns: 300px 1fr;
+            gap: 40px;
         }
 
         .profile-sidebar {
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-        }
-
-        .profile-main {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
             padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
         }
 
-        .profile-avatar-large {
+        .profile-avatar {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .avatar-circle {
             width: 100px;
             height: 100px;
-            background: var(--light-bg);
             border-radius: 50%;
+            background: var(--primary-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            margin: 0 auto 15px;
+            font-size: 36px;
+            color: white;
+            font-weight: 600;
         }
 
-        .profile-avatar-large i {
-            font-size: 50px;
-            color: var(--light-text);
-        }
-
-        .profile-user-info {
-            text-align: center;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .profile-fullname {
-            font-size: 18px;
+        .profile-name {
+            font-size: 20px;
             font-weight: 600;
             margin-bottom: 5px;
-        }
-
-        .profile-email-display {
-            font-size: 14px;
-            color: var(--light-text);
-        }
-
-        .profile-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .profile-menu-item {
-            margin-bottom: 5px;
-        }
-
-        .profile-menu-link {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
             color: var(--text-color);
         }
 
-        .profile-menu-link:hover, .profile-menu-link.active {
+        .profile-email {
+            color: var(--light-text);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--light-bg);
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--light-text);
+            text-transform: uppercase;
+        }
+
+        .profile-menu {
+            margin-top: 30px;
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: var(--text-color);
+            text-decoration: none;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .profile-menu-item:hover,
+        .profile-menu-item.active {
             background: var(--light-bg);
             color: var(--primary-color);
         }
 
-        .profile-menu-link i {
-            width: 24px;
-            margin-right: 10px;
-            font-size: 16px;
+        .profile-menu-item i {
+            width: 20px;
+            text-align: center;
         }
 
-        .profile-panel {
+        .logout-item {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .logout-item:hover {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .profile-content {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .profile-section {
             display: none;
         }
 
-        .profile-panel.active {
+        .profile-section.active {
             display: block;
-            animation: fadeIn 0.3s ease;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .profile-panel-header {
-            margin-bottom: 25px;
+        .section-header {
+            border-bottom: 2px solid var(--border-color);
             padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
         }
 
-        .profile-panel-title {
-            font-size: 20px;
+        .section-title {
+            font-size: 24px;
             font-weight: 600;
+            color: var(--text-color);
             margin-bottom: 5px;
         }
 
-        .profile-panel-subtitle {
-            font-size: 14px;
+        .section-subtitle {
             color: var(--light-text);
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
             font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 8px;
         }
 
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-family: var(--font-body);
-            font-size: 14px;
-            transition: border-color 0.2s ease;
-        }
-
-        .form-control:focus {
-            border-color: var(--primary-color);
-            outline: none;
-        }
-
-        .form-row {
-            display: flex;
+        /* Orders Section */
+        .orders-grid {
+            display: grid;
             gap: 20px;
         }
 
-        .form-row .form-group {
-            flex: 1;
+        .order-card {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
         }
 
-        .form-hint {
+        .order-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .order-id {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .order-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-processing { background: #cce7ff; color: #004085; }
+        .status-dispatched { background: #e2e6ea; color: #495057; }
+        .status-delivered { background: #d1ecf1; color: #0c5460; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .order-detail {
+            text-align: center;
+        }
+
+        .order-detail-label {
             font-size: 12px;
             color: var(--light-text);
-            margin-top: 5px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
         }
 
-        .btn-save {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 6px;
+        .order-detail-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .btn-save:hover {
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
             background: #c24d1e;
             transform: translateY(-2px);
         }
 
-        .saved-addresses {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .address-card {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            position: relative;
-        }
-
-        .address-card-default {
-            border-color: var(--primary-color);
-        }
-
-        .default-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--primary-color);
-            color: white;
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 20px;
-            text-transform: uppercase;
-        }
-
-        .address-name {
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .address-details {
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 15px;
-        }
-
-        .address-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .address-btn {
-            font-size: 12px;
-            padding: 5px 10px;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
+        .btn-secondary {
             background: white;
-            cursor: pointer;
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
         }
 
-        .address-btn:hover {
+        .btn-secondary:hover {
             background: var(--light-bg);
         }
 
-        .address-btn-default {
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        /* Info Cards */
+        .info-card {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 25px;
+        }
+
+        .info-card h3 {
+            color: var(--primary-color);
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .info-card ul {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+
+        .info-card li {
+            margin-bottom: 8px;
+        }
+
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
             background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
-            border-color: var(--primary-color);
+            font-size: 20px;
         }
 
-        .address-btn-default:hover {
-            background: #c24d1e;
+        .contact-details h4 {
+            margin: 0 0 5px 0;
+            font-weight: 600;
+            color: var(--text-color);
         }
 
-        /* Responsive Styles */
+        .contact-details p {
+            margin: 0;
+            color: var(--light-text);
+            font-size: 14px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            color: var(--light-text);
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .empty-state p {
+            color: var(--light-text);
+            margin-bottom: 30px;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .profile-grid {
+            .profile-container {
                 grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px 15px;
             }
 
-            .profile-user-info {
-                padding-bottom: 15px;
-                margin-bottom: 15px;
+            .profile-sidebar {
+                position: relative;
+                top: auto;
             }
 
-            .profile-menu {
-                display: flex;
-                flex-wrap: wrap;
+            .profile-content {
+                padding: 20px;
+            }
+
+            .order-header {
+                flex-direction: column;
+                align-items: flex-start;
                 gap: 10px;
             }
 
-            .profile-menu-item {
-                margin-bottom: 0;
+            .order-details {
+                grid-template-columns: 1fr;
+                gap: 15px;
             }
 
-            .profile-menu-link {
-                padding: 8px 12px;
-                font-size: 13px;
-            }
-
-            .profile-menu-link i {
-                margin-right: 8px;
-            }
-
-            .form-row {
+            .order-actions {
                 flex-direction: column;
-                gap: 0;
+            }
+
+            .contact-info {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-stats {
+                flex-direction: column;
+                gap: 15px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Header (Reuse the same header from index.html) -->
+    <!-- Navigation -->
     <header>
         <div class="header-container">
             <div class="logo">
@@ -325,728 +425,384 @@
                     <li><a href="/collections">Collections</a></li>
                 </ul>
             </nav>
-            <div class="nav-icons">
+            <!-- <div class="nav-icons">
                 <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
-                
-                <!-- Profile Dropdown (using the code from the previous artifact) -->
-                <div class="profile-dropdown">
-                    <a href="#" class="icon-link profile-toggle active">
-                        <i class="fas fa-user"></i>
-                    </a>
-                    <div class="profile-dropdown-content">
-                        <div class="profile-header" id="profile-header-logged-in">
-                            <div class="profile-avatar">
-                                <i class="fas fa-user-circle"></i>
-                            </div>
-                            <div class="profile-info">
-                                <span class="profile-name" id="profile-user-name">User Name</span>
-                                <span class="profile-email" id="profile-user-email">user@example.com</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Options shown when logged in -->
-                        <div id="profile-logged-in">
-                            <a href="/orders" class="profile-item">
-                                <i class="fas fa-box"></i>
-                                <span>My Orders</span>
-                            </a>
-                            <a href="/profile" class="profile-item">
-                                <i class="fas fa-user-cog"></i>
-                                <span>Profile Settings</span>
-                            </a>
-                            <div class="profile-divider"></div>
-                            <a href="#" class="profile-item" id="logout-btn">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Logout</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                
-                <a href="#" class="icon-link cart" id="cart-toggle">
+                <a href="/profile" class="icon-link"><i class="fas fa-user"></i></a>
+                <a href="#" class="icon-link cart">
                     <i class="fas fa-shopping-bag"></i>
                     <span class="cart-count">0</span>
                 </a>
-            </div>
+            </div> -->
             <div class="mobile-menu-toggle">
                 <i class="fas fa-bars"></i>
             </div>
         </div>
     </header>
 
-    <!-- Main Content -->
     <div class="profile-container">
-        <div class="profile-header">
-            <h1>My Account</h1>
-            <p>Manage your profile and settings</p>
-        </div>
-
-        <div class="profile-grid">
-            <!-- Sidebar -->
-            <div class="profile-sidebar">
-                <div class="profile-user-info">
-                    <div class="profile-avatar-large">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <div class="profile-fullname" id="sidebar-fullname">John Doe</div>
-                    <div class="profile-email-display" id="sidebar-email">john.doe@example.com</div>
+        <!-- Profile Sidebar -->
+        <div class="profile-sidebar">
+            <div class="profile-avatar">
+                <div class="avatar-circle" id="avatar-circle">
+                    <span id="avatar-initials">JD</span>
                 </div>
-
-                <ul class="profile-menu">
-                    <li class="profile-menu-item">
-                        <a href="#personal-info" class="profile-menu-link active" data-target="personal-info">
-                            <i class="fas fa-user"></i>
-                            Personal Information
-                        </a>
-                    </li>
-                    <li class="profile-menu-item">
-                        <a href="#addresses" class="profile-menu-link" data-target="addresses">
-                            <i class="fas fa-map-marker-alt"></i>
-                            Addresses
-                        </a>
-                    </li>
-                    <li class="profile-menu-item">
-                        <a href="#orders" class="profile-menu-link" data-target="orders">
-                            <i class="fas fa-box"></i>
-                            My Orders
-                        </a>
-                    </li>
-                    <li class="profile-menu-item">
-                        <a href="#change-password" class="profile-menu-link" data-target="change-password">
-                            <i class="fas fa-lock"></i>
-                            Change Password
-                        </a>
-                    </li>
-                </ul>
+                <div class="profile-name" id="profile-name">John Doe</div>
+                <div class="profile-email" id="profile-email">john@example.com</div>
             </div>
 
-            <!-- Main Content Area -->
-            <div class="profile-main">
-                <!-- Personal Information Panel -->
-                <div id="personal-info" class="profile-panel active">
-                    <div class="profile-panel-header">
-                        <h2 class="profile-panel-title">Personal Information</h2>
-                        <p class="profile-panel-subtitle">Update your personal details</p>
-                    </div>
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="orders-stat">0</div>
+                    <div class="stat-label">Orders</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">₹<span id="spent-stat">0</span></div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
+            </div>
 
-                    <form id="personal-info-form">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="firstname" class="form-label">First Name</label>
-                                <input type="text" id="firstname" name="firstname" class="form-control" value="John">
-                            </div>
-                            <div class="form-group">
-                                <label for="lastname" class="form-label">Last Name</label>
-                                <input type="text" id="lastname" name="lastname" class="form-control" value="Doe">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" id="email" name="email" class="form-control" value="john.doe@example.com" readonly>
-                            <div class="form-hint">Email address cannot be changed</div>
-                        </div>
-                        <div class="form-group">
-                            <label for="phone" class="form-label">Phone Number</label>
-                            <input type="tel" id="phone" name="phone" class="form-control" value="+91 9876543210">
-                        </div>
-                        <button type="submit" class="btn-save">Save Changes</button>
-                    </form>
+            <div class="profile-menu">
+                <a href="#" class="profile-menu-item active" data-section="orders">
+                    <i class="fas fa-box"></i>
+                    <span>My Orders</span>
+                </a>
+                <a href="#" class="profile-menu-item" data-section="returns">
+                    <i class="fas fa-undo-alt"></i>
+                    <span>Return & Exchange</span>
+                </a>
+                <a href="#" class="profile-menu-item" data-section="support">
+                    <i class="fas fa-headset"></i>
+                    <span>Customer Support</span>
+                </a>
+                
+                <a href="/logout" class="profile-menu-item logout-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="profile-content">
+            <!-- Orders Section -->
+            <div class="profile-section active" id="orders">
+                <div class="section-header">
+                    <h2 class="section-title">My Orders</h2>
+                    <p class="section-subtitle">Track and manage all your orders</p>
                 </div>
 
-                <!-- Addresses Panel -->
-                <div id="addresses" class="profile-panel">
-                    <div class="profile-panel-header">
-                        <h2 class="profile-panel-title">Your Addresses</h2>
-                        <p class="profile-panel-subtitle">Manage your delivery addresses</p>
+                <div class="orders-grid" id="orders-grid">
+                    <!-- Orders will be loaded here -->
+                    <div class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <h3>No Orders Yet</h3>
+                        <p>You haven't placed any orders yet. Start shopping to see your orders here.</p>
+                        <a href="/products" class="btn btn-primary">Start Shopping</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Return & Exchange Section -->
+            <div class="profile-section" id="returns">
+                <div class="section-header">
+                    <h2 class="section-title">Return & Exchange</h2>
+                    <p class="section-subtitle">Easy returns and exchanges for your peace of mind</p>
+                </div>
+
+                <div class="info-card">
+                    <h3><i class="fas fa-shield-alt"></i> Our Return Policy</h3>
+                    <p>We offer easy returns and exchanges within <strong>7 days</strong> of delivery. Items must be in original condition with tags attached. For damaged or defective items, we provide hassle-free replacements.</p>
+                    
+                    <h4 style="color: var(--primary-color); margin: 20px 0 10px 0;">Return Process:</h4>
+                    <ul>
+                        <li>Contact our support team within 7 days</li>
+                        <li>Get your return authorization number</li>
+                        <li>Pack items securely with original packaging</li>
+                        <li>Schedule pickup or drop at nearest center</li>
+                    </ul>
+                </div>
+
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h4>Call Us</h4>
+                            <p>+91 70550 18752<br>Mon-Sat, 9 AM - 6 PM</p>
+                        </div>
                     </div>
 
-                    <button class="btn-save" id="add-address-btn">
-                        <i class="fas fa-plus"></i> Add New Address
-                    </button>
-
-                    <div class="saved-addresses">
-                        <div class="address-card address-card-default">
-                            <span class="default-badge">Default</span>
-                            <div class="address-name">Home</div>
-                            <div class="address-details">
-                                123 Main Street<br>
-                                Apartment 4B<br>
-                                New Delhi, 110001<br>
-                                India<br>
-                                Phone: +91 9876543210
-                            </div>
-                            <div class="address-actions">
-                                <button class="address-btn">Edit</button>
-                                <button class="address-btn">Delete</button>
-                            </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
                         </div>
+                        <div class="contact-details">
+                            <h4>Email Support</h4>
+                            <p>returns@wearxture.com<br>Response within 24 hours</p>
+                        </div>
+                    </div>
 
-                        <div class="address-card">
-                            <div class="address-name">Office</div>
-                            <div class="address-details">
-                                456 Work Avenue<br>
-                                Floor 3, Suite 301<br>
-                                New Delhi, 110003<br>
-                                India<br>
-                                Phone: +91 9876543210
-                            </div>
-                            <div class="address-actions">
-                                <button class="address-btn address-btn-default">Set as Default</button>
-                                <button class="address-btn">Edit</button>
-                                <button class="address-btn">Delete</button>
-                            </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h4>WhatsApp</h4>
+                            <p>+91 70550 18752<br>Quick assistance available</p>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Orders Panel -->
-                <div id="orders" class="profile-panel">
-                    <div class="profile-panel-header">
-                        <h2 class="profile-panel-title">My Orders</h2>
-                        <p class="profile-panel-subtitle">View and track your orders</p>
-                    </div>
-
-                    <div id="orders-container">
-                        <p>Loading your orders...</p>
-                    </div>
+            <!-- Customer Support Section -->
+            <div class="profile-section" id="support">
+                <div class="section-header">
+                    <h2 class="section-title">Customer Support</h2>
+                    <p class="section-subtitle">We're here to help with any questions or concerns</p>
                 </div>
 
-                <!-- Change Password Panel -->
-                <div id="change-password" class="profile-panel">
-                    <div class="profile-panel-header">
-                        <h2 class="profile-panel-title">Change Password</h2>
-                        <p class="profile-panel-subtitle">Update your password</p>
+                <div class="info-card">
+                    <h3><i class="fas fa-comments"></i> Get Help</h3>
+                    <p>Our dedicated support team is available to assist you with orders, payments, sizing, returns, and any other queries. We're committed to providing exceptional customer service.</p>
+                    
+                    <h4 style="color: var(--primary-color); margin: 20px 0 10px 0;">Frequently Asked Questions:</h4>
+                    <ul>
+                        <li><strong>Sizing:</strong> Check our size guide on each product page</li>
+                        <li><strong>Delivery:</strong> 3-7 business days across India</li>
+                        <li><strong>Payment:</strong> COD, UPI, Cards, and Net Banking accepted</li>
+                        <li><strong>Tracking:</strong> SMS and email updates for all orders</li>
+                    </ul>
+                </div>
+
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h4>Support Hours</h4>
+                            <p>Monday to Saturday<br>9:00 AM - 6:00 PM IST</p>
+                        </div>
                     </div>
 
-                    <form id="password-form">
-                        <div class="form-group">
-                            <label for="current-password" class="form-label">Current Password</label>
-                            <input type="password" id="current-password" name="currentPassword" class="form-control">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-map-marker-alt"></i>
                         </div>
-                        <div class="form-group">
-                            <label for="new-password" class="form-label">New Password</label>
-                            <input type="password" id="new-password" name="newPassword" class="form-control">
-                            <div class="form-hint">Password must be at least 8 characters long</div>
+                        <div class="contact-details">
+                            <h4>Address</h4>
+                            <p>Gram Rampura Bujurg<br>Uttar Pradesh, India</p>
                         </div>
-                        <div class="form-group">
-                            <label for="confirm-password" class="form-label">Confirm New Password</label>
-                            <input type="password" id="confirm-password" name="confirmPassword" class="form-control">
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-question-circle"></i>
                         </div>
-                        <button type="submit" class="btn-save">Update Password</button>
-                    </form>
+                        <div class="contact-details">
+                            <h4>Need Help?</h4>
+                            <p>support@wearxture.com<br>Quick response guaranteed</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Footer (Reuse the same footer from index.html) -->
-    <footer>
-        <div class="footer-container">
-            <div class="footer-column">
-                <div class="footer-logo">
-                    <img src="{{ url_for('static', path='/images/no bg white logo.png') }}" alt="WEARXTURE Logo" class="footer-logo-img">
-                </div>
-                <p>Discover the perfect blend of tradition and modernity with our exclusive ethnic wear collection.</p>
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-pinterest"></i></a>
-                </div>
-            </div>
-            <div class="footer-column">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="/">Home</a></li>
-                    <li><a href="#">About Us</a></li>
-                    <li><a href="/products">All Products</a></li>
-                </ul>
-            </div>
-            <div class="footer-column">
-                <h3>Customer Service</h3>
-                <ul>
-                    <li><a href="#">Contact Us</a></li>
-                    <li><a href="#">Track Order</a></li>
-                    <li><a href="#">Return & Exchange</a></li>
-                    <li><a href="#">Shipping Policy</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                </ul>
-            </div>
-            <div class="footer-column">
-                <h3>Contact Info</h3>
-                <ul class="contact-info">
-                    <li><i class="fas fa-map-marker-alt"></i> 123 Fashion Street, Delhi, India</li>
-                    <li><i class="fas fa-phone"></i> +91 98765 43210</li>
-                    <li><i class="fas fa-envelope"></i> info@wearxture.com</li>
-                </ul>
-            </div>
-        </div>
-        <div class="copyright">
-            <p>&copy; 2025 WEARXTURE. All Rights Reserved.</p>
-            <div class="payment-icons">
-                <i class="fab fa-cc-visa"></i>
-                <i class="fab fa-cc-mastercard"></i>
-                <i class="fab fa-cc-paypal"></i>
-                <i class="fab fa-cc-apple-pay"></i>
-            </div>
-        </div>
-    </footer>
-    
-    <!-- JavaScript for Profile Page -->
     <script>
+        // Profile page JavaScript
         document.addEventListener('DOMContentLoaded', function() {
-            // Tab switching functionality
-            const menuLinks = document.querySelectorAll('.profile-menu-link');
-            const panels = document.querySelectorAll('.profile-panel');
-            
-            menuLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
+            loadUserProfile();
+            loadUserOrders();
+            initializeProfileMenus();
+        });
+
+        // Load user profile data
+        async function loadUserProfile() {
+            try {
+                const response = await fetch('/api/auth/me');
+                const data = await response.json();
+
+                if (data.success && data.user) {
+                    const user = data.user;
                     
-                    // Get target panel
-                    const targetId = this.getAttribute('data-target');
-                    const targetPanel = document.getElementById(targetId);
+                    // Update profile sidebar
+                    document.getElementById('profile-name').textContent = user.name || 'User';
+                    document.getElementById('profile-email').textContent = user.email || '';
                     
-                    // Remove active class from all links and panels
-                    menuLinks.forEach(link => link.classList.remove('active'));
-                    panels.forEach(panel => panel.classList.remove('active'));
-                    
-                    // Add active class to clicked link and target panel
-                    this.classList.add('active');
-                    if (targetPanel) {
-                        targetPanel.classList.add('active');
-                    }
-                    
-                    // If the orders panel is activated, load orders
-                    if (targetId === 'orders') {
-                        loadUserOrders();
-                    }
-                });
-            });
-            
-            // Check if user is logged in and redirect if not
-            function checkUserLoggedIn() {
-                const hasToken = document.cookie.split(';').some(cookie => 
-                    cookie.trim().startsWith('user_access_token='));
-                
-                if (!hasToken) {
-                    // Redirect to login page with return URL
+                    // Update avatar initials
+                    const initials = getInitials(user.name || 'User');
+                    document.getElementById('avatar-initials').textContent = initials;
+                } else {
+                    // Redirect to login if not authenticated
                     window.location.href = '/login?redirect=profile';
-                    return false;
                 }
-                
-                return true;
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                window.location.href = '/login?redirect=profile';
             }
-            
-            // Load user profile information
-            function loadUserProfile() {
-                try {
-                    // Try to get user info from localStorage
-                    const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
-                    
-                    // Update profile fields with user info
-                    if (userInfo.name) {
-                        const nameParts = userInfo.name.split(' ');
-                        document.getElementById('firstname').value = nameParts[0] || '';
-                        document.getElementById('lastname').value = nameParts.slice(1).join(' ') || '';
-                        document.getElementById('sidebar-fullname').textContent = userInfo.name;
-                    }
-                    
-                    if (userInfo.email) {
-                        document.getElementById('email').value = userInfo.email;
-                        document.getElementById('sidebar-email').textContent = userInfo.email;
-                    }
-                    
-                    if (userInfo.phone) {
-                        document.getElementById('phone').value = userInfo.phone;
-                    }
-                } catch (e) {
-                    console.error('Error loading user profile:', e);
+        }
+
+        // Load user orders
+        async function loadUserOrders() {
+            try {
+                const response = await fetch('/api/user/orders', {
+                    method: 'GET',
+                    credentials: 'same-origin'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-            }
-            
-            // Load user orders
-            function loadUserOrders() {
-                const ordersContainer = document.getElementById('orders-container');
+
+                const orders = await response.json();
+                const ordersGrid = document.getElementById('orders-grid');
                 
-                if (!ordersContainer) return;
-                
-                // Show loading state
-                ordersContainer.innerHTML = '<p>Loading your orders...</p>';
-                
-                // Fetch orders from the API
-                fetch('/api/user/orders')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to load orders');
+                if (orders && Array.isArray(orders) && orders.length > 0) {
+                    // Update orders count in stats
+                    document.getElementById('orders-stat').textContent = orders.length;
+                    
+                    // Calculate total spent
+                    const totalSpent = orders.reduce((total, order) => {
+                        return total + (parseFloat(order.total_amount) || 0);
+                    }, 0);
+                    document.getElementById('spent-stat').textContent = totalSpent.toFixed(0);
+                    
+                    // Display orders
+                    ordersGrid.innerHTML = orders.map(order => {
+                        const statusFormatted = (order.order_status || 'pending').toLowerCase().replace('_', '-');
+                        const statusDisplay = (order.order_status || 'pending').replace('_', ' ').toUpperCase();
+                        
+                        let orderDate = 'N/A';
+                        if (order.created_at) {
+                            try {
+                                orderDate = new Date(order.created_at).toLocaleDateString('en-IN');
+                            } catch (e) {
+                                orderDate = order.created_at;
+                            }
                         }
-                        return response.json();
-                    })
-                    .then(orders => {
-                        if (!orders || orders.length === 0) {
-                            ordersContainer.innerHTML = `
-                                <div style="text-align: center; padding: 30px 0;">
-                                    <i class="fas fa-box-open" style="font-size: 50px; color: #ddd; margin-bottom: 15px;"></i>
-                                    <p>You don't have any orders yet.</p>
-                                    <a href="/products" class="btn-save" style="display: inline-block; margin-top: 15px;">Start Shopping</a>
+                        
+                        let itemCount = 0;
+                        if (order.items) {
+                            if (typeof order.items === 'string') {
+                                try {
+                                    const parsedItems = JSON.parse(order.items);
+                                    itemCount = Array.isArray(parsedItems) ? parsedItems.length : 0;
+                                } catch (e) {
+                                    itemCount = 0;
+                                }
+                            } else if (Array.isArray(order.items)) {
+                                itemCount = order.items.length;
+                            }
+                        }
+                        
+                        // Calculate display amount for COD orders
+                        const isCOD = order.payment_method && order.payment_method.toLowerCase().includes('cod');
+                        const totalAmount = order.total_amount || 0;
+                        const codFee = order.cod_fee || 80;
+                        const displayAmount = isCOD ? Math.max(0, totalAmount - codFee) : totalAmount;
+                        const amountLabel = isCOD ? 'Outstanding' : 'Total';
+                        
+                        return `
+                            <div class="order-card">
+                                <div class="order-header">
+                                    <div class="order-id">#${order.order_id || 'N/A'}</div>
+                                    <div class="order-status status-${statusFormatted}">
+                                        ${statusDisplay}
+                                    </div>
                                 </div>
-                            `;
-                            return;
-                        }
-                        
-                        // Sort orders by date (newest first)
-                        orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                        
-                        // Generate orders HTML
-                        let ordersHtml = `
-                            <style>
-                                .order-list {
-                                    display: flex;
-                                    flex-direction: column;
-                                    gap: 20px;
-                                }
-                                .order-card {
-                                    border: 1px solid var(--border-color);
-                                    border-radius: 8px;
-                                    overflow: hidden;
-                                }
-                                .order-header {
-                                    display: flex;
-                                    justify-content: space-between;
-                                    padding: 15px;
-                                    background: var(--light-bg);
-                                    border-bottom: 1px solid var(--border-color);
-                                }
-                                .order-id {
-                                    font-weight: 600;
-                                }
-                                .order-date {
-                                    color: var(--light-text);
-                                    font-size: 14px;
-                                }
-                                .order-status {
-                                    font-size: 14px;
-                                    padding: 3px 10px;
-                                    border-radius: 20px;
-                                    background: #e9f7ef;
-                                    color: #27ae60;
-                                    font-weight: 500;
-                                }
-                                .order-status.pending { background: #fff8e1; color: #f39c12; }
-                                .order-status.confirmed { background: #e3f2fd; color: #2980b9; }
-                                .order-status.processing { background: #e8f5e9; color: #27ae60; }
-                                .order-status.dispatched { background: #e3f2fd; color: #2980b9; }
-                                .order-status.delivered { background: #e8f5e9; color: #27ae60; }
-                                .order-status.cancelled { background: #ffebee; color: #e74c3c; }
-                                .order-items {
-                                    padding: 15px;
-                                }
-                                .order-item {
-                                    display: flex;
-                                    gap: 15px;
-                                    padding: 10px 0;
-                                    border-bottom: 1px solid var(--border-color);
-                                }
-                                .order-item:last-child {
-                                    border-bottom: none;
-                                }
-                                .order-item-image {
-                                    width: 60px;
-                                    height: 75px;
-                                    border-radius: 4px;
-                                    overflow: hidden;
-                                }
-                                .order-item-image img {
-                                    width: 100%;
-                                    height: 100%;
-                                    object-fit: cover;
-                                }
-                                .order-item-details {
-                                    flex: 1;
-                                }
-                                .order-item-name {
-                                    font-weight: 500;
-                                    margin-bottom: 5px;
-                                }
-                                .order-item-price {
-                                    color: var(--primary-color);
-                                    font-weight: 600;
-                                }
-                                .order-item-quantity {
-                                    color: var(--light-text);
-                                    font-size: 14px;
-                                }
-                                .order-footer {
-                                    display: flex;
-                                    justify-content: space-between;
-                                    align-items: center;
-                                    padding: 15px;
-                                    background: var(--light-bg);
-                                    border-top: 1px solid var(--border-color);
-                                }
-                                .order-total {
-                                    font-weight: 600;
-                                }
-                                .order-action {
-                                    display: flex;
-                                    gap: 10px;
-                                }
-                                .btn-order-details {
-                                    background: var(--primary-color);
-                                    color: white;
-                                    padding: 8px 15px;
-                                    border-radius: 4px;
-                                    font-size: 14px;
-                                    font-weight: 500;
-                                    border: none;
-                                    cursor: pointer;
-                                    transition: all 0.2s ease;
-                                }
-                                .btn-order-details:hover {
-                                    background: #c24d1e;
-                                }
-                            </style>
-                            <div class="order-list">
-                        `;
-                        
-                        orders.forEach(order => {
-                            // Format date
-                            const orderDate = new Date(order.created_at);
-                            const formattedDate = orderDate.toLocaleDateString('en-US', { 
-                                year: 'numeric', 
-                                month: 'short', 
-                                day: 'numeric' 
-                            });
-                            
-                            // Get status class
-                            let statusClass = 'pending';
-                            if (order.order_status) {
-                                statusClass = order.order_status.toLowerCase();
-                            }
-                            
-                            // Start building the order card
-                            ordersHtml += `
-                                <div class="order-card">
-                                    <div class="order-header">
-                                        <div class="order-id">Order #${order.order_id}</div>
-                                        <div class="order-date">${formattedDate}</div>
-                                        <div class="order-status ${statusClass}">${order.order_status || 'Pending'}</div>
+                                <div class="order-details">
+                                    <div class="order-detail">
+                                        <div class="order-detail-label">Order Date</div>
+                                        <div class="order-detail-value">${orderDate}</div>
                                     </div>
-                                    <div class="order-items">
-                            `;
-                            
-                            // Add order items (limit to 2 items with a "more" indicator if needed)
-                            const items = order.items || [];
-                            const displayItems = items.slice(0, 2);
-                            
-                            displayItems.forEach(item => {
-                                const itemPrice = parseFloat(item.price) || 0;
-                                const formattedPrice = itemPrice.toLocaleString('en-IN', {
-                                    style: 'currency',
-                                    currency: 'INR',
-                                    maximumFractionDigits: 0
-                                });
-                                
-                                ordersHtml += `
-                                    <div class="order-item">
-                                        <div class="order-item-image">
-                                            <img src="${item.image}" alt="${item.name}">
-                                        </div>
-                                        <div class="order-item-details">
-                                            <div class="order-item-name">${item.name}</div>
-                                            <div class="order-item-price">${formattedPrice}</div>
-                                            <div class="order-item-quantity">Qty: ${item.quantity || 1}</div>
-                                        </div>
+                                    <div class="order-detail">
+                                        <div class="order-detail-label">Items</div>
+                                        <div class="order-detail-value">${itemCount}</div>
                                     </div>
-                                `;
-                            });
-                            
-                            // Add "more items" indicator if needed
-                            if (items.length > 2) {
-                                const remainingItems = items.length - 2;
-                                ordersHtml += `
-                                    <div style="text-align: center; padding: 10px; color: var(--light-text);">
-                                        +${remainingItems} more item${remainingItems > 1 ? 's' : ''}
-                                    </div>
-                                `;
-                            }
-                            
-                            // Format order total
-                            const orderTotal = parseFloat(order.total_amount) || 0;
-                            const formattedTotal = orderTotal.toLocaleString('en-IN', {
-                                style: 'currency',
-                                currency: 'INR',
-                                maximumFractionDigits: 0
-                            });
-                            
-                            // Close the order items div and add the footer
-                            ordersHtml += `
-                                    </div>
-                                    <div class="order-footer">
-                                        <div class="order-total">Total: ${formattedTotal}</div>
-                                        <div class="order-action">
-                                            <a href="/order/${order.order_id}" class="btn-order-details">View Details</a>
+                                    <div class="order-detail">
+                                        <div class="order-detail-label">${amountLabel}</div>
+                                        <div class="order-detail-value" style="color: ${isCOD && displayAmount > 0 ? '#dc3545' : 'var(--primary-color)'}">
+                                            ₹${displayAmount}${isCOD && displayAmount > 0 ? ' (COD)' : ''}
                                         </div>
                                     </div>
                                 </div>
-                            `;
-                        });
-                        
-                        // Close the order list div
-                        ordersHtml += `</div>`;
-                        
-                        // Update the orders container
-                        ordersContainer.innerHTML = ordersHtml;
-                    })
-                    .catch(error => {
-                        console.error('Error loading orders:', error);
-                        ordersContainer.innerHTML = `
-                            <div style="text-align: center; padding: 30px 0;">
-                                <i class="fas fa-exclamation-triangle" style="font-size: 50px; color: #e74c3c; margin-bottom: 15px;"></i>
-                                <p>Sorry, something went wrong while loading your orders.</p>
-                                <button class="btn-save" style="margin-top: 15px;" onclick="loadUserOrders()">Try Again</button>
+                                <div class="order-actions">
+                                    <a href="/order/${order.order_id}" class="btn btn-secondary btn-small">
+                                        <i class="fas fa-eye"></i>
+                                        View Details
+                                    </a>
+                                    ${statusFormatted === 'delivered' ? `
+                                        <button class="btn btn-primary btn-small">
+                                            <i class="fas fa-star"></i>
+                                            Rate Order
+                                        </button>
+                                    ` : ''}
+                                </div>
                             </div>
                         `;
-                    });
-            }
-            
-            // Personal info form submission
-            const personalInfoForm = document.getElementById('personal-info-form');
-            if (personalInfoForm) {
-                personalInfoForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    // Get form data
-                    const firstName = document.getElementById('firstname').value.trim();
-                    const lastName = document.getElementById('lastname').value.trim();
-                    const phone = document.getElementById('phone').value.trim();
-                    
-                    // Basic validation
-                    if (!firstName) {
-                        alert('Please enter your first name');
-                        return;
-                    }
-                    
-                    // Create full name
-                    const fullName = lastName ? `${firstName} ${lastName}` : firstName;
-                    
-                    // Update localStorage with new data
-                    try {
-                        const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
-                        userInfo.name = fullName;
-                        userInfo.phone = phone;
-                        localStorage.setItem('user_info', JSON.stringify(userInfo));
-                        
-                        // Update UI elements
-                        document.getElementById('sidebar-fullname').textContent = fullName;
-                        
-                        // Show success message
-                        if (window.showNotification) {
-                            window.showNotification('Profile updated successfully');
-                        } else {
-                            alert('Profile updated successfully');
-                        }
-                    } catch (e) {
-                        console.error('Error updating profile:', e);
-                        alert('Something went wrong while updating your profile');
-                    }
-                });
-            }
-            
-            // Change password form submission
-            const passwordForm = document.getElementById('password-form');
-            if (passwordForm) {
-                passwordForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    // Get form data
-                    const currentPassword = document.getElementById('current-password').value;
-                    const newPassword = document.getElementById('new-password').value;
-                    const confirmPassword = document.getElementById('confirm-password').value;
-                    
-                    // Basic validation
-                    if (!currentPassword) {
-                        alert('Please enter your current password');
-                        return;
-                    }
-                    
-                    if (!newPassword) {
-                        alert('Please enter a new password');
-                        return;
-                    }
-                    
-                    if (newPassword.length < 8) {
-                        alert('Password must be at least 8 characters long');
-                        return;
-                    }
-                    
-                    if (newPassword !== confirmPassword) {
-                        alert('New passwords do not match');
-                        return;
-                    }
-                    
-                    // Show success message (in a real app, you would send this to the server)
-                    if (window.showNotification) {
-                        window.showNotification('Password updated successfully');
-                    } else {
-                        alert('Password updated successfully');
-                    }
-                    
-                    // Reset form
-                    passwordForm.reset();
-                });
-            }
-            
-            // Initialize profile page
-            if (checkUserLoggedIn()) {
-                loadUserProfile();
-                
-                // Load orders if that tab is active
-                const activePanel = document.querySelector('.profile-panel.active');
-                if (activePanel && activePanel.id === 'orders') {
-                    loadUserOrders();
+                    }).join('');
+                } else {
+                    // Show empty state
+                    ordersGrid.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <h3>No Orders Yet</h3>
+                            <p>You haven't placed any orders yet. Start shopping to see your orders here.</p>
+                            <a href="/products" class="btn btn-primary">Start Shopping</a>
+                        </div>
+                    `;
                 }
-            }
-            
-            // Profile Dropdown functionality (same as in the header)
-            const profileDropdown = document.querySelector('.profile-dropdown');
-            const profileToggle = document.querySelector('.profile-toggle');
-            
-            if (profileDropdown && profileToggle) {
-                profileToggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    profileDropdown.classList.toggle('active');
-                });
+            } catch (error) {
+                console.error('Error loading orders:', error);
                 
-                document.addEventListener('click', function(e) {
-                    if (!profileDropdown.contains(e.target)) {
-                        profileDropdown.classList.remove('active');
-                    }
-                });
+                // Show error state
+                const ordersGrid = document.getElementById('orders-grid');
+                ordersGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Error Loading Orders</h3>
+                        <p>There was an error loading your orders. Please try again later.</p>
+                        <button class="btn btn-primary" onclick="loadUserOrders()">Retry</button>
+                    </div>
+                `;
             }
-            
-            // Logout functionality
-            const logoutBtn = document.getElementById('logout-btn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function(e) {
+        }
+
+        // Initialize profile menu navigation
+        function initializeProfileMenus() {
+            const menuItems = document.querySelectorAll('.profile-menu-item[data-section]');
+            const sections = document.querySelectorAll('.profile-section');
+
+            menuItems.forEach(item => {
+                item.addEventListener('click', function(e) {
                     e.preventDefault();
                     
-                    // Clear auth tokens
-                    document.cookie = 'user_access_token=; Max-Age=0; path=/; domain=' + window.location.hostname;
-                    localStorage.removeItem('user_info');
+                    // Remove active class from all menu items
+                    menuItems.forEach(mi => mi.classList.remove('active'));
                     
-                    // Show success notification
-                    if (window.showNotification) {
-                        window.showNotification('Logged out successfully');
-                    }
+                    // Add active class to clicked item
+                    this.classList.add('active');
                     
-                    // Redirect to home page after short delay
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 500);
+                    // Hide all sections
+                    sections.forEach(section => section.classList.remove('active'));
+                    
+                    // Show selected section
+                    const sectionId = this.getAttribute('data-section');
+                    document.getElementById(sectionId).classList.add('active');
                 });
-            }
-        });
+            });
+        }
+
+        // Utility functions
+        function getInitials(name) {
+            return name.split(' ')
+                .map(word => word.charAt(0))
+                .join('')
+                .toUpperCase()
+                .substring(0, 2);
+        }
     </script>
 </body>
 </html>

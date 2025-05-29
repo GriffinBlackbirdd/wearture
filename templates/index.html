@@ -810,7 +810,7 @@
             </nav>
             <div class="nav-icons">
                 <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
-                <a href="#" class="icon-link"><i class="fas fa-user"></i></a>
+                <a href="/profile" class="icon-link"><i class="fas fa-user"></i></a>
                 <a href="#" class="icon-link cart" id="cart-toggle">
                     <i class="fas fa-shopping-bag"></i>
                     <span class="cart-count">0</span>
@@ -1371,55 +1371,7 @@
         </div>
     </div>
 
-<!-- Profile Dropdown Menu -->
-<div class="profile-dropdown" id="profile-dropdown">
-    <div class="profile-dropdown-content">
-        <div class="profile-header" id="profile-header">
-            <div class="guest-header">
-                <h4>Your Account</h4>
-                <p>Login or register to continue</p>
-            </div>
-            <div class="user-header" style="display: none;">
-                <h4>Welcome Back</h4>
-                <p id="user-email">user@example.com</p>
-            </div>
-        </div>
-        
-        <div class="profile-menu" id="profile-menu">
-            <!-- Guest options (not logged in) -->
-            <div class="guest-options">
-                <a href="/login" class="profile-btn primary-btn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Sign In</span>
-                </a>
-                <a href="/register" class="profile-btn secondary-btn">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Create Account</span>
-                </a>
-            </div>
-            
-            <!-- User options (logged in) -->
-            <div class="user-options" style="display: none;">
-                <a href="/orders" class="profile-menu-item">
-                    <i class="fas fa-box"></i>
-                    <span>My Orders</span>
-                </a>
-                <a href="/wishlist" class="profile-menu-item">
-                    <i class="fas fa-heart"></i>
-                    <span>Wishlist</span>
-                </a>
-                <a href="/return" class="profile-menu-item">
-                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                    <span>Return & Exchange</span>
-                </a>
-                <a href="#" class="profile-menu-item" id="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
+
     <script src="https://unpkg.com/swiper@11/swiper-bundle.min.js"></script>
     <script src="{{ url_for('static', path='/js/script.js') }}"></script>
     <script>
@@ -2027,7 +1979,35 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(applyQuickFix, 500);
 });
 </script>
-<script src="{{ url_for('static', path='/js/profile-view.js') }}"></script>
-
+<script src="{{ url_for('static', path='/js/profile-navigation.js') }}"></script>
+<script>
+    // Handle profile icon click with authentication check
+    document.addEventListener('DOMContentLoaded', function() {
+        const profileIcon = document.getElementById('profile-icon');
+        
+        if (profileIcon) {
+            profileIcon.addEventListener('click', async function(e) {
+                e.preventDefault();
+                
+                try {
+                    // Check if user is authenticated
+                    const response = await fetch('/api/auth/me');
+                    const result = await response.json();
+                    
+                    if (result.success && result.user) {
+                        // User is authenticated, go to profile
+                        window.location.href = '/profile';
+                    } else {
+                        // User is not authenticated, go to login with redirect
+                        window.location.href = '/login?redirect=profile';
+                    }
+                } catch (error) {
+                    // On error, redirect to login
+                    window.location.href = '/login?redirect=profile';
+                }
+            });
+        }
+    });
+    </script>
 </body>
 </html>

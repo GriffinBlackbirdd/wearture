@@ -7,147 +7,121 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Order Detail Page Styles */
-        :root {
-            --primary-color: #e25822;
-            --secondary-color: #9b4dca;
-            --success-color: #28a745;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-            --text-color: #333;
-            --light-text: #777;
-            --border-color: #eee;
-            --font-heading: 'Playfair Display', serif;
-            --font-body: 'Poppins', sans-serif;
-        }
-
-        body {
-            font-family: var(--font-body);
-            background-color: #f9f9f9;
-            margin: 0;
-            padding: 0;
-        }
-
         .order-detail-container {
             max-width: 1000px;
             margin: 0 auto;
             padding: 40px 20px;
         }
 
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+        .breadcrumb {
+            margin-bottom: 30px;
             color: var(--light-text);
-            text-decoration: none;
-            margin-bottom: 20px;
-            transition: color 0.3s ease;
+            font-size: 14px;
         }
 
-        .back-link:hover {
+        .breadcrumb a {
             color: var(--primary-color);
+            text-decoration: none;
         }
 
-        .order-detail-card {
+        .order-header {
             background: white;
             border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
         }
 
-        .detail-header {
-            padding: 25px;
-            background: #fcfcfc;
-            border-bottom: 1px solid var(--border-color);
+        .order-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
 
-        .detail-title {
+        .order-id {
             font-size: 24px;
             font-weight: 600;
             color: var(--text-color);
-            margin-bottom: 10px;
         }
 
-        .detail-subtitle {
-            color: var(--light-text);
-            font-size: 14px;
-        }
-
-        .order-status-badge {
-            display: inline-block;
-            padding: 6px 16px;
+        .order-status {
+            padding: 8px 16px;
             border-radius: 20px;
             font-size: 14px;
-            font-weight: 500;
-            text-transform: capitalize;
-            margin-top: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
         }
 
-        .detail-content {
-            padding: 25px;
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-processing { background: #cce7ff; color: #004085; }
+        .status-dispatched { background: #e2e6ea; color: #495057; }
+        .status-delivered { background: #d1ecf1; color: #0c5460; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+
+        .order-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
         }
 
-        .info-section {
-            margin-bottom: 30px;
+        .order-info-item {
+            text-align: center;
+        }
+
+        .order-info-label {
+            font-size: 12px;
+            color: var(--light-text);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .order-info-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .order-sections {
+            display: grid;
+            gap: 30px;
+        }
+
+        .order-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
         }
 
         .section-title {
             font-size: 18px;
             font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 2px solid var(--border-color);
         }
 
-        .info-grid {
+        .order-items {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+            gap: 15px;
         }
 
-        .info-item {
+        .order-item {
             display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .info-label {
-            font-size: 14px;
-            color: var(--light-text);
-        }
-
-        .info-value {
-            font-size: 16px;
-            color: var(--text-color);
-            font-weight: 500;
-        }
-
-        /* Order items table */
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .items-table th {
-            text-align: left;
-            padding: 12px;
-            background: #f9f9f9;
-            font-weight: 600;
-            color: var(--text-color);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .items-table td {
-            padding: 15px 12px;
-            border-bottom: 1px solid var(--border-color);
+            gap: 15px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
         }
 
         .item-image {
-            width: 60px;
-            height: 75px;
-            border-radius: 6px;
+            width: 80px;
+            height: 100px;
+            border-radius: 8px;
             overflow: hidden;
+            background: var(--light-bg);
         }
 
         .item-image img {
@@ -156,22 +130,33 @@
             object-fit: cover;
         }
 
-        .item-name {
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
         .item-details {
-            font-size: 14px;
-            color: var(--light-text);
-            margin-top: 5px;
+            flex: 1;
         }
 
-        /* Summary section */
+        .item-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .item-price {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .item-quantity {
+            color: var(--light-text);
+            font-size: 14px;
+        }
+
+        .address-details {
+            line-height: 1.6;
+        }
+
         .order-summary {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
+            border-top: 2px solid var(--border-color);
+            padding-top: 20px;
             margin-top: 20px;
         }
 
@@ -179,56 +164,103 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
-            font-size: 16px;
         }
 
-        .summary-row.total {
-            font-weight: 700;
+        .summary-total {
+            font-weight: 600;
             font-size: 18px;
             color: var(--primary-color);
-            padding-top: 10px;
             border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+            margin-top: 10px;
         }
 
-        /* Loading state */
+        .order-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+        }
+
         .loading {
             text-align: center;
-            padding: 60px;
+            padding: 60px 20px;
         }
 
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
+        .loading i {
+            font-size: 48px;
+            color: var(--primary-color);
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
-        /* Responsive */
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .error-state i {
+            font-size: 64px;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+
         @media (max-width: 768px) {
-            .info-grid {
+            .order-detail-container {
+                padding: 20px 15px;
+            }
+
+            .order-header, .order-section {
+                padding: 20px;
+            }
+
+            .order-title {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .order-info-grid {
                 grid-template-columns: 1fr;
             }
 
-            .items-table {
-                font-size: 14px;
+            .order-item {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
             }
 
-            .items-table th,
-            .items-table td {
-                padding: 10px;
-            }
-
-            .item-image {
-                width: 50px;
-                height: 62px;
+            .order-actions {
+                flex-direction: column;
             }
         }
     </style>
@@ -246,193 +278,300 @@
                 <ul class="nav-links">
                     <li><a href="/">Home</a></li>
                     <li><a href="/products">All Products</a></li>
-                    <li><a href="/orders">My Orders</a></li>
+                    <li><a href="/collections">Collections</a></li>
                 </ul>
             </nav>
-            <div class="nav-icons">
-                <a href="#" class="icon-link"><i class="fas fa-user"></i></a>
-                <a href="#" class="icon-link cart"><i class="fas fa-shopping-bag"></i><span class="cart-count">0</span></a>
-            </div>
+            <!-- <div class="nav-icons">
+                <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                <a href="/profile" class="icon-link"><i class="fas fa-user"></i></a>
+                <a href="#" class="icon-link cart">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </div> -->
         </div>
     </header>
 
-    <!-- Order Detail Content -->
     <div class="order-detail-container">
-        <a href="/orders" class="back-link">
-            <i class="fas fa-arrow-left"></i> Back to Orders
-        </a>
+        <div class="breadcrumb">
+            <a href="/">Home</a> / <a href="/profile">Profile</a> / Order Details
+        </div>
 
         <!-- Loading State -->
-        <div class="loading" id="loading">
-            <div class="loading-spinner"></div>
+        <div class="loading" id="loading-state">
+            <i class="fas fa-spinner"></i>
             <p>Loading order details...</p>
         </div>
 
-        <!-- Order Detail Card -->
-        <div class="order-detail-card" id="order-detail" style="display: none;">
-            <!-- Order details will be populated by JavaScript -->
+        <!-- Error State -->
+        <div class="error-state" id="error-state" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Error Loading Order</h3>
+            <p>We couldn't load the order details. Please try again later.</p>
+            <button class="btn btn-primary" onclick="loadOrderDetails()">
+                <i class="fas fa-retry"></i>
+                Try Again
+            </button>
+        </div>
+
+        <!-- Order Content -->
+        <div id="order-content" style="display: none;">
+            <!-- Order Header -->
+            <div class="order-header">
+                <div class="order-title">
+                    <div class="order-id" id="order-id">#ORD123456</div>
+                    <div class="order-status" id="order-status">Processing</div>
+                </div>
+                
+                <div class="order-info-grid">
+                    <div class="order-info-item">
+                        <div class="order-info-label">Order Date</div>
+                        <div class="order-info-value" id="order-date">Jan 15, 2025</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Total Items</div>
+                        <div class="order-info-value" id="total-items">3</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Payment Method</div>
+                        <div class="order-info-value" id="payment-method">Online</div>
+                    </div>
+                    <div class="order-info-item">
+                        <div class="order-info-label">Total Amount</div>
+                        <div class="order-info-value" id="total-amount">₹5,299</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-sections">
+                <!-- Order Items -->
+                <div class="order-section">
+                    <h3 class="section-title">Order Items</h3>
+                    <div class="order-items" id="order-items">
+                        <!-- Items will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Delivery Address -->
+                <div class="order-section">
+                    <h3 class="section-title">Delivery Address</h3>
+                    <div class="address-details" id="delivery-address">
+                        <!-- Address will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="order-section">
+                    <h3 class="section-title">Order Summary</h3>
+                    <div id="order-summary">
+                        <!-- Summary will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="order-actions">
+                <a href="/profile" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Profile
+                </a>
+                <button class="btn btn-primary" id="track-order-btn" style="display: none;">
+                    <i class="fas fa-truck"></i>
+                    Track Order
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
+        // Get order ID from URL
         const orderId = '{{ order_id }}';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOrderDetails();
+        });
 
-        document.addEventListener('DOMContentLoaded', async function() {
-            const loadingEl = document.getElementById('loading');
-            const orderDetailEl = document.getElementById('order-detail');
-
+        async function loadOrderDetails() {
             try {
-                // Fetch order details
-                const response = await fetch(`/api/orders/${orderId}`);
+                console.log('Loading order details for:', orderId);
                 
+                // Show loading state
+                document.getElementById('loading-state').style.display = 'block';
+                document.getElementById('error-state').style.display = 'none';
+                document.getElementById('order-content').style.display = 'none';
+
+                const response = await fetch(`/api/orders/${orderId}`, {
+                    method: 'GET',
+                    credentials: 'same-origin'
+                });
+
+                console.log('Order details response status:', response.status);
+
                 if (!response.ok) {
-                    throw new Error('Failed to fetch order details');
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
                 const order = await response.json();
+                console.log('Order details received:', order);
 
-                // Hide loading and show order details
-                loadingEl.style.display = 'none';
-                orderDetailEl.style.display = 'block';
-                
-                renderOrderDetails(order);
+                // Hide loading and show content
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('order-content').style.display = 'block';
+
+                // Populate order details
+                populateOrderDetails(order);
+
             } catch (error) {
-                console.error('Error loading order:', error);
-                loadingEl.innerHTML = '<p>Error loading order details. Please try again later.</p>';
-            }
-        });
-
-        function renderOrderDetails(order) {
-            const orderDetailEl = document.getElementById('order-detail');
-            
-            const statusClass = `status-${order.order_status}`;
-            
-            orderDetailEl.innerHTML = `
-                <div class="detail-header">
-                    <h1 class="detail-title">Order #${order.order_id}</h1>
-                    <p class="detail-subtitle">Placed on ${formatDate(order.created_at)}</p>
-                    <div class="order-status-badge ${statusClass}">
-                        ${order.order_status}
-                    </div>
-                </div>
+                console.error('Error loading order details:', error);
                 
-                <div class="detail-content">
-                    <!-- Order Information -->
-                    <div class="info-section">
-                        <h2 class="section-title">Order Information</h2>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <span class="info-label">Payment Method</span>
-                                <span class="info-value">${order.payment_method === 'cod' ? 'Cash on Delivery' : order.payment_method}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Payment Status</span>
-                                <span class="info-value">${order.payment_status}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Contact Email</span>
-                                <span class="info-value">${order.user_email}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Phone Number</span>
-                                <span class="info-value">${order.phone}</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Delivery Address -->
-                    <div class="info-section">
-                        <h2 class="section-title">Delivery Address</h2>
-                        <div class="info-value">
-                            ${order.delivery_address.address}<br>
-                            ${order.delivery_address.city}, ${order.delivery_address.state} ${order.delivery_address.pincode}<br>
-                            ${order.delivery_address.country}
-                        </div>
-                    </div>
-                    
-                    <!-- Order Items -->
-                    <div class="info-section">
-                        <h2 class="section-title">Order Items</h2>
-                        <table class="items-table">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Details</th>
-                                    <th>Price</th>
-                                    <th>Quantity</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${order.items.map(item => `
-                                    <tr>
-                                        <td>
-                                            <div class="item-image">
-                                                <img src="${item.image}" alt="${item.name}">
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="item-name">${item.name}</div>
-                                            <div class="item-details">
-                                                ${item.size ? `Size: ${item.size}` : ''}
-                                                ${item.color ? `| Color: ${item.color}` : ''}
-                                            </div>
-                                        </td>
-                                        <td>₹${item.price}</td>
-                                        <td>${item.quantity}</td>
-                                        <td>₹${(item.price * item.quantity).toFixed(0)}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- Order Summary -->
-<!-- Order Summary -->
-                    <div class="order-summary">
-                        <div class="summary-row">
-                            <span>Subtotal</span>
-                            <span>₹${order.subtotal.toFixed(0)}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Delivery Charge</span>
-                            <span>₹${order.delivery_charge.toFixed(0)}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span>Tax</span>
-                            <span>₹${order.tax.toFixed(0)}</span>
-                        </div>
-                        <div class="summary-row total">
-                            <span>Total Amount</span>
-                            <span>₹${order.total_amount.toFixed(0)}</span>
-                        </div>
-                        
-                        ${order.payment_method === 'cod' && order.payment_status === 'cod_fee_paid' ? `
-                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
-                                <div class="summary-row" style="color: var(--success-color);">
-                                    <span>COD Fee (Paid)</span>
-                                    <span>₹80</span>
-                                </div>
-                                <div class="summary-row" style="font-weight: 600; font-size: 16px;">
-                                    <span>Amount Due on Delivery</span>
-                                    <span style="color: var(--warning-color);">₹${(order.total_amount - 80).toFixed(0)}</span>
-                                </div>
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
+                // Show error state
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('error-state').style.display = 'block';
+                document.getElementById('order-content').style.display = 'none';
+            }
         }
 
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-IN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+        function populateOrderDetails(order) {
+            // Order header
+            document.getElementById('order-id').textContent = `#${order.order_id || 'N/A'}`;
+            
+            // Status
+            const status = (order.order_status || 'pending').toLowerCase().replace('_', '-');
+            const statusDisplay = (order.order_status || 'pending').replace('_', ' ').toUpperCase();
+            const statusElement = document.getElementById('order-status');
+            statusElement.textContent = statusDisplay;
+            statusElement.className = `order-status status-${status}`;
+
+            // Order info
+            if (order.created_at) {
+                try {
+                    document.getElementById('order-date').textContent = new Date(order.created_at).toLocaleDateString('en-IN');
+                } catch (e) {
+                    document.getElementById('order-date').textContent = order.created_at;
+                }
+            }
+
+            // Items count
+            let itemCount = 0;
+            let items = [];
+            if (order.items) {
+                if (typeof order.items === 'string') {
+                    try {
+                        items = JSON.parse(order.items);
+                    } catch (e) {
+                        items = [];
+                    }
+                } else if (Array.isArray(order.items)) {
+                    items = order.items;
+                }
+                itemCount = items.length;
+            }
+            document.getElementById('total-items').textContent = itemCount;
+
+            // Payment method
+            document.getElementById('payment-method').textContent = order.payment_method || 'N/A';
+            
+            // Total amount
+            document.getElementById('total-amount').textContent = `₹${order.total_amount || 0}`;
+
+            // Order items
+            const orderItemsContainer = document.getElementById('order-items');
+            if (items.length > 0) {
+                orderItemsContainer.innerHTML = items.map(item => `
+                    <div class="order-item">
+                        <div class="item-image">
+                            <img src="${item.image || '/static/images/placeholder.jpg'}" alt="${item.name || 'Product'}">
+                        </div>
+                        <div class="item-details">
+                            <div class="item-name">${item.name || 'Product Name'}</div>
+                            <div class="item-price">₹${item.price || 0}</div>
+                            <div class="item-quantity">Quantity: ${item.quantity || 1}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                orderItemsContainer.innerHTML = '<p>No items found</p>';
+            }
+
+            // Delivery address
+            const addressContainer = document.getElementById('delivery-address');
+            if (order.delivery_address) {
+                let address = order.delivery_address;
+                if (typeof address === 'string') {
+                    try {
+                        address = JSON.parse(address);
+                    } catch (e) {
+                        address = { address: order.delivery_address };
+                    }
+                }
+                
+                addressContainer.innerHTML = `
+                    <p><strong>${address.name || address.first_name || ''} ${address.last_name || ''}</strong></p>
+                    <p>${address.address || ''}</p>
+                    <p>${address.city || ''}, ${address.state || ''} ${address.pincode || ''}</p>
+                    <p>${address.country || 'India'}</p>
+                `;
+            } else {
+                addressContainer.innerHTML = '<p>No address information available</p>';
+            }
+
+            // Order summary
+            const summaryContainer = document.getElementById('order-summary');
+            const isCOD = order.payment_method && order.payment_method.toLowerCase().includes('cod');
+            const codFee = order.cod_fee || 80;
+            const totalAmount = order.total_amount || 0;
+            const outstandingAmount = isCOD ? Math.max(0, totalAmount - codFee) : 0;
+            
+            let summaryHTML = `
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span>₹${order.subtotal || 0}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Delivery Charge:</span>
+                    <span>₹${order.delivery_charge || 0}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax:</span>
+                    <span>₹${order.tax || 0}</span>
+                </div>
+                <div class="summary-row summary-total">
+                    <span>Total Order Amount:</span>
+                    <span>₹${totalAmount}</span>
+                </div>
+            `;
+            
+            // Add COD specific information
+            if (isCOD) {
+                const codStatus = order.cod_status || 'fee_pending';
+                const codStatusText = codStatus === 'fee_paid' ? 'Paid' : 'Pending';
+                
+                summaryHTML += `
+                    <div class="summary-row" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                        <span>COD Processing Fee:</span>
+                        <span>₹${codFee} (${codStatusText})</span>
+                    </div>
+                    <div class="summary-row" style="font-weight: 600; color: ${outstandingAmount > 0 ? 'var(--error-color)' : 'var(--success-color)'};">
+                        <span>Outstanding Amount:</span>
+                        <span>₹${outstandingAmount}</span>
+                    </div>
+                `;
+                
+                if (outstandingAmount > 0) {
+                    summaryHTML += `
+                        <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 8px; font-size: 13px; color: #856404;">
+                            <i class="fas fa-info-circle"></i>
+                            You will need to pay ₹${outstandingAmount} to the delivery person upon receipt.
+                        </div>
+                    `;
+                }
+            }
+            
+            summaryContainer.innerHTML = summaryHTML;
+
+            // Show track order button for dispatched orders
+            if (status === 'dispatched' || status === 'delivered') {
+                document.getElementById('track-order-btn').style.display = 'inline-flex';
+            }
         }
     </script>
 </body>
