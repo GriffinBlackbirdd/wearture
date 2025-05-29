@@ -236,6 +236,7 @@
             background-color: #ccc;
             cursor: not-allowed;
             box-shadow: none;
+            transform: none;
         }
 
         /* Divider */
@@ -266,7 +267,7 @@
         /* Social login */
         .social-login {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 10px;
             margin-bottom: 20px;
         }
@@ -275,8 +276,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-            padding: 8px;
+            gap: 6px;
+            padding: 10px;
             border-radius: 50px;
             border: 2px solid var(--border-color);
             background: var(--white);
@@ -285,12 +286,19 @@
             cursor: pointer;
             transition: var(--transition);
             font-size: 12px;
+            text-decoration: none;
         }
 
         .social-btn:hover {
             background: var(--light-bg);
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .social-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .social-btn i {
@@ -350,6 +358,31 @@
             font-size: 14px;
         }
 
+        /* Loading state */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid transparent;
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* Responsive */
         @media (max-width: 576px) {
             .register-container {
@@ -358,16 +391,9 @@
             }
 
             .welcome-text h2 {
-                font-size: 26px;
-            }
-
-            .social-login {
-                grid-template-columns: 1fr;
-                gap: 12px;
+                font-size: 24px;
             }
         }
-
-
     </style>
 </head>
 <body>
@@ -389,6 +415,17 @@
         <div class="success-message message" id="success-message">
             <i class="fas fa-check-circle"></i>
             <span>Account created successfully!</span>
+        </div>
+
+        <div class="social-login">
+            <a href="#" class="social-btn google-btn" id="google-register-btn">
+                <i class="fab fa-google"></i>
+                <span>Continue with Google</span>
+            </a>
+        </div>
+
+        <div class="divider">
+            <span>OR</span>
         </div>
 
         <form id="register-form" class="register-form">
@@ -438,7 +475,7 @@
             <div class="terms-checkbox">
                 <input type="checkbox" id="terms" name="terms" required>
                 <label for="terms">
-                    I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>
+                    I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy-policy">Privacy Policy</a>
                 </label>
             </div>
 
@@ -447,27 +484,47 @@
             </button>
         </form>
 
-        <!-- <div class="divider">
-            <span>OR</span>
-        </div>
-
-        <div class="social-login">
-            <button class="social-btn google-btn">
-                <i class="fab fa-google"></i>
-                <span>Google</span>
-            </button>
-            <button class="social-btn facebook-btn">
-                <i class="fab fa-facebook-f"></i>
-                <span>Facebook</span>
-            </button>
-        </div> -->
-
         <div class="signin-link">
             Already have an account? <a href="/login">Sign in</a>
         </div>
     </div>
 
     <script>
+        // Check for URL parameters on page load
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            
+            if (error) {
+                showError(decodeURIComponent(error));
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            
+            // Auto-focus on name field
+            document.getElementById('name').focus();
+        };
+
+        // Show error message
+        function showError(message) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.querySelector('span').textContent = message;
+            errorMessage.classList.add('show');
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const successMessage = document.getElementById('success-message');
+            successMessage.querySelector('span').textContent = message;
+            successMessage.classList.add('show');
+        }
+
+        // Hide messages
+        function hideMessages() {
+            document.getElementById('error-message').classList.remove('show');
+            document.getElementById('success-message').classList.remove('show');
+        }
+
         // Password validation
         const passwordInput = document.getElementById('password');
         const passwordRequirements = document.getElementById('password-requirements');
@@ -520,7 +577,7 @@
             }
         });
 
-        // Password visibility toggle
+        // Password visibility toggles
         const passwordToggle = document.getElementById('password-toggle');
         passwordToggle.addEventListener('click', function() {
             if (passwordInput.type === 'password') {
@@ -534,7 +591,6 @@
             }
         });
 
-        // Confirm password visibility toggle
         const confirmPasswordInput = document.getElementById('confirm-password');
         const confirmPasswordToggle = document.getElementById('confirm-password-toggle');
         confirmPasswordToggle.addEventListener('click', function() {
@@ -550,110 +606,101 @@
         });
 
         // Form submission
-// Replace the registration form JavaScript in your register.html with this:
-
-document.getElementById('register-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirm-password').value;
-    const termsAccepted = document.getElementById('terms').checked;
-    
-    const errorMessage = document.getElementById('error-message');
-    const successMessage = document.getElementById('success-message');
-    
-    // Hide previous messages
-    errorMessage.classList.remove('show');
-    successMessage.classList.remove('show');
-    
-    // Validate passwords match
-    if (password !== confirmPassword) {
-        errorMessage.querySelector('span').textContent = 'Passwords do not match';
-        errorMessage.classList.add('show');
-        return;
-    }
-    
-    // Validate password requirements
-    const hasUppercase = /[A-Z]/.test(password);
-    const hasLowercase = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasMinLength = password.length >= 8;
-    
-    if (!hasUppercase || !hasLowercase || !hasNumber || !hasMinLength) {
-        errorMessage.querySelector('span').textContent = 'Password does not meet requirements';
-        errorMessage.classList.add('show');
-        return;
-    }
-    
-    // Check terms acceptance
-    if (!termsAccepted) {
-        errorMessage.querySelector('span').textContent = 'Please accept the terms and conditions';
-        errorMessage.classList.add('show');
-        return;
-    }
-    
-    try {
-        const response = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: name,
-                email: email,
-                password: password
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.success) {
-            // Show success message
-            successMessage.querySelector('span').textContent = 'Account created successfully! Redirecting to login...';
-            successMessage.classList.add('show');
+        document.getElementById('register-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            // Redirect to login after a delay
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 2000);
-        } else {
-            // Show error message
-            errorMessage.querySelector('span').textContent = data.detail || 'Error creating account';
-            errorMessage.classList.add('show');
-        }
-    } catch (error) {
-        console.error('Registration error:', error);
-        errorMessage.querySelector('span').textContent = 'Something went wrong. Please try again.';
-        errorMessage.classList.add('show');
-    }
-});
-        // Google OAuth signup
-        document.querySelector('.google-btn').addEventListener('click', function() {
-            console.log('Initiating Google OAuth signup...');
-            // Redirect to our OAuth endpoint
-            window.location.href = '/auth/google';
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const termsAccepted = document.getElementById('terms').checked;
+            const registerBtn = document.getElementById('register-btn');
+            
+            hideMessages();
+            
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                showError('Passwords do not match');
+                return;
+            }
+            
+            // Validate password requirements
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasLowercase = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasMinLength = password.length >= 8;
+            
+            if (!hasUppercase || !hasLowercase || !hasNumber || !hasMinLength) {
+                showError('Password does not meet requirements');
+                return;
+            }
+            
+            // Check terms acceptance
+            if (!termsAccepted) {
+                showError('Please accept the terms and conditions');
+                return;
+            }
+            
+            // Disable button and show loading state
+            registerBtn.disabled = true;
+            registerBtn.textContent = 'Creating Account...';
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    showSuccess('Account created successfully! Redirecting to login...');
+                    
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    showError(data.detail || 'Error creating account');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError('Something went wrong. Please try again.');
+            } finally {
+                // Re-enable button
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'Create Account';
+            }
         });
 
-        // Facebook OAuth signup
-        document.querySelector('.facebook-btn').addEventListener('click', function() {
-            console.log('Initiating Facebook OAuth signup...');
-            // Redirect to our OAuth endpoint
-            window.location.href = '/auth/facebook';
+        // Google OAuth registration
+        document.getElementById('google-register-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const btn = this;
+            btn.classList.add('loading');
+            btn.style.position = 'relative';
+            
+            console.log('Initiating Google OAuth registration...');
+            
+            // Store redirect URL in query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect');
+            
+            let oauthUrl = '/auth/google';
+            if (redirect) {
+                oauthUrl += `?redirect=${encodeURIComponent(redirect)}`;
+            }
+            
+            // Redirect to OAuth endpoint
+            window.location.href = oauthUrl;
         });
-
-        // Check for OAuth errors in URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const oauthError = urlParams.get('error');
-        if (oauthError) {
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.querySelector('span').textContent = decodeURIComponent(oauthError);
-            errorMessage.classList.add('show');
-        }
-
-        // Auto-focus on name field
-        document.getElementById('name').focus();
-</script>
+    </script>
 </body>
 </html>

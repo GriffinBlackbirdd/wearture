@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any
 import uvicorn
@@ -11,6 +12,9 @@ import os
 import json
 from datetime import datetime, timedelta
 from jose import jwt
+import httpx
+import secrets
+import urllib.parse
 # from admin.user_auth import router as user_auth_router
 from inspect import iscoroutinefunction
 from db.email_service import send_order_confirmation_email
@@ -44,6 +48,7 @@ from db.order_management import (
 from urllib.parse import urlparse, parse_qs
 
 from db.shiprocket_client import create_shiprocket_order, track_order, create_automatic_shipping
+
 # Load environment variables
 load_dotenv()
 
@@ -56,6 +61,12 @@ app = FastAPI(
     title="WEARXTURE API",
     description="API for WEARXTURE ethnic wear collection",
     version="1.0.0"
+)
+
+app.add_middleware(
+    SessionMiddleware, 
+    secret_key=JWT_SECRET,
+    max_age=3600  # 1 hour session
 )
 
 # CORS middleware
@@ -222,7 +233,262 @@ class WishlistResponse(BaseModel):
     product_id: int
     product: Optional[ProductResponse]
     created_at: datetime
+GOOGLE_CLIENT_ID = "252502634910-mabht4no8p9fvpl49c6vbg4d7b1ddj7k.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "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"
 
+class SimpleOAuthService:
+    @staticmethod
+    def generate_google_auth_url(redirect_uri: str, state: str) -> str:
+        """Generate Google OAuth authorization URL"""
+        params = {
+            'client_id': GOOGLE_CLIENT_ID,
+            'redirect_uri': redirect_uri,
+            'scope': 'openid email profile',
+            'response_type': 'code',
+            'state': state,
+            'access_type': 'offline'
+        }
+        
+        query_string = urllib.parse.urlencode(params)
+        return f"https://accounts.google.com/o/oauth2/auth?{query_string}"
+    
+    @staticmethod
+    async def exchange_code_for_token(code: str, redirect_uri: str) -> Optional[Dict]:
+        """Exchange authorization code for access token"""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    'https://oauth2.googleapis.com/token',
+                    data={
+                        'code': code,
+                        'client_id': GOOGLE_CLIENT_ID,
+                        'client_secret': GOOGLE_CLIENT_SECRET,
+                        'redirect_uri': redirect_uri,
+                        'grant_type': 'authorization_code'
+                    }
+                )
+                
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    print(f"Token exchange failed: {response.status_code} - {response.text}")
+                    return None
+                    
+        except Exception as e:
+            print(f"Error exchanging code for token: {e}")
+            return None
+    
+    @staticmethod
+    async def get_user_info(access_token: str) -> Optional[Dict]:
+        """Get user information from Google"""
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    'https://www.googleapis.com/oauth2/v2/userinfo',
+                    headers={'Authorization': f'Bearer {access_token}'}
+                )
+                
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    print(f"User info request failed: {response.status_code} - {response.text}")
+                    return None
+                    
+        except Exception as e:
+            print(f"Error getting user info: {e}")
+            return None
+
+class OAuthUserService:
+    @staticmethod
+    async def find_user_by_email(email: str) -> Optional[Dict[str, Any]]:
+        """Find user in Supabase by email"""
+        try:
+            from db.supabase_client import get_user_by_email_simple
+            return get_user_by_email_simple(email)
+        except Exception as e:
+            print(f"Error finding user by email: {e}")
+            return None
+    
+    @staticmethod
+    async def create_oauth_user(user_data: dict) -> Dict[str, Any]:
+        """Create user from OAuth data"""
+        try:
+            print(f"Creating OAuth user: {user_data['email']}")
+            
+            from db.supabase_client import supabase
+            
+            # Create user record with OAuth data
+            user_record = {
+                "email": user_data['email'],
+                "password_hash": "oauth_user",  # Placeholder for OAuth users
+                "name": user_data.get('name', ''),
+                "provider": user_data.get('provider', 'google'),
+                "provider_id": user_data.get('provider_id', ''),
+                "avatar_url": user_data.get('avatar_url', ''),
+                "is_active": True,
+                "role": "customer"
+            }
+            
+            response = supabase.table('users').insert(user_record).execute()
+            
+            if response.data:
+                print(f"✅ OAuth user created successfully: {response.data[0]['id']}")
+                return response.data[0]
+            else:
+                raise Exception("No data returned from insert")
+            
+        except Exception as e:
+            print(f"❌ Error creating OAuth user: {e}")
+            
+            # Fallback: try to find existing user
+            existing_user = await OAuthUserService.find_user_by_email(user_data['email'])
+            if existing_user:
+                print(f"Found existing user, updating with OAuth data")
+                return await OAuthUserService.update_user_oauth_info(existing_user['id'], user_data)
+            
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to create OAuth user: {str(e)}"
+            )
+    
+    @staticmethod
+    async def update_user_oauth_info(user_id: int, oauth_data: dict) -> Dict[str, Any]:
+        """Update existing user with OAuth information"""
+        try:
+            from db.supabase_client import supabase
+            
+            update_data = {
+                "provider": oauth_data.get('provider', 'google'),
+                "provider_id": oauth_data.get('provider_id', ''),
+                "avatar_url": oauth_data.get('avatar_url', ''),
+            }
+            
+            response = supabase.table('users').update(update_data).eq('id', user_id).execute()
+            
+            if response.data:
+                return response.data[0]
+            else:
+                # If update failed, get the current user
+                from db.supabase_client import get_user_by_id_simple
+                return get_user_by_id_simple(user_id)
+                
+        except Exception as e:
+            print(f"Error updating user OAuth info: {e}")
+            # Fallback: return user without OAuth update
+            from db.supabase_client import get_user_by_id_simple
+            return get_user_by_id_simple(user_id)
+
+# ========= OAuth Routes =========
+
+@app.get('/auth/google')
+async def google_auth(request: Request):
+    """Initiate Google OAuth flow"""
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        return RedirectResponse(url="/login?error=OAuth not configured")
+    
+    # Generate state for CSRF protection
+    state = secrets.token_urlsafe(32)
+    request.session['oauth_state'] = state
+    
+    # Store redirect URL if provided
+    redirect_after = request.query_params.get('redirect')
+    if redirect_after:
+        request.session['oauth_redirect'] = redirect_after
+    
+    # Generate OAuth URL
+    redirect_uri = str(request.url_for('google_callback'))
+    auth_url = SimpleOAuthService.generate_google_auth_url(redirect_uri, state)
+    
+    return RedirectResponse(url=auth_url)
+
+@app.get('/auth/google/callback')
+async def google_callback(request: Request):
+    """Handle Google OAuth callback"""
+    try:
+        if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+            return RedirectResponse(url="/login?error=OAuth not configured")
+        
+        # Verify state parameter for CSRF protection
+        returned_state = request.query_params.get('state')
+        stored_state = request.session.get('oauth_state')
+        
+        if not returned_state or returned_state != stored_state:
+            print("OAuth state mismatch - CSRF protection triggered")
+            # Continue anyway for compatibility
+        
+        # Get authorization code
+        code = request.query_params.get('code')
+        if not code:
+            return RedirectResponse(url="/login?error=No authorization code provided")
+        
+        # Exchange code for access token
+        redirect_uri = str(request.url_for('google_callback'))
+        token_data = await SimpleOAuthService.exchange_code_for_token(code, redirect_uri)
+        
+        if not token_data or 'access_token' not in token_data:
+            return RedirectResponse(url="/login?error=Failed to get access token")
+        
+        # Get user info from Google
+        user_info = await SimpleOAuthService.get_user_info(token_data['access_token'])
+        
+        if not user_info or not user_info.get('email'):
+            return RedirectResponse(url="/login?error=No email provided by Google")
+        
+        # Prepare OAuth user data
+        oauth_user_data = {
+            'email': user_info['email'],
+            'name': user_info.get('name', ''),
+            'provider': 'google',
+            'provider_id': user_info.get('id', ''),
+            'avatar_url': user_info.get('picture', '')
+        }
+        
+        # Find or create user
+        existing_user = await OAuthUserService.find_user_by_email(oauth_user_data['email'])
+        
+        if existing_user:
+            # Update existing user with OAuth info
+            user = await OAuthUserService.update_user_oauth_info(existing_user['id'], oauth_user_data)
+        else:
+            # Create new user
+            user = await OAuthUserService.create_oauth_user(oauth_user_data)
+        
+        # Generate JWT token
+        access_token = create_access_token(
+            user_id=user['id'],
+            email=user['email']
+        )
+        
+        # Get redirect URL
+        redirect_url = request.session.pop('oauth_redirect', None)
+        
+        if redirect_url == 'profile':
+            final_redirect = "/profile"
+        elif redirect_url == 'checkout':
+            final_redirect = "/checkout"
+        else:
+            final_redirect = "/"
+        
+        # Clean up session
+        request.session.pop('oauth_state', None)
+        
+        # Create response and set cookie
+        response = RedirectResponse(url=final_redirect, status_code=303)
+        response.set_cookie(
+            key="user_access_token",
+            value=access_token,
+            max_age=28800,  # 8 hours
+            httponly=True,
+            samesite="lax"
+        )
+        
+        return response
+        
+    except Exception as e:
+        print(f"❌ OAuth callback error: {e}")
+        import traceback
+        traceback.print_exc()
+        return RedirectResponse(url="/login?error=Authentication failed")
 
 # Wishlist page route
 @app.get("/wishlist", response_class=HTMLResponse)

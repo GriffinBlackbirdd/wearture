@@ -22,6 +22,96 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 import hashlib
 from typing import Dict, Optional, Any
+
+# Add these functions to your db/supabase_client.py file
+
+def get_user_by_email_simple(email: str):
+    """Get user by email from custom users table"""
+    try:
+        response = supabase.table('users').select('*').eq('email', email).execute()
+        return response.data[0] if response.data else None
+    except Exception as e:
+        print(f"Error getting user by email: {e}")
+        return None
+
+def get_user_by_id_simple(user_id: int):
+    """Get user by ID from custom users table"""
+    try:
+        response = supabase.table('users').select('*').eq('id', user_id).execute()
+        return response.data[0] if response.data else None
+    except Exception as e:
+        print(f"Error getting user by ID: {e}")
+        return None
+
+def create_user_simple(email: str, password: str, name: str, phone: str = None):
+    """Create user in custom users table (email/password signup)"""
+    try:
+        import bcrypt
+        
+        # Hash the password
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        user_data = {
+            "email": email,
+            "password_hash": password_hash,
+            "name": name,
+            "phone": phone,
+            "provider": "email",
+            "is_active": True,
+            "role": "customer"
+        }
+        
+        response = supabase.table('users').insert(user_data).execute()
+        return response.data[0] if response.data else None
+        
+    except Exception as e:
+        print(f"Error creating user: {e}")
+        return None
+
+def authenticate_user_simple(email: str, password: str):
+    """Authenticate user with email/password"""
+    try:
+        import bcrypt
+        
+        # Get user from database
+        user = get_user_by_email_simple(email)
+        if not user:
+            return None
+        
+        # Check if this is an OAuth user
+        if user.get('provider') != 'email' or user.get('password_hash') == 'oauth_user':
+            return None  # OAuth users can't login with password
+        
+        # Verify password
+        if bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+            return user
+        
+        return None
+        
+    except Exception as e:
+        print(f"Error authenticating user: {e}")
+        return None
+
+def update_user(user_id: int, update_data: dict):
+    """Update user information"""
+    try:
+        # Handle password update
+        if 'password' in update_data:
+            import bcrypt
+            password_hash = bcrypt.hashpw(
+                update_data['password'].encode('utf-8'), 
+                bcrypt.gensalt()
+            ).decode('utf-8')
+            update_data['password_hash'] = password_hash
+            del update_data['password']
+        
+        response = supabase.table('users').update(update_data).eq('id', user_id).execute()
+        return response.data[0] if response.data else None
+        
+    except Exception as e:
+        print(f"Error updating user: {e}")
+        return None
+        
 def update_user(user_id: int, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """
     Update user data in the custom users table

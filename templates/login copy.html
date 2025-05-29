@@ -199,13 +199,6 @@
             box-shadow: 0 6px 20px rgba(226, 88, 34, 0.4);
         }
 
-        .login-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-
         /* Divider */
         .divider {
             text-align: center;
@@ -234,7 +227,7 @@
         /* Social login */
         .social-login {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
             margin-bottom: 25px;
         }
@@ -243,8 +236,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 12px;
+            gap: 6px;
+            padding: 10px;
             border-radius: 50px;
             border: 2px solid var(--border-color);
             background: var(--white);
@@ -253,19 +246,12 @@
             cursor: pointer;
             transition: var(--transition);
             font-size: 13px;
-            text-decoration: none;
         }
 
         .social-btn:hover {
             background: var(--light-bg);
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .social-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
         }
 
         .social-btn i {
@@ -325,31 +311,6 @@
             font-size: 16px;
         }
 
-        /* Loading state */
-        .loading {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        .loading::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 20px;
-            height: 20px;
-            margin: -10px 0 0 -10px;
-            border: 2px solid transparent;
-            border-top-color: var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* Responsive */
         @media (max-width: 576px) {
             .login-container {
@@ -359,6 +320,11 @@
 
             .welcome-text h2 {
                 font-size: 26px;
+            }
+
+            .social-login {
+                grid-template-columns: 1fr;
+                gap: 12px;
             }
 
             .form-options {
@@ -411,21 +377,25 @@
                 <a href="/forgot-password" class="forgot-password">Forgot password?</a>
             </div>
 
-            <button type="submit" class="login-btn" id="login-btn">
+            <button type="submit" class="login-btn">
                 Sign In
             </button>
         </form>
-
+<!-- 
         <div class="divider">
             <span>OR</span>
-        </div>
+        </div> -->
 
-        <div class="social-login">
-            <a href="#" class="social-btn google-btn" id="google-login-btn">
+        <!-- <div class="social-login">
+            <button class="social-btn google-btn">
                 <i class="fab fa-google"></i>
-                <span>Continue with Google</span>
-            </a>
-        </div>
+                <span>Google</span>
+            </button>
+            <button class="social-btn facebook-btn">
+                <i class="fab fa-facebook-f"></i>
+                <span>Facebook</span>
+            </button>
+        </div> -->
 
         <div class="signup-link">
             Don't have an account? <a href="/register">Create one now</a>
@@ -433,100 +403,61 @@
     </div>
 
     <script>
-        // Check for URL parameters on page load
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const error = urlParams.get('error');
-            
-            if (error) {
-                showError(decodeURIComponent(error));
-                // Clean URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-            
-            // Auto-focus on email field
-            document.getElementById('email').focus();
-        };
+// Replace the login form JavaScript in login.html:
 
-        // Show error message
-        function showError(message) {
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.querySelector('span').textContent = message;
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    const errorMessage = document.getElementById('error-message');
+    const successMessage = document.getElementById('success-message');
+    
+    errorMessage.classList.remove('show');
+    successMessage.classList.remove('show');
+    
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            successMessage.classList.add('show');
+            
+            // Get redirect parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect');
+            
+            // Redirect based on parameter
+            setTimeout(() => {
+                if (redirect === 'profile') {
+                    window.location.href = '/profile';
+                } else if (redirect === 'checkout') {
+                    window.location.href = '/checkout';
+                } else {
+                    window.location.href = '/';
+                }
+            }, 500);
+            
+        } else {
+            errorMessage.querySelector('span').textContent = data.detail || 'Invalid email or password';
             errorMessage.classList.add('show');
         }
-
-        // Show success message
-        function showSuccess(message) {
-            const successMessage = document.getElementById('success-message');
-            successMessage.querySelector('span').textContent = message;
-            successMessage.classList.add('show');
-        }
-
-        // Hide messages
-        function hideMessages() {
-            document.getElementById('error-message').classList.remove('show');
-            document.getElementById('success-message').classList.remove('show');
-        }
-
-        // Email/Password login form submission
-        document.getElementById('login-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const loginBtn = document.getElementById('login-btn');
-            
-            hideMessages();
-            
-            // Disable button and show loading state
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'Signing In...';
-            
-            try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok && data.success) {
-                    showSuccess('Login successful! Redirecting...');
-                    
-                    // Get redirect parameter
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const redirect = urlParams.get('redirect');
-                    
-                    // Redirect based on parameter
-                    setTimeout(() => {
-                        if (redirect === 'profile') {
-                            window.location.href = '/profile';
-                        } else if (redirect === 'checkout') {
-                            window.location.href = '/checkout';
-                        } else {
-                            window.location.href = '/';
-                        }
-                    }, 1000);
-                    
-                } else {
-                    showError(data.detail || 'Invalid email or password');
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                showError('Something went wrong. Please try again.');
-            } finally {
-                // Re-enable button
-                loginBtn.disabled = false;
-                loginBtn.textContent = 'Sign In';
-            }
-        });
-
+    } catch (error) {
+        errorMessage.querySelector('span').textContent = 'Something went wrong. Please try again.';
+        errorMessage.classList.add('show');
+    }
+});
         // Password visibility toggle
         const passwordInput = document.getElementById('password');
         const passwordToggle = document.getElementById('password-toggle');
@@ -544,27 +475,42 @@
         });
 
         // Google OAuth login
-        document.getElementById('google-login-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const btn = this;
-            btn.classList.add('loading');
-            btn.style.position = 'relative';
-            
+        document.querySelector('.google-btn').addEventListener('click', function() {
             console.log('Initiating Google OAuth...');
-            
-            // Store redirect URL in query parameter
+            // Store redirect URL in sessionStorage if needed
             const urlParams = new URLSearchParams(window.location.search);
             const redirect = urlParams.get('redirect');
-            
-            let oauthUrl = '/auth/google';
             if (redirect) {
-                oauthUrl += `?redirect=${encodeURIComponent(redirect)}`;
+                sessionStorage.setItem('oauth_redirect', redirect);
             }
-            
-            // Redirect to OAuth endpoint
-            window.location.href = oauthUrl;
+            // Redirect to our OAuth endpoint
+            window.location.href = '/auth/google';
         });
-    </script>
+
+        // Facebook OAuth login
+        document.querySelector('.facebook-btn').addEventListener('click', function() {
+            console.log('Initiating Facebook OAuth...');
+            // Store redirect URL in sessionStorage if needed
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirect = urlParams.get('redirect');
+            if (redirect) {
+                sessionStorage.setItem('oauth_redirect', redirect);
+            }
+            // Redirect to our OAuth endpoint
+            window.location.href = '/auth/facebook';
+        });
+
+        // Check for OAuth errors in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const oauthError = urlParams.get('error');
+        if (oauthError) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.querySelector('span').textContent = decodeURIComponent(oauthError);
+            errorMessage.classList.add('show');
+        }
+
+        // Auto-focus on email field
+        document.getElementById('email').focus();
+</script>
 </body>
 </html>
