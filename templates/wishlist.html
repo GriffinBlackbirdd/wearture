@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist - WEARXTURE</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/profile-view.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .wishlist-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 70vh;
+        }
+
+        .wishlist-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .wishlist-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        .wishlist-subtitle {
+            font-size: 16px;
+            color: var(--light-text);
+            margin-bottom: 20px;
+        }
+
+        .wishlist-count {
+            display: inline-block;
+            background: rgba(226, 88, 34, 0.1);
+            color: var(--primary-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .wishlist-empty {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .wishlist-empty-icon {
+            font-size: 80px;
+            color: var(--light-text);
+            margin-bottom: 20px;
+        }
+
+        .wishlist-empty-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        .wishlist-empty-text {
+            font-size: 16px;
+            color: var(--light-text);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn-continue-shopping {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn-continue-shopping:hover {
+            background: #c24d1e;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(226, 88, 34, 0.3);
+        }
+
+        .wishlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+
+        .wishlist-item {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .wishlist-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .wishlist-item-image {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+        }
+
+        .wishlist-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .wishlist-item:hover .wishlist-item-image img {
+            transform: scale(1.05);
+        }
+
+        .remove-wishlist {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 2;
+        }
+
+        .remove-wishlist:hover {
+            background: #ff4757;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .wishlist-item-info {
+            padding: 20px;
+        }
+
+        .wishlist-item-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .wishlist-item-category {
+            font-size: 14px;
+            color: var(--light-text);
+            margin-bottom: 12px;
+        }
+
+        .wishlist-item-price {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .current-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .original-price {
+            font-size: 16px;
+            color: var(--light-text);
+            text-decoration: line-through;
+        }
+
+        .discount-badge {
+            background: #ff4757;
+            color: white;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .wishlist-item-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-add-to-cart {
+            flex: 1;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-add-to-cart:hover {
+            background: #c24d1e;
+        }
+
+        .btn-view-product {
+            background: white;
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-view-product:hover {
+            background: var(--light-bg);
+            border-color: var(--primary-color);
+        }
+
+        .wishlist-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .wishlist-filters {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 2px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-color);
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-clear-all {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-clear-all:hover {
+            background: #ff3742;
+        }
+
+        .btn-add-all {
+            background: #2ed573;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add-all:hover {
+            background: #26c561;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--light-text);
+        }
+
+        .loading i {
+            font-size: 40px;
+            margin-bottom: 15px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .wishlist-container {
+                padding: 20px 15px;
+            }
+
+            .wishlist-title {
+                font-size: 28px;
+            }
+
+            .wishlist-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
+            }
+
+            .wishlist-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .wishlist-filters {
+                justify-content: center;
+            }
+
+            .bulk-actions {
+                justify-content: center;
+            }
+
+            .wishlist-item-actions {
+                flex-direction: column;
+            }
+
+            .btn-view-product {
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .wishlist-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .wishlist-item-image {
+                height: 250px;
+            }
+
+            .wishlist-filters {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .filter-btn {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+        }
+
+        /* Animation for item removal */
+        .wishlist-item.removing {
+            animation: fadeOut 0.5s ease forwards;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+        }
+
+        /* Stock status indicator */
+        .stock-status {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 2;
+        }
+
+        .stock-status.in-stock {
+            background: #2ed573;
+            color: white;
+        }
+
+        .stock-status.out-of-stock {
+            background: #ff4757;
+            color: white;
+        }
+
+        .stock-status.low-stock {
+            background: #ffa502;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <a href="/">
+                    <img src="{{ url_for('static', path='/images/WEARXTURE LOGOai.png') }}" alt="WEARXTURE Logo" class="logo-img">
+                </a>
+            </div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/products">All Products</a></li>
+                    <li><a href="/collections">Collections</a></li>
+                </ul>
+            </nav>
+            <div class="nav-icons">
+                <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
+                <a href="/profile" class="icon-link"><i class="fas fa-user"></i></a>
+                <a href="/wishlist" class="icon-link active">
+                    <i class="fas fa-heart"></i>
+                    <span class="wishlist-count" style="
+                        position: absolute;
+                        top: -8px;
+                        right: -8px;
+                        background: #ff4757;
+                        color: white;
+                        font-size: 12px;
+                        padding: 2px 6px;
+                        border-radius: 50px;
+                        font-weight: 500;
+                        min-width: 18px;
+                        height: 18px;
+                        display: none;
+                        align-items: center;
+                        justify-content: center;
+                        line-height: 1;
+                    ">0</span>
+                </a>
+                <a href="#" class="icon-link cart" id="cart-toggle">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </div>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Wishlist Container -->
+    <div class="wishlist-container">
+        <!-- Header -->
+        <div class="wishlist-header">
+            <h1 class="wishlist-title">My Wishlist</h1>
+            <p class="wishlist-subtitle">Items you've saved for later</p>
+            <div class="wishlist-count" id="wishlist-count">0 items</div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading" id="loading-state">
+            <i class="fas fa-heart"></i>
+            <p>Loading your wishlist...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div class="wishlist-empty" id="empty-state" style="display: none;">
+            <div class="wishlist-empty-icon">
+                <i class="far fa-heart"></i>
+            </div>
+            <h2 class="wishlist-empty-title">Your wishlist is empty</h2>
+            <p class="wishlist-empty-text">
+                Start browsing our collections and save your favorite items here.<br>
+                You can add items to your wishlist by clicking the heart icon on any product.
+            </p>
+            <a href="/products" class="btn-continue-shopping">
+                <i class="fas fa-shopping-bag"></i> Start Shopping
+            </a>
+        </div>
+
+        <!-- Wishlist Actions -->
+        <div class="wishlist-actions" id="wishlist-actions" style="display: none;">
+            <div class="wishlist-filters">
+                <button class="filter-btn active" data-filter="all">All Items</button>
+                <button class="filter-btn" data-filter="in-stock">In Stock</button>
+                <button class="filter-btn" data-filter="on-sale">On Sale</button>
+            </div>
+            <div class="bulk-actions">
+                <button class="btn-add-all" id="add-all-to-cart">
+                    <i class="fas fa-shopping-cart"></i> Add All to Cart
+                </button>
+                <button class="btn-clear-all" id="clear-wishlist">
+                    <i class="fas fa-trash"></i> Clear All
+                </button>
+            </div>
+        </div>
+
+        <!-- Wishlist Grid -->
+        <div class="wishlist-grid" id="wishlist-grid">
+            <!-- Wishlist items will be populated here -->
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-column">
+                <div class="footer-logo">
+                    <img src="{{ url_for('static', path='/images/no bg white logo.png') }}" alt="WEARXTURE Logo" class="footer-logo-img">
+                </div>
+                <p>Discover the perfect blend of tradition and modernity with our exclusive ethnic wear collection.</p>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.instagram.com/wearxture/"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/#new-arrivals">New Arrivals</a></li>
+                    <li><a href="/products">All Products</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Customer Service</h3>
+                <ul>
+                    <li><a href="/contact">Contact Us</a></li>
+                    <li><a href="/terms">Terms & Conditions</a></li>
+                    <li><a href="/return-policy">Return & Exchange</a></li>
+                    <li><a href="/shipping-policy">Shipping Policy</a></li>
+                    <li><a href="/privacy-policy">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Contact Info</h3>
+                <ul class="contact-info">
+                    <li><i class="fas fa-map-marker-alt"></i>Gram Rampura Bujurg, Rampura Bujurg, Uttarpradesh(UP), India</li>
+                    <li><i class="fas fa-phone"></i>+91 70550 18752</li>
+                    <li><i class="fas fa-envelope"></i> support@wearxture.com</li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 WEARXTURE. All Rights Reserved.</p>
+            <div class="payment-icons">
+                <i class="fab fa-cc-visa"></i>
+                <i class="fab fa-cc-mastercard"></i>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', path='/js/script.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/profile-navigation.js') }}"></script>
+    <script>
+        class WishlistManager {
+            constructor() {
+                this.wishlist = [];
+                this.currentFilter = 'all';
+                this.init();
+            }
+
+            async init() {
+                await this.loadWishlist();
+                this.bindEvents();
+                this.updateDisplay();
+            }
+
+            async loadWishlist() {
+                try {
+                    // Load wishlist from localStorage only
+                    const savedWishlist = localStorage.getItem('wearxture_wishlist');
+                    if (savedWishlist) {
+                        const wishlistIds = JSON.parse(savedWishlist);
+                        
+                        // Fetch product details for each wishlist item
+                        const products = await fetch('/api/products').then(r => r.json());
+                        this.wishlist = products.filter(product => wishlistIds.includes(product.id.toString()));
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading wishlist:', error);
+                    this.wishlist = [];
+                }
+            }
+
+            bindEvents() {
+                // Filter buttons
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.currentFilter = e.target.dataset.filter;
+                        this.updateDisplay();
+                    });
+                });
+
+                // Bulk actions
+                document.getElementById('add-all-to-cart').addEventListener('click', () => {
+                    this.addAllToCart();
+                });
+
+                document.getElementById('clear-wishlist').addEventListener('click', () => {
+                    this.clearWishlist();
+                });
+            }
+
+            updateDisplay() {
+                const loadingState = document.getElementById('loading-state');
+                const emptyState = document.getElementById('empty-state');
+                const wishlistActions = document.getElementById('wishlist-actions');
+                const wishlistGrid = document.getElementById('wishlist-grid');
+                const wishlistCount = document.getElementById('wishlist-count');
+
+                // Hide loading
+                loadingState.style.display = 'none';
+
+                // Filter wishlist items
+                const filteredItems = this.getFilteredItems();
+
+                // Update count
+                wishlistCount.textContent = `${filteredItems.length} item${filteredItems.length !== 1 ? 's' : ''}`;
+
+                if (filteredItems.length === 0) {
+                    emptyState.style.display = 'block';
+                    wishlistActions.style.display = 'none';
+                    wishlistGrid.style.display = 'none';
+                } else {
+                    emptyState.style.display = 'none';
+                    wishlistActions.style.display = 'flex';
+                    wishlistGrid.style.display = 'grid';
+                    this.renderWishlistItems(filteredItems);
+                }
+            }
+
+            getFilteredItems() {
+                switch (this.currentFilter) {
+                    case 'in-stock':
+                        return this.wishlist.filter(item => item.in_stock && (item.inventory_count || 0) > 0);
+                    case 'on-sale':
+                        return this.wishlist.filter(item => item.sale_price && item.sale_price < item.price);
+                    default:
+                        return this.wishlist;
+                }
+            }
+
+            renderWishlistItems(items) {
+                const grid = document.getElementById('wishlist-grid');
+                
+                grid.innerHTML = items.map(item => {
+                    const hasDiscount = item.sale_price && item.sale_price < item.price;
+                    const discountPercent = hasDiscount ? Math.round(((item.price - item.sale_price) / item.price) * 100) : 0;
+                    const stockStatus = this.getStockStatus(item);
+                    
+                    return `
+                        <div class="wishlist-item" data-id="${item.id}">
+                            <div class="wishlist-item-image">
+                                <img src="${item.image_url}" alt="${item.name}" loading="lazy">
+                                ${stockStatus.class ? `<div class="stock-status ${stockStatus.class}">${stockStatus.text}</div>` : ''}
+                                <button class="remove-wishlist" onclick="wishlistManager.removeFromWishlist('${item.id}')">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="wishlist-item-info">
+                                <h3 class="wishlist-item-name">${item.name}</h3>
+                                <p class="wishlist-item-category">${item.category_name || 'Ethnic Wear'}</p>
+                                <div class="wishlist-item-price">
+                                    <span class="current-price">₹${item.sale_price || item.price}</span>
+                                    ${hasDiscount ? `<span class="original-price">₹${item.price}</span>` : ''}
+                                    ${hasDiscount ? `<span class="discount-badge">${discountPercent}% OFF</span>` : ''}
+                                </div>
+                                <div class="wishlist-item-actions">
+                                    <button class="btn-add-to-cart" onclick="wishlistManager.addToCart('${item.id}')" ${!item.in_stock ? 'disabled' : ''}>
+                                        <i class="fas fa-shopping-cart"></i>
+                                        ${item.in_stock ? 'Add to Cart' : 'Out of Stock'}
+                                    </button>
+                                    <a href="/product/${item.id}" class="btn-view-product">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            getStockStatus(item) {
+                if (!item.in_stock || (item.inventory_count || 0) === 0) {
+                    return { class: 'out-of-stock', text: 'Out of Stock' };
+                } else if ((item.inventory_count || 0) <= 5) {
+                    return { class: 'low-stock', text: 'Low Stock' };
+                } else {
+                    return { class: 'in-stock', text: 'In Stock' };
+                }
+            }
+
+            async removeFromWishlist(productId) {
+                const item = document.querySelector(`[data-id="${productId}"]`);
+                if (item) {
+                    item.classList.add('removing');
+                    
+                    setTimeout(() => {
+                        // Remove from wishlist array
+                        this.wishlist = this.wishlist.filter(item => item.id.toString() !== productId.toString());
+                        
+                        // Update localStorage
+                        const wishlistIds = this.wishlist.map(item => item.id.toString());
+                        localStorage.setItem('wearxture_wishlist', JSON.stringify(wishlistIds));
+                        
+                        // Update display
+                        this.updateDisplay();
+                        
+                        // Show notification
+                        this.showNotification('Item removed from wishlist');
+                        
+                        // Update wishlist icon in header
+                        this.updateWishlistIcon();
+                    }, 500);
+                }
+            }
+
+            addToCart(productId) {
+                const item = this.wishlist.find(item => item.id.toString() === productId.toString());
+                if (item && item.in_stock) {
+                    // Create cart item
+                    const cartItem = {
+                        id: item.id.toString(),
+                        name: item.name,
+                        price: item.sale_price || item.price,
+                        image: item.image_url,
+                        quantity: 1
+                    };
+
+                    // Add to cart (using existing cart functionality)
+                    const cart = JSON.parse(localStorage.getItem('wearxture_cart') || '[]');
+                    const existingItem = cart.find(cartItem => cartItem.id === item.id.toString());
+                    
+                    if (existingItem) {
+                        existingItem.quantity++;
+                    } else {
+                        cart.push(cartItem);
+                    }
+                    
+                    localStorage.setItem('wearxture_cart', JSON.stringify(cart));
+                    
+                    // Update cart count in header
+                    const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+                    document.querySelectorAll('.cart-count').forEach(el => el.textContent = cartCount);
+                    
+                    this.showNotification(`${item.name} added to cart!`);
+                }
+            }
+
+            addAllToCart() {
+                const inStockItems = this.wishlist.filter(item => item.in_stock && (item.inventory_count || 0) > 0);
+                
+                if (inStockItems.length === 0) {
+                    this.showNotification('No items available to add to cart');
+                    return;
+                }
+
+                const cart = JSON.parse(localStorage.getItem('wearxture_cart') || '[]');
+                let addedCount = 0;
+
+                inStockItems.forEach(item => {
+                    const existingItem = cart.find(cartItem => cartItem.id === item.id.toString());
+                    
+                    if (existingItem) {
+                        existingItem.quantity++;
+                    } else {
+                        cart.push({
+                            id: item.id.toString(),
+                            name: item.name,
+                            price: item.sale_price || item.price,
+                            image: item.image_url,
+                            quantity: 1
+                        });
+                    }
+                    addedCount++;
+                });
+
+                localStorage.setItem('wearxture_cart', JSON.stringify(cart));
+                
+                // Update cart count
+                const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+                document.querySelectorAll('.cart-count').forEach(el => el.textContent = cartCount);
+                
+                this.showNotification(`${addedCount} items added to cart!`);
+            }
+
+            clearWishlist() {
+                if (confirm('Are you sure you want to clear your entire wishlist?')) {
+                    this.wishlist = [];
+                    localStorage.removeItem('wearxture_wishlist');
+                    this.updateDisplay();
+                    this.updateWishlistIcon();
+                    this.showNotification('Wishlist cleared');
+                }
+            }
+
+            updateWishlistIcon() {
+                // Update wishlist count in header if you have one
+                const wishlistCount = this.wishlist.length;
+                // You can add a count badge to the wishlist icon similar to cart
+            }
+
+            showNotification(message) {
+                // Remove existing notification
+                const existingNotification = document.querySelector('.notification');
+                if (existingNotification) {
+                    existingNotification.remove();
+                }
+                
+                // Create new notification
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <i class="fas fa-check-circle"></i>
+                        <p>${message}</p>
+                        <button class="close-notification"><i class="fas fa-times"></i></button>
+                    </div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.classList.add('show'), 10);
+                
+                // Close button
+                notification.querySelector('.close-notification').addEventListener('click', () => {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                });
+                
+                // Auto close
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+        }
+
+        // Initialize wishlist manager
+        let wishlistManager;
+        document.addEventListener('DOMContentLoaded', function() {
+            wishlistManager = new WishlistManager();
+            
+            // Update wishlist count in header
+            const updateHeaderCount = () => {
+                const wishlistCountElement = document.querySelector('.nav-icons .wishlist-count');
+                if (wishlistCountElement) {
+                    const count = wishlistManager.wishlist.length;
+                    wishlistCountElement.textContent = count;
+                    wishlistCountElement.style.display = count > 0 ? 'flex' : 'none';
+                }
+            };
+            
+            // Update count initially and whenever wishlist changes
+            setTimeout(updateHeaderCount, 500);
+            
+            // Override the original updateDisplay to also update header
+            const originalUpdateDisplay = wishlistManager.updateDisplay.bind(wishlistManager);
+            wishlistManager.updateDisplay = function() {
+                originalUpdateDisplay();
+                updateHeaderCount();
+            };
+        });
+    </script>
+</body>
+</html>

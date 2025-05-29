@@ -1825,7 +1825,7 @@
             </nav>
             <div class="nav-icons">
                 <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
-                <a href="#" class="icon-link"><i class="fas fa-user"></i></a>
+                <a href="/profile" class="icon-link"><i class="fas fa-user"></i></a>
                 <a href="#" class="icon-link cart" id="cart-toggle">
                     <i class="fas fa-shopping-bag"></i>
                     <span class="cart-count">0</span>
@@ -2138,10 +2138,61 @@
             </div>
         </div>
     </div>
+    <div class="search-overlay" id="search-overlay">
+        <div class="search-container">
+            <div class="search-header">
+                <h3 class="search-title">Search Products</h3>
+                <button class="close-search" id="close-search">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="search-form">
+                <input type="text" id="search-input" placeholder="Search for products..." autofocus>
+                <button id="search-button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="search-results" id="search-results">
+                <!-- Search results will be displayed here -->
+                <div class="no-results">
+                    <p>Start typing to search for products</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="{{ url_for('static', path='/js/script.js') }}"></script>
     <script src="{{ url_for('static', path='/js/profile-view.js') }}"></script>
-
+    <script src="{{ url_for('static', path='/js/profile-navigation.js') }}"></script>
+    <script>
+        // Handle profile icon click with authentication check
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileIcon = document.getElementById('profile-icon');
+            
+            if (profileIcon) {
+                profileIcon.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    
+                    try {
+                        // Check if user is authenticated
+                        const response = await fetch('/api/auth/me');
+                        const result = await response.json();
+                        
+                        if (result.success && result.user) {
+                            // User is authenticated, go to profile
+                            window.location.href = '/profile';
+                        } else {
+                            // User is not authenticated, go to login with redirect
+                            window.location.href = '/login?redirect=profile';
+                        }
+                    } catch (error) {
+                        // On error, redirect to login
+                        window.location.href = '/login?redirect=profile';
+                    }
+                });
+            }
+        });
+        </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Cart management

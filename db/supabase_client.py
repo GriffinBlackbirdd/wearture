@@ -773,3 +773,275 @@ def upload_category_cover_image(file_content: bytes, file_name: str) -> Optional
     except Exception as e:
         print(f"Error uploading category cover image: {e}")
         return None
+
+
+
+# SUPPORT QUERIES
+# Add these functions to your supabase_client.py file
+
+# Support Queries functions
+def create_support_query(query_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """
+    Create a new support query
+    """
+    try:
+        # Set created_at and updated_at
+        now = datetime.now().isoformat()
+        query_data['created_at'] = now
+        query_data['updated_at'] = now
+        
+        # Set default status if not provided
+        if 'status' not in query_data:
+            query_data['status'] = 'open'
+            
+        # Set default priority if not provided
+        if 'priority' not in query_data:
+            query_data['priority'] = 'medium'
+        
+        # Insert into database
+        response = supabase.table('support_queries').insert(query_data).execute()
+        
+        if response.data and len(response.data) > 0:
+            print(f"✅ Support query created with ID: {response.data[0].get('id')}")
+            return response.data[0]
+        
+        print("❌ Failed to create support query")
+        return None
+        
+    except Exception as e:
+        print(f"❌ Error creating support query: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+def get_all_support_queries() -> List[Dict[str, Any]]:
+    """
+    Get all support queries for admin view
+    """
+    try:
+        response = supabase.table('support_queries').select('*').order('created_at', desc=True).execute()
+        return response.data
+    except Exception as e:
+        print(f"Error getting support queries: {e}")
+        return []
+
+def get_support_query(query_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Get a specific support query by ID
+    """
+    try:
+        response = supabase.table('support_queries').select('*').eq('id', query_id).execute()
+        if response.data:
+            return response.data[0]
+        return None
+    except Exception as e:
+        print(f"Error getting support query {query_id}: {e}")
+        return None
+
+def update_support_query_status(query_id: int, status: str, admin_notes: str = None) -> Optional[Dict[str, Any]]:
+    """
+    Update support query status and admin notes
+    """
+    try:
+        update_data = {
+            'status': status,
+            'updated_at': datetime.now().isoformat()
+        }
+        
+        if admin_notes:
+            update_data['admin_notes'] = admin_notes
+            
+        if status == 'resolved':
+            update_data['resolved_at'] = datetime.now().isoformat()
+        
+        response = supabase.table('support_queries').update(update_data).eq('id', query_id).execute()
+        
+        if response.data:
+            return response.data[0]
+        return None
+        
+    except Exception as e:
+        print(f"Error updating support query {query_id}: {e}")
+        return None
+
+def get_support_queries_by_status(status: str) -> List[Dict[str, Any]]:
+    """
+    Get support queries filtered by status
+    """
+    try:
+        response = supabase.table('support_queries').select('*').eq('status', status).order('created_at', desc=True).execute()
+        return response.data
+    except Exception as e:
+        print(f"Error getting support queries by status {status}: {e}")
+        return []
+
+def get_customer_support_queries(customer_email: str) -> List[Dict[str, Any]]:
+    """
+    Get support queries for a specific customer
+    """
+    try:
+        response = supabase.table('support_queries').select('*').eq('customer_email', customer_email).order('created_at', desc=True).execute()
+        return response.data
+    except Exception as e:
+        print(f"Error getting support queries for customer {customer_email}: {e}")
+        return []
+
+
+# Add these functions to your db/supabase_client.py file
+
+def get_user_wishlist(user_id: int) -> List[Dict[str, Any]]:
+    """
+    Get all wishlist items for a user
+    """
+    try:
+        response = supabase.table('user_wishlist').select('*').eq('user_id', user_id).execute()
+        return response.data
+    except Exception as e:
+        print(f"Error getting user wishlist: {e}")
+        return []
+
+def get_user_wishlist_with_products(user_id: int) -> List[Dict[str, Any]]:
+    """
+    Get wishlist items with full product details for a user
+    """
+    try:
+        response = supabase.table('user_wishlist') \
+            .select('*, products(*, categories(name))') \
+            .eq('user_id', user_id) \
+            .execute()
+        
+        # Extract products from the wishlist items
+        products = []
+        for item in response.data:
+            if item.get('products'):
+                products.append(item['products'])
+        
+        return products
+    except Exception as e:
+        print(f"Error getting user wishlist with products: {e}")
+        return []
+
+def add_to_user_wishlist(user_id: int, product_id: int) -> bool:
+    """
+    Add a product to user's wishlist
+    """
+    try:
+        # Check if item already exists
+        existing = supabase.table('user_wishlist') \
+            .select('*') \
+            .eq('user_id', user_id) \
+            .eq('product_id', product_id) \
+            .execute()
+        
+        if existing.data:
+            print(f"Product {product_id} already in wishlist for user {user_id}")
+            return True
+        
+        # Add new item
+        response = supabase.table('user_wishlist').insert({
+            'user_id': user_id,
+            'product_id': product_id,
+            'created_at': datetime.now().isoformat()
+        }).execute()
+        
+        return bool(response.data)
+    except Exception as e:
+        print(f"Error adding to user wishlist: {e}")
+        return False
+
+def remove_from_user_wishlist(user_id: int, product_id: int) -> bool:
+    """
+    Remove a product from user's wishlist
+    """
+    try:
+        response = supabase.table('user_wishlist') \
+            .delete() \
+            .eq('user_id', user_id) \
+            .eq('product_id', product_id) \
+            .execute()
+        
+        return True  # Supabase delete always returns success if no error
+    except Exception as e:
+        print(f"Error removing from user wishlist: {e}")
+        return False
+
+def clear_user_wishlist(user_id: int) -> bool:
+    """
+    Clear all items from user's wishlist
+    """
+    try:
+        response = supabase.table('user_wishlist') \
+            .delete() \
+            .eq('user_id', user_id) \
+            .execute()
+        
+        return True
+    except Exception as e:
+        print(f"Error clearing user wishlist: {e}")
+        return False
+
+def is_in_user_wishlist(user_id: int, product_id: int) -> bool:
+    """
+    Check if a product is in user's wishlist
+    """
+    try:
+        response = supabase.table('user_wishlist') \
+            .select('id') \
+            .eq('user_id', user_id) \
+            .eq('product_id', product_id) \
+            .execute()
+        
+        return len(response.data) > 0
+    except Exception as e:
+        print(f"Error checking wishlist: {e}")
+        return False
+
+def get_wishlist_count(user_id: int) -> int:
+    """
+    Get count of items in user's wishlist
+    """
+    try:
+        response = supabase.table('user_wishlist') \
+            .select('id', count='exact') \
+            .eq('user_id', user_id) \
+            .execute()
+        
+        return response.count or 0
+    except Exception as e:
+        print(f"Error getting wishlist count: {e}")
+        return 0
+
+def sync_guest_wishlist_to_user(user_id: int, guest_wishlist_ids: List[int]) -> bool:
+    """
+    Sync guest wishlist items to authenticated user's wishlist
+    """
+    try:
+        # Get existing wishlist items
+        existing_response = supabase.table('user_wishlist') \
+            .select('product_id') \
+            .eq('user_id', user_id) \
+            .execute()
+        
+        existing_product_ids = [item['product_id'] for item in existing_response.data]
+        
+        # Find new items to add
+        new_items = []
+        for product_id in guest_wishlist_ids:
+            if product_id not in existing_product_ids:
+                new_items.append({
+                    'user_id': user_id,
+                    'product_id': product_id,
+                    'created_at': datetime.now().isoformat()
+                })
+        
+        # Insert new items if any
+        if new_items:
+            response = supabase.table('user_wishlist').insert(new_items).execute()
+            return bool(response.data)
+        
+        return True
+    except Exception as e:
+        print(f"Error syncing guest wishlist: {e}")
+        return False
+
+        

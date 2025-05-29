@@ -343,6 +343,209 @@
             font-size: 14px;
         }
 
+        /* Support Form Styles */
+        .support-form-card {
+            background: var(--light-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .support-form-card h3 {
+            color: var(--primary-color);
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .support-form-card p {
+            color: var(--light-text);
+            margin-bottom: 25px;
+        }
+
+        .support-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(226, 88, 34, 0.1);
+        }
+
+        .form-group input:read-only {
+            background: #f8f9fa;
+            cursor: not-allowed;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .form-actions .btn {
+            min-width: 140px;
+        }
+
+        /* Previous Queries */
+        .previous-queries-card {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .previous-queries-card h3 {
+            color: var(--primary-color);
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .query-item {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .query-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .query-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .query-type {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .query-status {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-open { background: #fff3cd; color: #856404; }
+        .status-in-progress { background: #cce7ff; color: #004085; }
+        .status-resolved { background: #d4edda; color: #155724; }
+        .status-closed { background: #e2e6ea; color: #495057; }
+
+        .query-subject {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+
+        .query-message {
+            color: var(--light-text);
+            font-size: 14px;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .query-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--light-text);
+        }
+
+        .loading-indicator {
+            text-align: center;
+            padding: 40px;
+            color: var(--light-text);
+        }
+
+        .no-queries {
+            text-align: center;
+            padding: 40px;
+            color: var(--light-text);
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -366,6 +569,165 @@
             margin-bottom: 30px;
         }
 
+        .status-replied-on-email { 
+            background: #dcfce7; 
+            color: #16a34a; 
+        }
+/* Support Query Status Badges */
+.query-status {
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-open {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.status-in-progress {
+    background: #fed7aa;
+    color: #ea580c;
+}
+
+.status-replied-on-email {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-resolved {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.status-closed {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+
+/* Priority Badge Styles (if needed) */
+.priority-badge {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-left: 8px;
+}
+
+.priority-urgent {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.priority-high {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.priority-medium {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.priority-low {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+/* Query Type Badge Styles */
+.query-type {
+    background: var(--primary-color);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+/* Different colors for different query types (optional) */
+.query-type.order-issue {
+    background: #dc2626;
+}
+
+.query-type.product-inquiry {
+    background: #2563eb;
+}
+
+.query-type.payment-issue {
+    background: #d97706;
+}
+
+.query-type.delivery-issue {
+    background: #7c3aed;
+}
+
+.query-type.return-exchange {
+    background: #059669;
+}
+
+.query-type.size-guide {
+    background: #0891b2;
+}
+
+.query-type.technical-issue {
+    background: #be123c;
+}
+
+.query-type.feedback {
+    background: #15803d;
+}
+
+.query-type.other {
+    background: #6b7280;
+}
+
+/* Hover effects for badges */
+.query-status:hover,
+.priority-badge:hover,
+.query-type:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+/* Status with pulsing animation for urgent items */
+.priority-urgent {
+    animation: pulse-urgent 2s infinite;
+}
+
+@keyframes pulse-urgent {
+    0% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+    }
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    .query-status,
+    .priority-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+    
+    .query-type {
+        font-size: 11px;
+        padding: 3px 10px;
+    }
+}
         /* Responsive Design */
         @media (max-width: 768px) {
             .profile-container {
@@ -406,6 +768,27 @@
                 flex-direction: column;
                 gap: 15px;
             }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .query-header,
+            .query-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .support-form-card,
+            .previous-queries-card {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -425,14 +808,6 @@
                     <li><a href="/collections">Collections</a></li>
                 </ul>
             </nav>
-            <!-- <div class="nav-icons">
-                <a href="#" class="icon-link"><i class="fas fa-search"></i></a>
-                <a href="/profile" class="icon-link"><i class="fas fa-user"></i></a>
-                <a href="#" class="icon-link cart">
-                    <i class="fas fa-shopping-bag"></i>
-                    <span class="cart-count">0</span>
-                </a>
-            </div> -->
             <div class="mobile-menu-toggle">
                 <i class="fas fa-bars"></i>
             </div>
@@ -562,17 +937,87 @@
                     <p class="section-subtitle">We're here to help with any questions or concerns</p>
                 </div>
 
-                <div class="info-card">
-                    <h3><i class="fas fa-comments"></i> Get Help</h3>
-                    <p>Our dedicated support team is available to assist you with orders, payments, sizing, returns, and any other queries. We're committed to providing exceptional customer service.</p>
+                <!-- Support Form -->
+                <div class="support-form-card">
+                    <h3><i class="fas fa-headset"></i> Submit a Support Query</h3>
+                    <p>Fill out the form below and our support team will get back to you within 24 hours.</p>
                     
-                    <h4 style="color: var(--primary-color); margin: 20px 0 10px 0;">Frequently Asked Questions:</h4>
-                    <ul>
-                        <li><strong>Sizing:</strong> Check our size guide on each product page</li>
-                        <li><strong>Delivery:</strong> 3-7 business days across India</li>
-                        <li><strong>Payment:</strong> COD, UPI, Cards, and Net Banking accepted</li>
-                        <li><strong>Tracking:</strong> SMS and email updates for all orders</li>
-                    </ul>
+                    <form id="support-form" class="support-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="query-type">Query Type *</label>
+                                <select id="query-type" name="queryType" required>
+                                    <option value="">Select query type</option>
+                                    <option value="order_issue">Order Issue</option>
+                                    <option value="product_inquiry">Product Inquiry</option>
+                                    <option value="payment_issue">Payment Issue</option>
+                                    <option value="delivery_issue">Delivery Issue</option>
+                                    <option value="return_exchange">Return & Exchange</option>
+                                    <option value="size_guide">Size Guide Help</option>
+                                    <option value="technical_issue">Technical Issue</option>
+                                    <option value="feedback">Feedback & Suggestions</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="priority">Priority</label>
+                                <select id="priority" name="priority">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="customer-email">Your Email *</label>
+                            <input type="email" id="customer-email" name="customerEmail" required readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="customer-name">Your Name</label>
+                            <input type="text" id="customer-name" name="customerName" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="subject">Subject</label>
+                            <input type="text" id="subject" name="subject" placeholder="Brief description of your query">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">Message *</label>
+                            <textarea id="message" name="message" rows="6" required placeholder="Please provide detailed information about your query..."></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="submit-query-btn">
+                                <i class="fas fa-paper-plane"></i>
+                                Submit Query
+                            </button>
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i>
+                                Reset Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Previous Queries -->
+                <div class="previous-queries-card">
+                    <h3><i class="fas fa-history"></i> Your Previous Queries</h3>
+                    <div id="previous-queries-list">
+                        <div class="loading-indicator">
+                            <i class="fas fa-spinner fa-spin"></i> Loading your queries...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information
+                <div class="info-card">
+                    <h3><i class="fas fa-phone"></i> Other Ways to Reach Us</h3>
+                    <p>For urgent matters or if you prefer direct contact, you can reach us through:</p>
                 </div>
 
                 <div class="contact-info">
@@ -588,23 +1033,23 @@
 
                     <div class="contact-item">
                         <div class="contact-icon">
-                            <i class="fas fa-map-marker-alt"></i>
+                            <i class="fas fa-phone"></i>
                         </div>
                         <div class="contact-details">
-                            <h4>Address</h4>
-                            <p>Gram Rampura Bujurg<br>Uttar Pradesh, India</p>
+                            <h4>Call Us</h4>
+                            <p>+91 70550 18752<br>Direct support line</p>
                         </div>
                     </div>
 
                     <div class="contact-item">
                         <div class="contact-icon">
-                            <i class="fas fa-question-circle"></i>
+                            <i class="fab fa-whatsapp"></i>
                         </div>
                         <div class="contact-details">
-                            <h4>Need Help?</h4>
-                            <p>support@wearxture.com<br>Quick response guaranteed</p>
+                            <h4>WhatsApp</h4>
+                            <p>+91 70550 18752<br>Quick assistance</p>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
@@ -616,6 +1061,8 @@
             loadUserProfile();
             loadUserOrders();
             initializeProfileMenus();
+            initializeSupportForm();
+            loadPreviousQueries();
         });
 
         // Load user profile data
@@ -634,6 +1081,10 @@
                     // Update avatar initials
                     const initials = getInitials(user.name || 'User');
                     document.getElementById('avatar-initials').textContent = initials;
+                    
+                    // Pre-fill support form with user data
+                    document.getElementById('customer-email').value = user.email || '';
+                    document.getElementById('customer-name').value = user.name || '';
                 } else {
                     // Redirect to login if not authenticated
                     window.location.href = '/login?redirect=profile';
@@ -793,6 +1244,222 @@
                     document.getElementById(sectionId).classList.add('active');
                 });
             });
+        }
+
+        // Initialize support form
+        function initializeSupportForm() {
+            const supportForm = document.getElementById('support-form');
+            const submitBtn = document.getElementById('submit-query-btn');
+            
+            if (supportForm) {
+                supportForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    // Disable submit button
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+                    
+                    try {
+                        // Get form data
+                        const formData = new FormData(supportForm);
+                        const queryData = {
+                            query_type: formData.get('queryType'),
+                            customer_email: formData.get('customerEmail'),
+                            customer_name: formData.get('customerName'),
+                            subject: formData.get('subject'),
+                            message: formData.get('message'),
+                            priority: formData.get('priority')
+                        };
+                        
+                        // Validate required fields
+                        if (!queryData.query_type || !queryData.customer_email || !queryData.message) {
+                            throw new Error('Please fill in all required fields');
+                        }
+                        
+                        // Submit query
+                        const response = await fetch('/api/support/queries', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            credentials: 'same-origin',
+                            body: JSON.stringify(queryData)
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            // Show success message
+                            showMessage('success', result.message || 'Query submitted successfully!');
+                            
+                            // Reset form
+                            supportForm.reset();
+                            
+                            // Pre-fill email and name again
+                            const userEmail = document.getElementById('profile-email').textContent;
+                            const userName = document.getElementById('profile-name').textContent;
+                            document.getElementById('customer-email').value = userEmail;
+                            document.getElementById('customer-name').value = userName;
+                            
+                            // Reload previous queries
+                            setTimeout(() => {
+                                loadPreviousQueries();
+                            }, 1000);
+                            
+                        } else {
+                            throw new Error(result.message || 'Failed to submit query');
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error submitting support query:', error);
+                        showMessage('error', error.message || 'Failed to submit query. Please try again.');
+                    } finally {
+                        // Re-enable submit button
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Query';
+                    }
+                });
+            }
+        }
+
+        // Load previous support queries
+        async function loadPreviousQueries() {
+    const queriesList = document.getElementById('previous-queries-list');
+    
+    try {
+        const response = await fetch('/api/support/queries/my-queries', {
+            credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load queries');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.queries && data.queries.length > 0) {
+            queriesList.innerHTML = data.queries.map(query => {
+                const createdDate = new Date(query.created_at).toLocaleDateString('en-IN');
+                
+                // Properly handle status class conversion
+                const statusClass = `status-${query.status.replace(/_/g, '-')}`;
+                const statusDisplay = formatStatus(query.status);
+                
+                // Get priority class
+                const priorityClass = `priority-${query.priority}`;
+                
+                // Get query type class
+                const queryTypeClass = `query-type ${query.query_type.replace(/_/g, '-')}`;
+                
+                return `
+                    <div class="query-item">
+                        <div class="query-header">
+                            <div class="${queryTypeClass}">${formatQueryType(query.query_type)}</div>
+                            <div class="query-status ${statusClass}">${statusDisplay}</div>
+                        </div>
+                        ${query.subject ? `<div class="query-subject">${query.subject}</div>` : ''}
+                        <div class="query-message">${truncateMessage(query.message, 200)}</div>
+                        <div class="query-meta">
+                            <span>Priority: <span class="priority-badge ${priorityClass}">${query.priority.toUpperCase()}</span></span>
+                            <span>Submitted: ${createdDate}</span>
+                        </div>
+                        ${query.admin_notes ? `
+                            <div style="margin-top: 15px; padding: 12px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid var(--primary-color);">
+                                <strong style="color: var(--primary-color);">✉️ Admin Response:</strong><br>
+                                <span style="color: var(--text-color); line-height: 1.5;">${query.admin_notes}</span>
+                            </div>
+                        ` : ''}
+                        ${query.status === 'replied_on_email' ? `
+                            <div style="margin-top: 10px; padding: 8px 12px; background: #dcfce7; border-radius: 6px; font-size: 12px; color: #16a34a;">
+                                <i class="fas fa-envelope"></i> We've sent you a detailed response via email. Please check your inbox.
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        } else {
+            queriesList.innerHTML = `
+                <div class="no-queries">
+                    <i class="fas fa-inbox"></i>
+                    <p>No previous queries found. Your submitted queries will appear here.</p>
+                </div>
+            `;
+        }
+        
+    } catch (error) {
+        console.error('Error loading previous queries:', error);
+        queriesList.innerHTML = `
+            <div class="no-queries">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error loading your queries. Please refresh the page to try again.</p>
+            </div>
+        `;
+    }
+}
+
+// Update the formatStatus function
+function formatStatus(status) {
+    const statusMap = {
+        'open': 'Open',
+        'in_progress': 'In Progress',
+        'replied_on_email': 'Replied',
+        'resolved': 'Resolved',
+        'closed': 'Closed'
+    };
+    return statusMap[status] || status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+// Update the formatQueryType function
+function formatQueryType(queryType) {
+    const typeMap = {
+        'order_issue': 'Order Issue',
+        'product_inquiry': 'Product Inquiry',
+        'payment_issue': 'Payment Issue',
+        'delivery_issue': 'Delivery Issue',
+        'return_exchange': 'Return & Exchange',
+        'size_guide': 'Size Guide',
+        'technical_issue': 'Technical Issue',
+        'feedback': 'Feedback',
+        'other': 'Other'
+    };
+    return typeMap[queryType] || queryType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+
+        // Show success/error messages
+        function showMessage(type, message) {
+            // Remove existing messages
+            const existingMessages = document.querySelectorAll('.success-message, .error-message');
+            existingMessages.forEach(msg => msg.remove());
+            
+            // Create new message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
+            messageDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                ${message}
+            `;
+            
+            // Insert at the top of support section
+            const supportSection = document.getElementById('support');
+            const sectionHeader = supportSection.querySelector('.section-header');
+            sectionHeader.after(messageDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Format query type for display
+        function formatQueryType(queryType) {
+            return queryType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        // Truncate message for preview
+        function truncateMessage(message, maxLength) {
+            if (message.length <= maxLength) return message;
+            return message.substring(0, maxLength) + '...';
         }
 
         // Utility functions

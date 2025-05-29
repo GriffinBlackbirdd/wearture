@@ -34,6 +34,8 @@ from db.supabase_client import (
     upload_product_image, upload_category_image, verify_admin_credentials, supabase, 
     get_products_by_category, get_subcategories, update_product_images, get_related_products,
     get_all_reels, get_active_reels, get_reel, create_reel, update_reel, delete_reel, upload_reel_video, upload_category_cover_image,
+    create_support_query, get_all_support_queries, get_support_query, 
+    update_support_query_status, get_support_queries_by_status, get_customer_support_queries
 )
 from db.order_management import (
     create_order, get_order, update_order_payment_status,
@@ -181,6 +183,289 @@ class PasswordChange(BaseModel):
     current_password: str
     new_password: str
 
+
+class SupportQueryCreate(BaseModel):
+    query_type: str
+    customer_email: EmailStr
+    customer_name: Optional[str] = None
+    subject: Optional[str] = None
+    message: str
+    priority: Optional[str] = "medium"
+
+class SupportQueryResponse(BaseModel):
+    id: int
+    query_type: str
+    customer_email: str
+    customer_name: Optional[str] = None
+    subject: Optional[str] = None
+    message: str
+    status: str = "open"
+    priority: str = "medium"
+    assigned_to: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+    resolved_at: Optional[datetime] = None
+    admin_notes: Optional[str] = None
+
+class SupportQueryUpdate(BaseModel):
+    status: str
+    admin_notes: Optional[str] = None
+
+class WishlistItem(BaseModel):
+    product_id: int
+    user_id: Optional[int] = None
+    session_id: Optional[str] = None
+
+class WishlistResponse(BaseModel):
+    id: int
+    user_id: Optional[int]
+    product_id: int
+    product: Optional[ProductResponse]
+    created_at: datetime
+
+
+# Wishlist page route
+@app.get("/wishlist", response_class=HTMLResponse)
+async def wishlist_page(request: Request):
+    """Display user wishlist page"""
+    return templates.TemplateResponse("wishlist.html", {"request": request})
+
+# Get user's wishlist
+@app.get("/api/user/wishlist")
+async def get_user_wishlist(request: Request):
+    """Get wishlist items for authenticated or guest user"""
+    try:
+        # Check if user is authenticated
+        token = request.cookies.get("user_access_token")
+        user = None
+        
+        if token:
+            user = get_current_user_simple(token)
+        
+        if user:
+            # Get wishlist for authenticated user
+            from db.supabase_client import get_user_wishlist
+            wishlist_items = get_user_wishlist(user['id'])
+        else:
+            # For guest users, return empty array (they use localStorage)
+            wishlist_items = []
+        
+        return {
+            "success": True,
+            "wishlist": wishlist_items
+        }
+        
+    except Exception as e:
+        print(f"Error getting wishlist: {e}")
+        return {
+            "success": False,
+            "error": str(e),
+            "wishlist": []
+        }
+
+# Add item to wishlist
+@app.post("/api/user/wishlist")
+async def add_to_wishlist(wishlist_item: WishlistItem, request: Request):
+    """Add item to user's wishlist"""
+    try:
+        # Check if user is authenticated
+        token = request.cookies.get("user_access_token")
+        user = None
+        
+        if token:
+            user = get_current_user_simple(token)
+        
+        if user:
+            # Add to database for authenticated user
+            from db.supabase_client import add_to_user_wishlist
+            success = add_to_user_wishlist(user['id'], wishlist_item.product_id)
+            
+            if success:
+                return {
+                    "success": True,
+                    "message": "Item added to wishlist"
+                }
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Failed to add item to wishlist"
+                )
+        else:
+            # For guest users, they handle this with localStorage
+            return {
+                "success": True,
+                "message": "Item added to wishlist (guest mode)"
+            }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error adding to wishlist: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to add to wishlist: {str(e)}"
+        )
+
+# Remove item from wishlist
+@app.delete("/api/user/wishlist/{product_id}")
+async def remove_from_wishlist(product_id: int, request: Request):
+    """Remove item from user's wishlist"""
+    try:
+        # Check if user is authenticated
+        token = request.cookies.get("user_access_token")
+        user = None
+        
+        if token:
+            user = get_current_user_simple(token)
+        
+        if user:
+            # Remove from database for authenticated user
+            from db.supabase_client import remove_from_user_wishlist
+            success = remove_from_user_wishlist(user['id'], product_id)
+            
+            if success:
+                return {
+                    "success": True,
+                    "message": "Item removed from wishlist"
+                }
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Failed to remove item from wishlist"
+                )
+        else:
+            # For guest users, they handle this with localStorage
+            return {
+                "success": True,
+                "message": "Item removed from wishlist (guest mode)"
+            }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error removing from wishlist: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to remove from wishlist: {str(e)}"
+        )
+
+# Clear entire wishlist
+@app.delete("/api/user/wishlist")
+async def clear_wishlist(request: Request):
+    """Clear user's entire wishlist"""
+    try:
+        # Check if user is authenticated
+        token = request.cookies.get("user_access_token")
+        user = None
+        
+        if token:
+            user = get_current_user_simple(token)
+        
+        if user:
+            # Clear database wishlist for authenticated user
+            from db.supabase_client import clear_user_wishlist
+            success = clear_user_wishlist(user['id'])
+            
+            if success:
+                return {
+                    "success": True,
+                    "message": "Wishlist cleared"
+                }
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Failed to clear wishlist"
+                )
+        else:
+            # For guest users, they handle this with localStorage
+            return {
+                "success": True,
+                "message": "Wishlist cleared (guest mode)"
+            }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error clearing wishlist: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to clear wishlist: {str(e)}"
+        )
+
+# Check if item is in wishlist
+@app.get("/api/user/wishlist/check/{product_id}")
+async def check_wishlist_item(product_id: int, request: Request):
+    """Check if a product is in user's wishlist"""
+    try:
+        # Check if user is authenticated
+        token = request.cookies.get("user_access_token")
+        user = None
+        
+        if token:
+            user = get_current_user_simple(token)
+        
+        if user:
+            # Check database for authenticated user
+            from db.supabase_client import is_in_user_wishlist
+            is_in_wishlist = is_in_user_wishlist(user['id'], product_id)
+            
+            return {
+                "success": True,
+                "in_wishlist": is_in_wishlist
+            }
+        else:
+            # For guest users, they handle this with localStorage
+            return {
+                "success": True,
+                "in_wishlist": False,
+                "guest_mode": True
+            }
+        
+    except Exception as e:
+        print(f"Error checking wishlist: {e}")
+        return {
+            "success": False,
+            "in_wishlist": False,
+            "error": str(e)
+        }
+
+# Get wishlist with product details
+@app.get("/api/user/wishlist/products")
+async def get_wishlist_with_products(request: Request):
+    """Get wishlist items with full product details"""
+    try:
+        # Check if user is authenticated
+        token = request.cookies.get("user_access_token")
+        user = None
+        
+        if token:
+            user = get_current_user_simple(token)
+        
+        if user:
+            # Get wishlist with product details for authenticated user
+            from db.supabase_client import get_user_wishlist_with_products
+            wishlist_products = get_user_wishlist_with_products(user['id'])
+            
+            return {
+                "success": True,
+                "wishlist": [product_from_db(product) for product in wishlist_products]
+            }
+        else:
+            # For guest users, return empty (they use localStorage + API calls)
+            return {
+                "success": True,
+                "wishlist": [],
+                "guest_mode": True
+            }
+        
+    except Exception as e:
+        print(f"Error getting wishlist products: {e}")
+        return {
+            "success": False,
+            "wishlist": [],
+            "error": str(e)
+        }
+
 async def get_authenticated_user(request: Request) -> Dict[str, Any]:
     """Dependency to get authenticated user"""
     token = request.cookies.get("user_access_token")
@@ -201,6 +486,29 @@ async def get_authenticated_user(request: Request) -> Dict[str, Any]:
     
     return user
             
+@app.post("/api/products/by-ids")
+async def get_products_by_ids(product_ids: List[int]):
+    """Get products by their IDs (useful for wishlist)"""
+    try:
+        db_products = get_all_products()
+        
+        # Filter products by the provided IDs
+        filtered_products = [
+            product_from_db(product) for product in db_products 
+            if product['id'] in product_ids
+        ]
+        
+        return {
+            "success": True,
+            "products": filtered_products
+        }
+    except Exception as e:
+        print(f"Error getting products by IDs: {e}")
+        return {
+            "success": False,
+            "products": [],
+            "error": str(e)
+        }
 # JWT Helper Functions
 def create_access_token(user_id: int, email: str, expires_delta: timedelta = None):
     """Create JWT access token"""
@@ -2936,6 +3244,242 @@ async def test_auto_shipping(
             detail=f"Test shipping failed: {str(e)}"
         )
 
+
+
+@app.post("/api/support/queries")
+async def create_support_query_endpoint(query_data: SupportQueryCreate):
+    """Create a new support query from customer"""
+    try:
+        # Convert Pydantic model to dict
+        query_dict = {
+            "query_type": query_data.query_type,
+            "customer_email": query_data.customer_email,
+            "customer_name": query_data.customer_name,
+            "subject": query_data.subject,
+            "message": query_data.message,
+            "priority": query_data.priority
+        }
+        
+        # Create query in database
+        created_query = create_support_query(query_dict)
+        
+        if not created_query:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create support query"
+            )
+        
+        # Send notification email to admin (optional - implement later)
+        try:
+            # You can add email notification logic here
+            print(f"📧 New support query created: {created_query.get('id')}")
+        except Exception as e:
+            print(f"⚠️ Failed to send notification email: {e}")
+        
+        return {
+            "success": True,
+            "message": "Support query submitted successfully. We'll get back to you soon!",
+            "query_id": created_query.get('id')
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating support query: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to submit support query"
+        )
+
+@app.get("/api/support/queries/my-queries")
+async def get_my_support_queries(request: Request):
+    """Get support queries for the authenticated user"""
+    try:
+        # Get user from token
+        token = request.cookies.get("user_access_token")
+        if not token:
+            raise HTTPException(status_code=401, detail="Not authenticated")
+        
+        user = get_current_user_simple(token)
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        # Get queries for this user
+        queries = get_customer_support_queries(user['email'])
+        
+        return {
+            "success": True,
+            "queries": queries
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error fetching user support queries: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch queries")
+
+# ========= Admin Support Query Routes =========
+
+@app.get("/admin/support", response_class=HTMLResponse)
+async def admin_support_page(request: Request):
+    """Admin support queries management page"""
+    try:
+        admin_email = await verify_admin_token(request)
+        return templates.TemplateResponse(
+            "admin/support.html", 
+            {"request": request, "user_email": admin_email}
+        )
+    except HTTPException:
+        return RedirectResponse(url="/admin/login")
+
+@app.get("/admin/api/support/queries")
+async def get_admin_support_queries(
+    status_filter: Optional[str] = None,
+    admin_email: str = Depends(verify_admin_token)
+):
+    """Get all support queries for admin view"""
+    try:
+        if status_filter:
+            queries = get_support_queries_by_status(status_filter)
+        else:
+            queries = get_all_support_queries()
+        
+        return {
+            "success": True,
+            "queries": queries
+        }
+        
+    except Exception as e:
+        print(f"Error fetching admin support queries: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch support queries"
+        )
+
+# Update the valid statuses in your main.py API endpoint
+@app.get("/admin/api/support/queries/{query_id}")
+async def get_admin_support_query_details(
+    query_id: int,
+    admin_email: str = Depends(verify_admin_token)
+):
+    """Get detailed information about a specific support query"""
+    try:
+        print(f"🔍 Getting query details for ID: {query_id}")
+        
+        query = get_support_query(query_id)
+        
+        if not query:
+            print(f"❌ Query {query_id} not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Support query not found"
+            )
+        
+        print(f"✅ Query {query_id} found successfully")
+        return {
+            "success": True,
+            "query": query
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error fetching support query details: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch query details: {str(e)}"
+        )
+
+
+@app.put("/admin/api/support/queries/{query_id}")
+async def update_admin_support_query(
+    query_id: int,
+    update_data: SupportQueryUpdate,
+    admin_email: str = Depends(verify_admin_token)
+):
+    """Update support query status and admin notes"""
+    try:
+        # Updated valid statuses to include "replied_on_email"
+        valid_statuses = ["open", "in_progress", "replied_on_email", "resolved", "closed"]
+        if update_data.status not in valid_statuses:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+            )
+        
+        # Update query
+        updated_query = update_support_query_status(
+            query_id, 
+            update_data.status, 
+            update_data.admin_notes
+        )
+        
+        if not updated_query:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Support query not found or update failed"
+            )
+        
+        return {
+            "success": True,
+            "message": f"Support query updated to {update_data.status}",
+            "query": updated_query
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error updating support query: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update support query"
+        )
+
+@app.put("/admin/api/support/queries/{query_id}")
+async def update_admin_support_query(
+    query_id: int,
+    update_data: SupportQueryUpdate,
+    admin_email: str = Depends(verify_admin_token)
+):
+    """Update support query status and admin notes"""
+    try:
+        # Validate status
+        valid_statuses = ["open", "in_progress", "resolved", "closed"]
+        if update_data.status not in valid_statuses:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+            )
+        
+        # Update query
+        updated_query = update_support_query_status(
+            query_id, 
+            update_data.status, 
+            update_data.admin_notes
+        )
+        
+        if not updated_query:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Support query not found or update failed"
+            )
+        
+        return {
+            "success": True,
+            "message": f"Support query updated to {update_data.status}",
+            "query": updated_query
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error updating support query: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update support query"
+        )
 # Run the application
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
