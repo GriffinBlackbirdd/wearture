@@ -253,6 +253,9 @@ def format_wearxture_order_for_shiprocket(wearxture_order: Dict[str, Any],
             import json
             items = json.loads(items)
         
+        # Check if this is a COD order
+        is_cod_order = wearxture_order.get("payment_method") == "cod"
+        
         # Format order items for Shiprocket
         shiprocket_items = []
         for item in items:
@@ -270,11 +273,35 @@ def format_wearxture_order_for_shiprocket(wearxture_order: Dict[str, Any],
             except:
                 pass  # Use default SKU if database lookup fails
             
+            # Format product name with size information
+            product_name = item.get("name", "Product")
+            size = item.get("size")
+            
+            # Include size in product name if available
+            if size and size.strip() and size.lower() not in ['standard', 'one size', 'default']:
+                product_name = f"{product_name} (Size: {size})"
+            
+            # Calculate selling price - for COD, reduce each item's price proportionally
+            original_price = item.get("price", 0)
+            item_quantity = item.get("quantity", 1)
+            
+            if is_cod_order:
+                # Calculate the proportional reduction for this item
+                total_cart_value = sum(it.get("price", 0) * it.get("quantity", 1) for it in items)
+                if total_cart_value > 0:
+                    # Proportionally reduce each item's price to account for ₹80 COD fee
+                    cod_reduction_per_item = (80 / total_cart_value) * original_price
+                    adjusted_price = max(0, original_price - cod_reduction_per_item)
+                else:
+                    adjusted_price = original_price
+            else:
+                adjusted_price = original_price
+            
             shiprocket_items.append({
-                "name": item.get("name", "Product"),
+                "name": product_name,  # Now includes size information
                 "sku": sku,
-                "units": item.get("quantity", 1),
-                "selling_price": str(int(item.get("price", 0))),
+                "units": item_quantity,
+                "selling_price": str(int(adjusted_price)),
                 "discount": "",
                 "tax": "",
                 "hsn": 441122  # Default HSN code for textiles
@@ -290,6 +317,9 @@ def format_wearxture_order_for_shiprocket(wearxture_order: Dict[str, Any],
             # Extract name from email as fallback
             email = wearxture_order.get("user_email", "")
             customer_name = email.split("@")[0] if email else "Customer"
+        
+        # Calculate subtotal for Shiprocket (adjusted for COD if needed)
+        shiprocket_subtotal = sum(int(item["selling_price"]) * item["units"] for item in shiprocket_items)
         
         # Format the order
         shiprocket_order = {
@@ -312,7 +342,7 @@ def format_wearxture_order_for_shiprocket(wearxture_order: Dict[str, Any],
             "giftwrap_charges": 0,
             "transaction_charges": 0,
             "total_discount": 0,
-            "sub_total": int(wearxture_order.get("subtotal", 0)),
+            "sub_total": shiprocket_subtotal,  # Use adjusted subtotal
             "length": 25,  # Default dimensions in cm
             "breadth": 20,
             "height": 10,
@@ -323,8 +353,14 @@ def format_wearxture_order_for_shiprocket(wearxture_order: Dict[str, Any],
         print(f"   Order ID: {shiprocket_order['order_id']}")
         print(f"   Pickup Location: '{shiprocket_order['pickup_location']}'")
         print(f"   Customer: {shiprocket_order['billing_customer_name']}")
+        print(f"   Payment Method: {shiprocket_order['payment_method']}")
         print(f"   Items: {len(shiprocket_items)}")
-        print(f"   Total: ₹{shiprocket_order['sub_total']}")
+        for item in shiprocket_items:
+            print(f"     - {item['name']} (Qty: {item['units']}, Price: ₹{item['selling_price']})")  # This will now show adjusted prices
+        print(f"   Subtotal: ₹{shiprocket_order['sub_total']}")
+        if is_cod_order:
+            original_total = int(wearxture_order.get("subtotal", 0))
+            print(f"   Note: COD order - Original total: ₹{original_total}, Adjusted total: ₹{shiprocket_subtotal} (₹80 COD fee deducted)")
         
         return shiprocket_order
         
