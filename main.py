@@ -103,12 +103,19 @@ class ProductCreate(ProductBase):
     tags: Optional[List[str]] = []
     attributes: Optional[Dict[str, Any]] = {}
     
-class ProductUpdate(ProductBase):
-    id: int
+# ALSO UPDATE your ProductUpdate model to make sure all fields are included
+class ProductUpdate(BaseModel):
+    # Remove the 'id' field - it shouldn't be in the request body for updates
+    name: str
+    description: str
+    price: float
+    category_id: int
+    in_stock: bool = True
+    sku: Optional[str] = None
+    inventory_count: int = 0
     sale_price: Optional[float] = None
     tags: Optional[List[str]] = []
     attributes: Optional[Dict[str, Any]] = {}
-    
 class ProductResponse(ProductBase):
     id: int
     image_url: Optional[str] = None
@@ -2705,54 +2712,114 @@ async def create_admin_product(
     return product_from_db(db_product)
 
 # Update a product
+    # REPLACE your existing update product endpoint in main.py with this fixed version
+
 @app.put("/admin/api/products/{product_id}", response_model=ProductResponse)
 async def update_admin_product(
     product_id: int,
     product: ProductUpdate,
     admin_email: str = Depends(verify_admin_token)
 ):
-    # Check if product exists
-    existing_product = get_product(product_id)
-    if not existing_product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    
-    # If category changed, get new filter
-    filter_value = existing_product.get("filter", "all")
-    if product.category_id != existing_product["category_id"]:
-        category = get_category(product.category_id)
-        filter_value = category.get("filter", "all") if category else "all"
-    
-    # Prepare product data for database
-# Prepare product data for database
-    product_data = {
-        "name": product.name,
-        "description": product.description,
-        "base_price": product.price,
-        "sale_price": product.sale_price,
-        "category_id": product.category_id,
-        "in_stock": product.in_stock,
-        "sku": product.sku,
-        "tags": product.tags,
-        "attributes": product.attributes,
-        "filter": filter_value,
-        "inventory_count": product.inventory_count  # Add this line
-    }
-    
-    # Update in database
-    db_product = update_product(product_id, product_data)
-    if not db_product:
+    """Update a product - FIXED VERSION without ID in body"""
+    try:
+        print(f"🔧 UPDATE PRODUCT ENDPOINT CALLED")
+        print(f"   Product ID: {product_id}")
+        print(f"   Admin: {admin_email}")
+        
+        # Convert Pydantic model to dict for logging
+        product_dict = product.dict()
+        print(f"   Product data received: {product_dict}")
+        
+        # Check if product exists first
+        existing_product = get_product(product_id)
+        if not existing_product:
+            print(f"❌ Product {product_id} not found")
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        print(f"✅ Existing product found: {existing_product.get('name')}")
+        
+        # If category changed, get new filter
+        filter_value = existing_product.get("filter", "all")
+        if product.category_id != existing_product["category_id"]:
+            print(f"🔄 Category changed from {existing_product['category_id']} to {product.category_id}")
+            category = get_category(product.category_id)
+            filter_value = category.get("filter", "all") if category else "all"
+            print(f"   New filter value: {filter_value}")
+        
+        # Prepare product data for database
+        product_data = {
+            "name": product.name,
+            "description": product.description,
+            "base_price": product.price,  # Note: using base_price for the database
+            "sale_price": product.sale_price,
+            "category_id": product.category_id,
+            "in_stock": product.in_stock,
+            "sku": product.sku,
+            "tags": product.tags,
+            "attributes": product.attributes,
+            "filter": filter_value,
+            "inventory_count": product.inventory_count
+        }
+        
+        print(f"📦 Prepared product data for database:")
+        for key, value in product_data.items():
+            print(f"   {key}: {type(value).__name__} = {value}")
+        
+        # Update in database
+        print(f"💾 Calling update_product function...")
+        db_product = update_product(product_id, product_data)
+        
+        if not db_product:
+            print(f"❌ update_product returned None/False")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update product in database"
+            )
+        
+        print(f"✅ Database update successful")
+        
+        # Fetch the complete updated product with category info
+        print(f"🔄 Fetching complete updated product...")
+        updated_product = get_product(product_id)
+        
+        if not updated_product:
+            print(f"❌ Could not fetch updated product")
+            raise HTTPException(status_code=404, detail="Updated product not found")
+        
+        print(f"✅ Complete product fetched successfully")
+        
+        # Convert to response model
+        try:
+            response_product = product_from_db(updated_product)
+            print(f"✅ Product converted to response model")
+            print(f"📤 Returning product: {response_product.name} (ID: {response_product.id})")
+            
+            return response_product
+            
+        except Exception as conversion_error:
+            print(f"❌ Error converting product to response model: {conversion_error}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error converting product data: {str(conversion_error)}"
+            )
+            
+    except HTTPException as http_error:
+        print(f"❌ HTTP Exception: {http_error.detail}")
+        raise http_error
+        
+    except Exception as e:
+        print(f"💥 UNEXPECTED ERROR in update_admin_product:")
+        print(f"   Error type: {type(e).__name__}")
+        print(f"   Error message: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update product"
+            detail=f"Internal server error: {str(e)}"
         )
-    
-    # Important: Fetch the product again to get the full data including category name
-    updated_product = get_product(product_id)
-    if not updated_product:
-        raise HTTPException(status_code=404, detail="Updated product not found")
-    
-    # Return the complete updated product
-    return product_from_db(updated_product)
 
 # Delete a product
 @app.delete("/admin/api/products/{product_id}")
@@ -3065,49 +3132,176 @@ async def upload_multiple_product_images(
     files: List[UploadFile] = File(...),
     admin_email: str = Depends(verify_admin_token)
 ):
+    """Upload multiple images for a product - FIXED VERSION"""
+    print(f"🔥 MULTIPLE IMAGE UPLOAD STARTED")
+    print(f"📦 Product ID: {product_id}")
+    print(f"📸 Number of files received: {len(files)}")
+    
+    # Check if product exists
+    existing_product = get_product(product_id)
+    if not existing_product:
+        print(f"❌ Product {product_id} not found")
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    uploaded_urls = []
+    failed_uploads = []
+    
+    try:
+        for i, file in enumerate(files):
+            print(f"\n📸 Processing file {i+1}/{len(files)}: {file.filename}")
+            print(f"   File size: {file.size} bytes")
+            print(f"   Content type: {file.content_type}")
+            
+            # Validate file type
+            if not file.content_type or not file.content_type.startswith('image/'):
+                print(f"❌ Invalid file type: {file.content_type}")
+                failed_uploads.append(f"{file.filename} - Not an image")
+                continue
+            
+            # Read file content
+            file_content = await file.read()
+            print(f"   Read {len(file_content)} bytes")
+            
+            if len(file_content) == 0:
+                print(f"❌ Empty file: {file.filename}")
+                failed_uploads.append(f"{file.filename} - Empty file")
+                continue
+            
+            # Upload to Supabase Storage
+            print(f"   ☁️ Uploading to Supabase...")
+            image_url = upload_product_image(file_content, file.filename)
+            
+            if image_url:
+                uploaded_urls.append(image_url)
+                print(f"   ✅ Success! URL: {image_url}")
+            else:
+                print(f"   ❌ Upload failed to Supabase")
+                failed_uploads.append(f"{file.filename} - Storage upload failed")
+            
+            # Close file
+            await file.close()
+        
+        print(f"\n📊 UPLOAD SUMMARY:")
+        print(f"   ✅ Successful uploads: {len(uploaded_urls)}")
+        print(f"   ❌ Failed uploads: {len(failed_uploads)}")
+        
+        if not uploaded_urls:
+            print(f"💥 NO IMAGES UPLOADED SUCCESSFULLY")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No images uploaded successfully. Errors: {'; '.join(failed_uploads)}"
+            )
+        
+        print(f"🔄 UPDATING PRODUCT WITH {len(uploaded_urls)} IMAGES...")
+        print(f"   Image URLs: {uploaded_urls}")
+        
+        # ⚠️ CRITICAL: Update product with ALL uploaded images
+        # This function should handle multiple images correctly
+        result = update_product_images(product_id, uploaded_urls)
+        
+        if not result:
+            print(f"❌ Failed to update product with images")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update product with uploaded images"
+            )
+        
+        print(f"✅ PRODUCT UPDATED SUCCESSFULLY")
+        
+        # Return comprehensive response
+        response_data = {
+            "success": True,
+            "message": f"Successfully uploaded {len(uploaded_urls)} images",
+            "uploaded_count": len(uploaded_urls),
+            "failed_count": len(failed_uploads),
+            "image_urls": uploaded_urls,
+            "main_image": uploaded_urls[0] if uploaded_urls else None,
+            "additional_images": uploaded_urls[1:] if len(uploaded_urls) > 1 else [],
+            "failed_uploads": failed_uploads
+        }
+        
+        print(f"📤 SENDING RESPONSE: {response_data}")
+        return response_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"💥 UNEXPECTED ERROR: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Upload failed: {str(e)}"
+        )
+
+
+@app.post("/admin/api/upload/product-image")
+async def upload_single_product_image(
+    product_id: int = Form(...),
+    file: UploadFile = File(...),
+    admin_email: str = Depends(verify_admin_token)
+):
+    """Upload a single main image for a product"""
     # Check if product exists
     existing_product = get_product(product_id)
     if not existing_product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    uploaded_urls = []
-    
     try:
-        for file in files:
-            # Read file content
-            file_content = await file.read()
-            
-            # Upload to Supabase Storage
-            image_url = upload_product_image(file_content, file.filename)
-            if image_url:
-                uploaded_urls.append(image_url)
-            
-            await file.close()
+        print(f"📸 Uploading single image for product {product_id}: {file.filename}")
         
-        if uploaded_urls:
-            # Update product with all images using the new function
-            result = update_product_images(product_id, uploaded_urls)
-            if not result:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Failed to update product images"
-                )
-            
-            # Get the updated product to return
-            updated_product = get_product(product_id)
-            
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith('image/'):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File must be an image"
+            )
+        
+        # Read file content
+        file_content = await file.read()
+        
+        if len(file_content) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File is empty"
+            )
+        
+        # Upload to Supabase Storage
+        image_url = upload_product_image(file_content, file.filename)
+        
+        if not image_url:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to upload image"
+            )
+        
+        # Update product with new main image URL
+        result = update_product(product_id, {"image_url": image_url})
+        
+        if not result:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update product with image"
+            )
+        
+        print(f"✅ Single image uploaded and product updated")
+        
         return {
             "success": True, 
-            "image_urls": uploaded_urls,
-            "main_image": uploaded_urls[0] if uploaded_urls else None,
-            "additional_images": uploaded_urls[1:] if len(uploaded_urls) > 1 else []
+            "image_url": image_url,
+            "message": "Image uploaded successfully"
         }
+        
+    except HTTPException:
+        raise
     except Exception as e:
+        print(f"❌ Error uploading image: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error uploading images: {str(e)}"
+            detail=f"Error uploading image: {str(e)}"
         )
-
+    finally:
+        await file.close()
 # ========= Debug Routes =========
 
 # Debug endpoint to check routes
@@ -3750,3 +3944,48 @@ async def update_admin_support_query(
 # Run the application
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

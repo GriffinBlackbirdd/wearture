@@ -243,10 +243,24 @@
                     <!-- Image Upload -->
                     <div class="form-group">
                         <label>Product Images</label>
-                        <input type="file" id="fileInput" name="product_images" multiple accept="image/*">
-                        <button type="button" id="clearImagesBtn" class="btn btn-outline">Clear Images</button>
-                        <div id="image-preview-container" class="image-preview-container">
-                            <!-- Image previews will be added here -->
+                        
+                        <!-- Make sure this input has the correct attributes -->
+                        <input 
+                            type="file" 
+                            id="fileInput" 
+                            name="product_images" 
+                            multiple 
+                            accept="image/*"
+                            style="display: block; margin: 10px 0; padding: 10px; border: 2px solid #ddd; border-radius: 4px; width: 100%;"
+                        >
+                        
+                        <button type="button" id="clearImagesBtn" class="btn btn-outline" style="margin-top: 10px;">
+                            Clear Images
+                        </button>
+                        
+                        <!-- Image preview container -->
+                        <div id="image-preview-container" style="margin-top: 15px; min-height: 60px; border: 1px solid #eee; padding: 15px; border-radius: 8px;">
+                            <p>No images selected</p>
                         </div>
                     </div>
                     
@@ -370,887 +384,1227 @@
 
     <script src="{{ url_for('static', path='/admin/js/admin.js') }}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Helper function to parse JSON-formatted attributes
-            function parseProductAttributes(product) {
-                // Create a modified product with properly parsed attributes
-                const parsedProduct = { ...product };
-                
-                // Handle attributes stored as a JSON string
-                if (product.attributes && typeof product.attributes === 'string') {
-                    try {
-                        console.log('Parsing JSON attributes:', product.attributes);
-                        parsedProduct.attributes = JSON.parse(product.attributes);
-                    } catch (error) {
-                        console.error('Error parsing attributes JSON:', error);
-                        parsedProduct.attributes = {};
-                    }
-                }
-                
-                // If attributes don't exist or failed to parse, create an empty object
-                if (!parsedProduct.attributes) {
-                    parsedProduct.attributes = {};
-                }
-                
-                // Ensure materials and sizes arrays exist
-                if (!parsedProduct.attributes.materials) {
-                    parsedProduct.attributes.materials = [];
-                }
-                
-                if (!parsedProduct.attributes.sizes) {
-                    parsedProduct.attributes.sizes = [];
-                }
-                
-                // Handle tags stored in a separate column
-                if (!parsedProduct.tags && product.tags_array) {
-                    // If tags are stored in a tags_array property
-                    parsedProduct.tags = product.tags_array;
-                } else if (!parsedProduct.tags && typeof product.tags === 'string') {
-                    // If tags are stored as a JSON string or comma-separated string
-                    try {
-                        // Try to parse as JSON first
-                        parsedProduct.tags = JSON.parse(product.tags);
-                    } catch (error) {
-                        // If not JSON, try as comma-separated
-                        parsedProduct.tags = product.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-                    }
-                }
-                
-                // Ensure tags is an array
-                if (!Array.isArray(parsedProduct.tags)) {
-                    parsedProduct.tags = [];
-                }
-                
-                console.log('Parsed product data:', parsedProduct);
-                return parsedProduct;
-            }
-            
-            // Toggle sidebar on mobile
-            const sidebar = document.getElementById('sidebar');
-            const toggleSidebar = document.getElementById('toggle-sidebar');
-            
-            if (toggleSidebar) {
-                toggleSidebar.addEventListener('click', function() {
-                    sidebar.classList.toggle('show');
-                });
-            }
-            
-            // Product Modal
-            const addProductBtn = document.getElementById('add-product-btn');
-            const productModal = document.getElementById('product-modal');
-            const closeButtons = document.querySelectorAll('.modal-close');
-            
-            addProductBtn.addEventListener('click', function() {
-                resetProductForm();
-                document.querySelector('#product-modal .modal-title').textContent = 'Add New Product';
-                productModal.classList.add('show');
-            });
-            
-            closeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const modal = this.closest('.modal-backdrop');
-                    if (modal) {
-                        modal.classList.remove('show');
-                    }
-                });
-            });
-            
-            // Direct file input handling - simplest approach
-            const fileInput = document.getElementById('fileInput');
-            const imagePreviewContainer = document.getElementById('image-preview-container');
-            const clearImagesBtn = document.getElementById('clearImagesBtn');
-            
-            if (fileInput && imagePreviewContainer) {
-                console.log('Image upload elements found');
-                
-                fileInput.addEventListener('change', function() {
-                    console.log('File input changed, files:', this.files.length);
-                    
-                    if (!this.files || this.files.length === 0) {
-                        console.log('No files selected');
-                        return;
-                    }
-                    
-                    // Process each file
-                    for (let i = 0; i < this.files.length; i++) {
-                        const file = this.files[i];
-                        
-                        if (!file.type.match('image.*')) {
-                            console.log('Not an image file:', file.name);
-                            continue;
-                        }
-                        
-                        console.log('Processing image:', file.name);
-                        
-                        const reader = new FileReader();
-                        
-                        reader.onload = function(e) {
-                            console.log('File loaded successfully');
-                            
-                            // Create preview element
-                            const preview = document.createElement('div');
-                            preview.className = 'image-preview';
-                            preview.style.backgroundImage = `url(${e.target.result})`;
-                            
-                            // Add remove button
-                            const removeBtn = document.createElement('div');
-                            removeBtn.className = 'remove-image';
-                            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                            removeBtn.addEventListener('click', function() {
-                                preview.remove();
-                            });
-                            
-                            preview.appendChild(removeBtn);
-                            imagePreviewContainer.appendChild(preview);
-                        };
-                        
-                        reader.onerror = function() {
-                            console.error('Error reading file');
-                        };
-                        
-                        reader.readAsDataURL(file);
-                    }
-                });
-                
-                if (clearImagesBtn) {
-                    clearImagesBtn.addEventListener('click', function() {
-                        imagePreviewContainer.innerHTML = '';
-                        fileInput.value = ''; // Reset file input
-                    });
-                }
-            } else {
-                console.error('Image upload elements missing:', {
-                    fileInput: !!fileInput,
-                    imagePreviewContainer: !!imagePreviewContainer
-                });
-            }
-            
-            // Edit product buttons
-            const editButtons = document.querySelectorAll('.action-btn.edit');
-            if (editButtons.length) {
-                console.log('Found', editButtons.length, 'edit product buttons');
-                editButtons.forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const productId = this.getAttribute('data-id');
-                        console.log('Edit button clicked for product ID:', productId);
-                        editProduct(productId);
-                    });
-                });
-            }
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Products page JavaScript loaded - Multiple Images Version');
 
-            // View product buttons
-            const viewButtons = document.querySelectorAll('.action-btn.view');
-            if (viewButtons.length) {
-                console.log('Found', viewButtons.length, 'view product buttons');
-                viewButtons.forEach(btn => {
-                    btn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const productId = this.getAttribute('data-id');
-                        console.log('View button clicked for product ID:', productId);
-                        viewProduct(productId);
-                    });
-                });
-            }
-            
-            // Function to edit a product with JSON parsing
-            async function editProduct(productId) {
-                try {
-                    console.log('Loading product for editing, ID:', productId);
-                    showNotification('Loading product...', 'info');
-                    
-                    const response = await fetch(`/admin/api/products/${productId}`);
-                    
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error(`Error fetching product (${response.status}):`, errorText);
-                        throw new Error(`Error fetching product: ${response.status}`);
-                    }
-                    
-                    let product = await response.json();
-                    console.log('Raw product data loaded:', product);
-                    
-                    // Parse attributes and tags
-                    product = parseProductAttributes(product);
-                    console.log('Parsed product data:', product);
-                    
-                    // Reset form before populating
-                    resetProductForm();
-                    
-                    // Populate the form with product data
-                    document.getElementById('product-id').value = product.id;
-                    document.getElementById('product-name').value = product.name;
-                    document.getElementById('product-description').value = product.description;
-                    document.getElementById('product-price').value = product.price;
-                    document.getElementById('product-sale-price').value = product.sale_price || '';
-                    document.getElementById('product-category').value = product.category_id;
-                    document.getElementById('product-inventory').value = product.inventory_count || 0;
-                    document.getElementById('product-status').value = product.in_stock.toString();
-                    document.getElementById('product-sku').value = product.sku || '';
-                    
-                    // Handle tags
-                    if (product.tags && product.tags.length) {
-                        document.querySelector('input[name="tags"]').value = product.tags.join(', ');
-                    }
-                    
-                    // Handle materials if available
-                    if (product.attributes && product.attributes.materials) {
-                        document.querySelector('input[name="materials"]').value = product.attributes.materials.join(', ');
-                    }
-                    
-                    // Handle sizes if available
-                    if (product.attributes && product.attributes.sizes) {
-                        const sizeCheckboxes = document.querySelectorAll('input[name="sizes"]');
-                        sizeCheckboxes.forEach(checkbox => {
-                            checkbox.checked = product.attributes.sizes.includes(checkbox.value);
-                        });
-                    }
-                    
-                    // Show product image if available
-                    if (product.image_url) {
-                        const imagePreviewContainer = document.getElementById('image-preview-container');
-                        
-                        if (imagePreviewContainer) {
-                            // Clear existing previews
-                            imagePreviewContainer.innerHTML = '';
-                            
-                            // Create preview element
-                            const preview = document.createElement('div');
-                            preview.className = 'image-preview';
-                            preview.style.backgroundImage = `url(${product.image_url})`;
-                            
-                            // Add remove button
-                            const removeBtn = document.createElement('div');
-                            removeBtn.className = 'remove-image';
-                            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                            removeBtn.addEventListener('click', function(e) {
-                                e.stopPropagation();
-                                preview.remove();
-                            });
-                            
-                            preview.appendChild(removeBtn);
-                            imagePreviewContainer.appendChild(preview);
-                        }
-                    }
-                    
-                    // Update modal title
-                    document.querySelector('#product-modal .modal-title').textContent = 'Edit Product';
-                    
-                    // Show modal
-                    const productModal = document.getElementById('product-modal');
-                    if (productModal) {
-                        productModal.classList.add('show');
-                    } else {
-                        console.error('Product modal not found!');
-                    }
-                    
-                } catch (error) {
-                    console.error('Error in editProduct:', error);
-                    showNotification('Failed to load product: ' + error.message, 'error');
-                }
-            }
+    // ========= GLOBAL VARIABLES =========
+    const fileInput = document.getElementById('fileInput');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const clearImagesBtn = document.getElementById('clearImagesBtn');
+    const addProductBtn = document.getElementById('add-product-btn');
+    const productModal = document.getElementById('product-modal');
+    const deleteModal = document.getElementById('delete-modal');
+    const viewProductModal = document.getElementById('view-product-modal');
+    const saveProductBtn = document.getElementById('save-product-btn');
+    const productForm = document.getElementById('product-form');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    const sidebar = document.getElementById('sidebar');
+    const toggleSidebar = document.getElementById('toggle-sidebar');
+    
+    let productToDelete = null;
+    let selectedFiles = []; // Global array to store selected files
 
-            // Function to view a product with JSON parsing
-            async function viewProduct(productId) {
-                try {
-                    console.log('Loading product for viewing, ID:', productId);
-                    showNotification('Loading product details...', 'info');
-                    
-                    const response = await fetch(`/admin/api/products/${productId}`);
-                    
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error(`Error fetching product (${response.status}):`, errorText);
-                        throw new Error(`Error fetching product: ${response.status}`);
-                    }
-                    
-                    let product = await response.json();
-                    console.log('Raw product data loaded for viewing:', product);
-                    
-                    // Parse attributes and tags
-                    product = parseProductAttributes(product);
-                    console.log('Parsed product data for viewing:', product);
-                    
-                    const viewModal = document.getElementById('view-product-modal');
-                    if (!viewModal) {
-                        console.error('View product modal not found!');
-                        return;
-                    }
-                    
-                    // Populate view modal
-                    document.getElementById('view-product-name').textContent = product.name;
-                    document.getElementById('view-product-image').src = product.image_url || '/static/images/products/placeholder.jpg';
-                    document.getElementById('view-product-category').textContent = product.category_name || 'Uncategorized';
-                    document.getElementById('view-product-sku').textContent = product.sku || 'N/A';
-                    document.getElementById('view-product-price').textContent = 
-                        `₹${product.price}${product.sale_price ? ' (Sale: ₹' + product.sale_price + ')' : ''}`;
-                    document.getElementById('view-product-status').textContent = product.in_stock ? 'In Stock' : 'Out of Stock';
-                    document.getElementById('view-product-description').textContent = product.description || 'No description available';
-                    
-                    // Handle materials
-                    const materialsElement = document.getElementById('view-product-materials');
-                    if (materialsElement) {
-                        if (product.attributes && product.attributes.materials && product.attributes.materials.length) {
-                            materialsElement.textContent = product.attributes.materials.join(', ');
-                        } else {
-                            materialsElement.textContent = 'N/A';
-                        }
-                    }
-                    
-                    // Handle sizes
-                    const sizesElement = document.getElementById('view-product-sizes');
-                    if (sizesElement) {
-                        if (product.attributes && product.attributes.sizes && product.attributes.sizes.length) {
-                            sizesElement.textContent = product.attributes.sizes.join(', ');
-                        } else {
-                            sizesElement.textContent = 'N/A';
-                        }
-                    }
-                    
-                    // Handle tags
-                    const tagsElement = document.getElementById('view-product-tags');
-                    if (tagsElement) {
-                        if (product.tags && product.tags.length) {
-                            tagsElement.textContent = product.tags.join(', ');
-                        } else {
-                            tagsElement.textContent = 'N/A';
-                        }
-                    }
-                    
-                    // Set edit button functionality
-                    const editFromViewBtn = document.getElementById('edit-from-view-btn');
-                    if (editFromViewBtn) {
-                        // Remove old event listeners by cloning
-                        const newBtn = editFromViewBtn.cloneNode(true);
-                        editFromViewBtn.parentNode.replaceChild(newBtn, editFromViewBtn);
-                        
-                        // Add new event listener
-                        newBtn.addEventListener('click', function() {
-                            viewModal.classList.remove('show');
-                            editProduct(productId);
-                        });
-                    }
-                    
-                    // Show modal
-                    viewModal.classList.add('show');
-                    
-                } catch (error) {
-                    console.error('Error in viewProduct:', error);
-                    showNotification('Failed to load product details: ' + error.message, 'error');
-                }
-            }
-            
-            // Debug function to inspect what's coming from the server
-            function inspectProductResponse(productId) {
-                fetch(`/admin/api/products/${productId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        console.group('Product Response Inspection');
-                        console.log('Raw data:', data);
-                        console.log('Type of attributes:', typeof data.attributes);
-                        console.log('Type of tags:', typeof data.tags);
-                        
-                        if (typeof data.attributes === 'string') {
-                            try {
-                                const parsed = JSON.parse(data.attributes);
-                                console.log('Parsed attributes:', parsed);
-                            } catch (e) {
-                                console.error('Failed to parse attributes as JSON:', e);
-                            }
-                        }
-                        
-                        if (typeof data.tags === 'string') {
-                            try {
-                                const parsed = JSON.parse(data.tags);
-                                console.log('Parsed tags:', parsed);
-                            } catch (e) {
-                                console.error('Failed to parse tags as JSON:', e);
-                            }
-                        }
-                        
-                        console.log('Available columns:', Object.keys(data));
-                        console.groupEnd();
-                    })
-                    .catch(error => console.error('Error inspecting product:', error));
-            }
-            
-            // Delete product functionality
-            const deleteButtons = document.querySelectorAll('.action-btn.delete');
-            const deleteModal = document.getElementById('delete-modal');
-            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-            const productToDeleteElement = document.querySelector('.product-to-delete');
-            let productToDelete = null;
-            
-            if (deleteButtons.length && deleteModal && confirmDeleteBtn) {
-                deleteButtons.forEach(button => {
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        productToDelete = this.getAttribute('data-id');
-                        const productName = this.closest('tr').querySelector('.product-name').textContent;
-                        if (productToDeleteElement) {
-                            productToDeleteElement.textContent = `Product: "${productName}"`;
-                        }
-                        deleteModal.classList.add('show');
-                    });
-                });
-                
-                confirmDeleteBtn.addEventListener('click', async function() {
-                    if (productToDelete) {
-                        try {
-                            const response = await fetch(`/admin/api/products/${productToDelete}`, {
-                                method: 'DELETE'
-                            });
-                            
-                            if (!response.ok) {
-                                throw new Error(`Error: ${response.status}`);
-                            }
-                            
-                            // Show success message
-                            showNotification('Product deleted successfully!', 'success');
-                            
-                            // Remove row from table
-                            const row = document.querySelector(`.action-btn.delete[data-id="${productToDelete}"]`).closest('tr');
-                            if (row) {
-                                row.remove();
-                            }
-                            
-                            // Close modal
-                            deleteModal.classList.remove('show');
-                            productToDelete = null;
-                            
-                        } catch (error) {
-                            console.error('Error deleting product:', error);
-                            showNotification('Failed to delete product: ' + error.message, 'error');
-                        }
-                    }
-                });
-            }
-            
-            // Product search functionality
-            const productSearch = document.getElementById('product-search');
-            if (productSearch) {
-                const productRows = document.querySelectorAll('#products-tbody tr');
-                
-                productSearch.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase().trim();
-                    
-                    productRows.forEach(row => {
-                        const productName = row.querySelector('.product-name').textContent.toLowerCase();
-                        const productCategory = row.querySelector('.product-category').textContent.toLowerCase();
-                        const productSku = row.querySelector('.product-sku').textContent.toLowerCase();
-                        
-                        if (productName.includes(searchTerm) || 
-                            productCategory.includes(searchTerm) || 
-                            productSku.includes(searchTerm)) {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
-                });
-            }
-            
-            // Filter by category and status
-            const categoryFilter = document.getElementById('category-filter');
-            const statusFilter = document.getElementById('status-filter');
-            
-            if (categoryFilter && statusFilter) {
-                const productRows = document.querySelectorAll('#products-tbody tr');
-                
-                categoryFilter.addEventListener('change', filterProducts);
-                statusFilter.addEventListener('change', filterProducts);
-                
-                function filterProducts() {
-                    const selectedCategory = categoryFilter.value;
-                    const selectedStatus = statusFilter.value;
-                    
-                    productRows.forEach(row => {
-                        const rowCategory = row.getAttribute('data-category');
-                        const rowStatus = row.getAttribute('data-status');
-                        
-                        let showByCategory = true;
-                        let showByStatus = true;
-                        
-                        if (selectedCategory && rowCategory !== selectedCategory) {
-                            showByCategory = false;
-                        }
-                        
-                        if (selectedStatus && rowStatus !== selectedStatus) {
-                            showByStatus = false;
-                        }
-                        
-                        row.style.display = (showByCategory && showByStatus) ? '' : 'none';
-                    });
-                }
-            }
-            
-            // Product Form Submission
-            const saveProductBtn = document.getElementById('save-product-btn');
-            const productForm = document.getElementById('product-form');
-            
-            if (saveProductBtn && productForm) {
-                saveProductBtn.addEventListener('click', async function() {
-                    if (validateProductForm()) {
-                        try {
-                            showNotification('Processing, please wait...', 'info');
-                            
-                            const productId = document.getElementById('product-id').value;
-                            const method = productId ? 'PUT' : 'POST';
-                            const url = productId ? `/admin/api/products/${productId}` : '/admin/api/products';
-                            
-                            // First, collect all the form data except files
-                            const formData = new FormData(productForm);
-                            
-                            // Convert form data to JSON for the product API
-                            const productData = {};
-                            formData.forEach((value, key) => {
-                                // Skip the file input
-                                if (key === 'product_images') return;
-                                
-                                // Handle boolean values
-                                if (key === 'in_stock') {
-                                    productData[key] = value === 'true';
-                                } 
-                                // Handle numeric values
-                                else if (key === 'price' || key === 'sale_price' || key === 'category_id') {
-                                    productData[key] = value !== '' ? Number(value) : null;
-                                }
-                                // Handle arrays (checkboxes)
-                                else if (key === 'sizes') {
-                                    if (!productData[key]) {
-                                        productData[key] = [];
-                                    }
-                                    productData[key].push(value);
-                                }
-                                // Handle numeric values
-                            else if (key === 'price' || key === 'sale_price' || key === 'category_id' || key === 'inventory_count') {
-                                productData[key] = value !== '' ? Number(value) : null;
-                                }
-                                // Regular strings
-                                else {
-                                    productData[key] = value;
-                                }
-                            });
-                            
-                            // Handle tags as arrays
-                            if (productData.tags) {
-                                productData.tags = productData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
-                            } else {
-                                productData.tags = [];
-                            }
-                            
-                            // Prepare attributes object
-                            productData.attributes = {
-                                materials: productData.materials ? 
-                                    productData.materials.split(',').map(m => m.trim()).filter(m => m) : 
-                                    []
-                            };
-                            
-                            // Add sizes to attributes
-                            if (productData.sizes) {
-                                productData.attributes.sizes = productData.sizes;
-                            }
-                            
-                            delete productData.materials;
-                            delete productData.sizes;
-                            
-                            console.log('Submitting product data:', productData);
-                            
-                            // 1. First save the product data
-                            const response = await fetch(url, {
-                                method: method,
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(productData)
-                            });
-                            
-                            if (!response.ok) {
-                                const errorData = await response.json();
-                                throw new Error(errorData.detail || `Error: ${response.status}`);
-                            }
-                            
-                            const result = await response.json();
-                            console.log('Product saved:', result);
-                            
-                            // 2. Now handle image uploads if there are any
-                            const fileInput = document.getElementById('fileInput');
-                            if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                                // Create a new FormData for the image upload
-                                const imageFormData = new FormData();
-                                imageFormData.append('product_id', result.id);
-                                
-                                // Add all files
-                                for (let i = 0; i < fileInput.files.length; i++) {
-                                    imageFormData.append('files', fileInput.files[i]);
-                                }
-                                
-                                console.log('Uploading images for product ID:', result.id);
-                                
-                                try {
-                                    const uploadResponse = await fetch('/admin/api/upload/product-images', {
-                                        method: 'POST',
-                                        body: imageFormData
-                                    });
-                                    
-                                    if (!uploadResponse.ok) {
-                                        throw new Error(`Image upload failed: ${uploadResponse.status}`);
-                                    }
-                                    
-                                    const uploadResult = await uploadResponse.json();
-                                    console.log('Image upload success:', uploadResult);
-                                } catch (uploadError) {
-                                    console.error('Error uploading images:', uploadError);
-                                    showNotification('Product saved but image upload failed. Please try again.', 'warning');
-                                    setTimeout(() => window.location.reload(), 2500);
-                                    return;
-                                }
-                            }
-                            
-                            // Show success and reload
-                            showNotification(productId ? 'Product updated successfully!' : 'Product created successfully!', 'success');
-if (productId) {
-    // If editing an existing product, update the table row without reload
-    try {
-        // Get the updated data from the result
-        const updatedProduct = result;
+    // ========= NOTIFICATION SYSTEM =========
+    window.showNotification = function(message, type = 'success') {
+        console.log(`📢 ${type.toUpperCase()}: ${message}`);
         
-        // Find the row in the table
-        const productRow = document.querySelector(`tr [data-id="${productId}"]`).closest('tr');
-        if (productRow) {
-            // Update the displayed values
-            productRow.querySelector('.product-name').textContent = updatedProduct.name;
-            
-            // Update category name
-            if (productRow.querySelector('.product-category')) {
-                // Get the selected category name from the dropdown
-                const categoryId = updatedProduct.category_id;
-                const categorySelect = document.getElementById('product-category');
-                const selectedOption = categorySelect.querySelector(`option[value="${categoryId}"]`);
-                const categoryName = selectedOption ? selectedOption.textContent : 'Uncategorized';
-                productRow.querySelector('.product-category').textContent = categoryName;
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 
+                              type === 'warning' ? 'fa-exclamation-triangle' : 
+                              type === 'info' ? 'fa-info-circle' : 'fa-exclamation-circle'}"></i>
+                <p>${message}</p>
+                <button class="close-notification"><i class="fas fa-times"></i></button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        setTimeout(() => notification.classList.add('show'), 10);
+        
+        const closeButton = notification.querySelector('.close-notification');
+        closeButton.addEventListener('click', () => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        });
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+    };
+
+    // ========= HELPER FUNCTIONS =========
+    function parseProductAttributes(product) {
+        const parsedProduct = { ...product };
+        
+        if (product.attributes && typeof product.attributes === 'string') {
+            try {
+                console.log('Parsing JSON attributes:', product.attributes);
+                parsedProduct.attributes = JSON.parse(product.attributes);
+            } catch (error) {
+                console.error('Error parsing attributes JSON:', error);
+                parsedProduct.attributes = {};
             }
-            
-            // Update SKU
-            if (productRow.querySelector('.product-sku')) {
-                productRow.querySelector('.product-sku').textContent = `SKU: ${updatedProduct.sku || 'N/A'}`;
+        }
+        
+        if (!parsedProduct.attributes) {
+            parsedProduct.attributes = {};
+        }
+        
+        if (!parsedProduct.attributes.materials) {
+            parsedProduct.attributes.materials = [];
+        }
+        if (!parsedProduct.attributes.sizes) {
+            parsedProduct.attributes.sizes = [];
+        }
+        
+        if (!parsedProduct.tags && product.tags_array) {
+            parsedProduct.tags = product.tags_array;
+        } else if (!parsedProduct.tags && typeof product.tags === 'string') {
+            try {
+                parsedProduct.tags = JSON.parse(product.tags);
+            } catch (error) {
+                parsedProduct.tags = product.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
             }
-            
-            // Update price
-            if (productRow.querySelector('.current-price')) {
-                productRow.querySelector('.current-price').textContent = `₹${updatedProduct.price}`;
-            }
-            
-            // Update sale price
-            const salePriceElement = productRow.querySelector('.sale-price');
-            if (updatedProduct.sale_price) {
-                if (salePriceElement) {
-                    salePriceElement.textContent = `Sale: ₹${updatedProduct.sale_price}`;
-                } else {
-                    // Create sale price element if it doesn't exist
-                    const priceCell = productRow.querySelector('.product-price');
-                    if (priceCell) {
-                        const saleElem = document.createElement('div');
-                        saleElem.className = 'sale-price';
-                        saleElem.textContent = `Sale: ₹${updatedProduct.sale_price}`;
-                        priceCell.appendChild(saleElem);
-                    }
-                }
-            } else if (salePriceElement) {
-                // Remove sale price if it was cleared
-                salePriceElement.remove();
-            }
-            
-            // Update status
-            const statusElement = productRow.querySelector('.product-status');
-            if (statusElement) {
-                statusElement.textContent = updatedProduct.in_stock ? 'In Stock' : 'Out of Stock';
-                statusElement.className = `product-status ${updatedProduct.in_stock ? 'status-active' : 'status-inactive'}`;
+        }
+        
+        if (!Array.isArray(parsedProduct.tags)) {
+            parsedProduct.tags = [];
+        }
+        
+        console.log('Parsed product data:', parsedProduct);
+        return parsedProduct;
+    }
+
+    function updateProductRowInTable(updatedProduct) {
+        try {
+            const productRow = document.querySelector(`tr [data-id="${updatedProduct.id}"]`).closest('tr');
+            if (productRow) {
+                productRow.querySelector('.product-name').textContent = updatedProduct.name;
                 
-                // Update data-status attribute on the row for filtering
-                productRow.setAttribute('data-status', updatedProduct.in_stock ? 'active' : 'inactive');
-            }
-                        // Update inventory count
-                        if (productRow.querySelector('.inventory-count')) {
-                productRow.querySelector('.inventory-count').textContent = `${updatedProduct.inventory_count} units`;
-            }
-            
-            
-            // Update data-category attribute for filtering
-            productRow.setAttribute('data-category', updatedProduct.category_id);
-            
-            // Update image if a new one was uploaded
-            if (updatedProduct.image_url) {
-                const imageElement = productRow.querySelector('.product-image');
-                if (imageElement) {
-                    // Only update if the image URL changed
-                    if (imageElement.src !== updatedProduct.image_url) {
+                if (productRow.querySelector('.product-category')) {
+                    const categoryId = updatedProduct.category_id;
+                    const categorySelect = document.getElementById('product-category');
+                    const selectedOption = categorySelect.querySelector(`option[value="${categoryId}"]`);
+                    const categoryName = selectedOption ? selectedOption.textContent : 'Uncategorized';
+                    productRow.querySelector('.product-category').textContent = categoryName;
+                }
+                
+                if (productRow.querySelector('.product-sku')) {
+                    productRow.querySelector('.product-sku').textContent = `SKU: ${updatedProduct.sku || 'N/A'}`;
+                }
+                
+                if (productRow.querySelector('.current-price')) {
+                    productRow.querySelector('.current-price').textContent = `₹${updatedProduct.price}`;
+                }
+                
+                if (productRow.querySelector('.inventory-count')) {
+                    productRow.querySelector('.inventory-count').textContent = `${updatedProduct.inventory_count} units`;
+                }
+                
+                const statusElement = productRow.querySelector('.product-status');
+                if (statusElement) {
+                    statusElement.textContent = updatedProduct.in_stock ? 'In Stock' : 'Out of Stock';
+                    statusElement.className = `product-status ${updatedProduct.in_stock ? 'status-active' : 'status-inactive'}`;
+                    productRow.setAttribute('data-status', updatedProduct.in_stock ? 'active' : 'inactive');
+                }
+                
+                const salePriceElement = productRow.querySelector('.sale-price');
+                if (updatedProduct.sale_price) {
+                    if (salePriceElement) {
+                        salePriceElement.textContent = `Sale: ₹${updatedProduct.sale_price}`;
+                    } else {
+                        const priceCell = productRow.querySelector('.product-price');
+                        if (priceCell) {
+                            const saleElem = document.createElement('div');
+                            saleElem.className = 'sale-price';
+                            saleElem.textContent = `Sale: ₹${updatedProduct.sale_price}`;
+                            priceCell.appendChild(saleElem);
+                        }
+                    }
+                } else if (salePriceElement) {
+                    salePriceElement.remove();
+                }
+                
+                if (updatedProduct.image_url) {
+                    const imageElement = productRow.querySelector('.product-image');
+                    if (imageElement && imageElement.src !== updatedProduct.image_url) {
                         imageElement.src = updatedProduct.image_url;
                     }
                 }
+                
+                productRow.setAttribute('data-category', updatedProduct.category_id);
+                console.log('Product row updated in the UI');
             }
-            
-            // Close the modal
-            const productModal = document.getElementById('product-modal');
-            if (productModal) {
-                productModal.classList.remove('show');
-            }
-            
-            console.log('Product row updated in the UI');
-        } else {
-            console.warn('Product row not found in the table, reloading page instead');
+        } catch (uiError) {
+            console.error('Error updating product row in UI:', uiError);
             setTimeout(() => window.location.reload(), 1000);
         }
-    } catch (uiError) {
-        console.error('Error updating product row in UI:', uiError);
-        setTimeout(() => window.location.reload(), 1000);
     }
-} else {
-    // If creating a new product, reload the page to show it
-    setTimeout(() => window.location.reload(), 1500);
-}
-                            
-                        } catch (error) {
-                            console.error('Error saving product:', error);
-                            showNotification('Failed to save product: ' + error.message, 'error');
-                        }
-                    }
-                });
-            }
+
+    function resetProductForm() {
+        if (productForm) {
+            console.log('Resetting product form');
+            productForm.reset();
             
-            // Form validation
-            function validateProductForm() {
-                if (!productForm) return false;
-                
-                let isValid = true;
-                const requiredFields = productForm.querySelectorAll('[required]');
-                
-                // Clear previous errors
-                document.querySelectorAll('.error-message').forEach(el => el.remove());
-                document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
-                
-                requiredFields.forEach(field => {
-                    if (!field.value.trim()) {
-                        isValid = false;
-                        field.classList.add('error');
-                        
-                        // Add error message
-                        const errorMsg = document.createElement('div');
-                        errorMsg.className = 'error-message';
-                        errorMsg.textContent = 'This field is required';
-                        field.parentNode.insertBefore(errorMsg, field.nextSibling);
-                    }
-                });
-                
-                // Validate price fields
-                const priceField = document.getElementById('product-price');
-                const salePriceField = document.getElementById('product-sale-price');
-                
-                if (priceField && priceField.value && priceField.value <= 0) {
-                    isValid = false;
-                    priceField.classList.add('error');
-                    
-                    const errorMsg = document.createElement('div');
-                    errorMsg.className = 'error-message';
-                    errorMsg.textContent = 'Price must be greater than zero';
-                    priceField.parentNode.insertBefore(errorMsg, priceField.nextSibling);
-                }
-                
-                if (salePriceField && salePriceField.value) {
-                    if (parseFloat(salePriceField.value) <= 0) {
-                        isValid = false;
-                        salePriceField.classList.add('error');
-                        
-                        const errorMsg = document.createElement('div');
-                        errorMsg.className = 'error-message';
-                        errorMsg.textContent = 'Sale price must be greater than zero';
-                        salePriceField.parentNode.insertBefore(errorMsg, salePriceField.nextSibling);
-                    } else if (parseFloat(salePriceField.value) >= parseFloat(priceField.value)) {
-                        isValid = false;
-                        salePriceField.classList.add('error');
-                        
-                        const errorMsg = document.createElement('div');
-                        errorMsg.className = 'error-message';
-                        errorMsg.textContent = 'Sale price must be less than regular price';
-                        salePriceField.parentNode.insertBefore(errorMsg, salePriceField.nextSibling);
-                    }
-                }
-                
-                return isValid;
-            }
+            document.getElementById('product-id').value = '';
             
-            // Reset product form
-            function resetProductForm() {
-                if (productForm) {
-                    console.log('Resetting product form');
-                    productForm.reset();
-                    
-                    // Reset hidden fields
-                    document.getElementById('product-id').value = '';
-                    
-                    // Clear image previews
-                    if (imagePreviewContainer) {
-                        imagePreviewContainer.innerHTML = '';
-                    }
-                    
-                    // Reset file input
-                    if (fileInput) {
-                        fileInput.value = '';
-                    }
-                    
-                    // Clear error messages
-                    document.querySelectorAll('.error-message').forEach(el => el.remove());
-                    document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
-                }
+            // Clear images
+            selectedFiles = [];
+            if (fileInput) {
+                fileInput.value = '';
             }
+            updateImagePreviewContainer();
             
-            // Notification function
-            window.showNotification = function(message, type = 'success') {
-                const notification = document.createElement('div');
-                notification.className = `notification ${type}`;
-                notification.innerHTML = `
-                    <div class="notification-content">
-                        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : type === 'info' ? 'fa-info-circle' : 'fa-exclamation-circle'}"></i>
-                        <p>${message}</p>
-                        <button class="close-notification"><i class="fas fa-times"></i></button>
+            document.querySelectorAll('.error-message').forEach(el => el.remove());
+            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+        }
+    }
+
+    function validateProductForm() {
+        if (!productForm) return false;
+        
+        let isValid = true;
+        const requiredFields = productForm.querySelectorAll('[required]');
+        
+        document.querySelectorAll('.error-message').forEach(el => el.remove());
+        document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('error');
+                field.style.borderColor = 'red';
+                
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'error-message';
+                errorMsg.style.color = 'red';
+                errorMsg.style.fontSize = '12px';
+                errorMsg.textContent = 'This field is required';
+                field.parentNode.insertBefore(errorMsg, field.nextSibling);
+            }
+        });
+        
+        const priceField = document.getElementById('product-price');
+        const salePriceField = document.getElementById('product-sale-price');
+        
+        if (priceField && priceField.value && priceField.value <= 0) {
+            isValid = false;
+            priceField.classList.add('error');
+            priceField.style.borderColor = 'red';
+            
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'error-message';
+            errorMsg.style.color = 'red';
+            errorMsg.style.fontSize = '12px';
+            errorMsg.textContent = 'Price must be greater than zero';
+            priceField.parentNode.insertBefore(errorMsg, priceField.nextSibling);
+        }
+        
+        if (salePriceField && salePriceField.value) {
+            if (parseFloat(salePriceField.value) <= 0) {
+                isValid = false;
+                salePriceField.classList.add('error');
+                salePriceField.style.borderColor = 'red';
+                
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'error-message';
+                errorMsg.style.color = 'red';
+                errorMsg.style.fontSize = '12px';
+                errorMsg.textContent = 'Sale price must be greater than zero';
+                salePriceField.parentNode.insertBefore(errorMsg, salePriceField.nextSibling);
+            } else if (parseFloat(salePriceField.value) >= parseFloat(priceField.value)) {
+                isValid = false;
+                salePriceField.classList.add('error');
+                salePriceField.style.borderColor = 'red';
+                
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'error-message';
+                errorMsg.style.color = 'red';
+                errorMsg.style.fontSize = '12px';
+                errorMsg.textContent = 'Sale price must be less than regular price';
+                salePriceField.parentNode.insertBefore(errorMsg, salePriceField.nextSibling);
+            }
+        }
+        
+        return isValid;
+    }
+
+    // ========= MULTIPLE IMAGE UPLOAD SYSTEM =========
+    function updateImagePreviewContainer() {
+        console.log('🔄 Updating preview container with', selectedFiles.length, 'files');
+        
+        if (!imagePreviewContainer) return;
+        
+        // Clear existing previews
+        imagePreviewContainer.innerHTML = '';
+        
+        if (selectedFiles.length === 0) {
+            imagePreviewContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No images selected</p>';
+            return;
+        }
+
+        // Create preview for each file
+        selectedFiles.forEach((file, index) => {
+            console.log(`📸 Creating preview for file ${index + 1}: ${file.name}`);
+            
+            // Validate file
+            if (!file.type.startsWith('image/')) {
+                console.warn(`❌ File ${index + 1} is not an image:`, file.name);
+                return;
+            }
+
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                console.log(`✅ Preview loaded for: ${file.name}`);
+                
+                const preview = document.createElement('div');
+                preview.className = 'image-preview-item';
+                preview.style.cssText = `
+                    display: inline-block;
+                    margin: 10px;
+                    padding: 10px;
+                    border: 2px solid #ddd;
+                    border-radius: 8px;
+                    text-align: center;
+                    position: relative;
+                    background: white;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    transition: transform 0.2s ease, box-shadow 0.2s ease;
+                `;
+                
+                preview.innerHTML = `
+                    <div style="position: relative;">
+                        <img src="${e.target.result}" 
+                             style="width: 120px; height: 120px; object-fit: cover; border-radius: 4px; display: block;">
+                        <div style="position: absolute; top: -8px; right: -8px; 
+                                    background: #dc3545; color: white; border-radius: 50%; 
+                                    width: 24px; height: 24px; display: flex; align-items: center; 
+                                    justify-content: center; cursor: pointer; font-size: 14px; font-weight: bold;
+                                    transition: all 0.2s ease;"
+                             onclick="removeFile(${index})" 
+                             onmouseover="this.style.backgroundColor='#c82333'; this.style.transform='scale(1.1)'"
+                             onmouseout="this.style.backgroundColor='#dc3545'; this.style.transform='scale(1)'">×</div>
+                        <div style="position: absolute; top: 5px; left: 5px; 
+                                    background: rgba(226, 88, 34, 0.9); color: white; 
+                                    padding: 2px 6px; border-radius: 3px; font-size: 11px; font-weight: bold;">
+                            ${index + 1}
+                        </div>
+                    </div>
+                    <div style="margin-top: 8px; font-size: 11px; color: #666; max-width: 120px; 
+                                overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        ${file.name}
+                    </div>
+                    <div style="font-size: 10px; color: #999;">
+                        ${(file.size / 1024).toFixed(1)} KB
                     </div>
                 `;
                 
-                document.body.appendChild(notification);
-                
-                setTimeout(() => notification.classList.add('show'), 10);
-                
-                const closeButton = notification.querySelector('.close-notification');
-                closeButton.addEventListener('click', () => {
-                    notification.classList.remove('show');
-                    setTimeout(() => notification.remove(), 300);
+                preview.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
                 });
                 
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                    setTimeout(() => notification.remove(), 300);
-                }, 4000);
+                preview.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                });
+                
+                imagePreviewContainer.appendChild(preview);
             };
             
-            // Initialize pagination (for future implementation)
-            const paginationItems = document.querySelectorAll('.pagination-item');
-            if (paginationItems.length) {
-                paginationItems.forEach(item => {
-                    item.addEventListener('click', function() {
-                        if (!this.classList.contains('active')) {
-                            document.querySelector('.pagination-item.active').classList.remove('active');
-                            this.classList.add('active');
-                            // Here you would implement the actual pagination logic
-                            // For now, it's just a UI placeholder
-                        }
-                    });
+            reader.onerror = function() {
+                console.error(`❌ Error reading file: ${file.name}`);
+            };
+            
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Global function to remove individual files
+    window.removeFile = function(index) {
+        console.log(`🗑️ Removing file at index ${index}:`, selectedFiles[index]?.name);
+        
+        // Remove from array
+        selectedFiles.splice(index, 1);
+        
+        // Update file input
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        if (fileInput) {
+            fileInput.files = dt.files;
+        }
+        
+        // Update preview
+        updateImagePreviewContainer();
+        
+        showNotification('Image removed', 'info');
+    };
+
+    // Setup file input handling
+    if (fileInput && imagePreviewContainer) {
+        console.log('✅ Setting up MULTIPLE image upload handling');
+        
+        // Ensure file input is properly configured
+        fileInput.multiple = true;
+        fileInput.accept = 'image/*';
+        
+        fileInput.addEventListener('change', function(event) {
+            console.log('🔥 FILE INPUT CHANGED - MULTIPLE IMAGE MODE');
+            console.log('📸 Files from input:', this.files.length);
+            
+            if (!this.files || this.files.length === 0) {
+                console.log('❌ No files selected');
+                selectedFiles = [];
+                updateImagePreviewContainer();
+                return;
+            }
+
+            // Convert FileList to Array and store globally
+            selectedFiles = Array.from(this.files);
+            console.log('📦 Stored files:', selectedFiles.length);
+            
+            // Log each file
+            selectedFiles.forEach((file, index) => {
+                console.log(`   File ${index + 1}: ${file.name} (${file.type}, ${file.size} bytes)`);
+            });
+            
+            // Validate files
+            const validFiles = selectedFiles.filter(file => {
+                if (!file.type.startsWith('image/')) {
+                    showNotification(`"${file.name}" is not an image file`, 'warning');
+                    return false;
+                }
+                if (file.size > 10 * 1024 * 1024) { // 10MB limit
+                    showNotification(`"${file.name}" is too large (max 10MB)`, 'warning');
+                    return false;
+                }
+                return true;
+            });
+            
+            selectedFiles = validFiles;
+            
+            updateImagePreviewContainer();
+            
+            if (validFiles.length > 0) {
+                showNotification(`${validFiles.length} image(s) selected for upload`, 'info');
+            }
+        });
+
+        // Clear all images
+        if (clearImagesBtn) {
+            clearImagesBtn.addEventListener('click', function() {
+                console.log('🧹 Clearing all images');
+                selectedFiles = [];
+                fileInput.value = '';
+                updateImagePreviewContainer();
+                showNotification('All images cleared', 'info');
+            });
+        }
+
+        // Initialize
+        updateImagePreviewContainer();
+    }
+
+    // ========= SIDEBAR TOGGLE =========
+    if (toggleSidebar && sidebar) {
+        toggleSidebar.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+        });
+    }
+
+    // ========= MODAL CONTROLS =========
+    const closeButtons = document.querySelectorAll('.modal-close');
+    
+    if (addProductBtn && productModal) {
+        addProductBtn.addEventListener('click', function() {
+            resetProductForm();
+            document.querySelector('#product-modal .modal-title').textContent = 'Add New Product';
+            productModal.classList.add('show');
+        });
+    }
+    
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const modal = this.closest('.modal-backdrop');
+            if (modal) {
+                modal.classList.remove('show');
+            }
+        });
+    });
+
+    // ========= PRODUCT CRUD OPERATIONS =========
+    
+    // Edit product function
+    async function editProduct(productId) {
+        try {
+            console.log('Loading product for editing, ID:', productId);
+            showNotification('Loading product...', 'info');
+            
+            const response = await fetch(`/admin/api/products/${productId}`);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`Error fetching product (${response.status}):`, errorText);
+                throw new Error(`Error fetching product: ${response.status}`);
+            }
+            
+            let product = await response.json();
+            console.log('Raw product data loaded:', product);
+            
+            product = parseProductAttributes(product);
+            console.log('Parsed product data:', product);
+            
+            resetProductForm();
+            
+            document.getElementById('product-id').value = product.id;
+            document.getElementById('product-name').value = product.name;
+            document.getElementById('product-description').value = product.description;
+            document.getElementById('product-price').value = product.price;
+            document.getElementById('product-sale-price').value = product.sale_price || '';
+            document.getElementById('product-category').value = product.category_id;
+            document.getElementById('product-inventory').value = product.inventory_count || 0;
+            document.getElementById('product-status').value = product.in_stock.toString();
+            document.getElementById('product-sku').value = product.sku || '';
+            
+            if (product.tags && product.tags.length) {
+                document.querySelector('input[name="tags"]').value = product.tags.join(', ');
+            }
+            
+            if (product.attributes && product.attributes.materials) {
+                document.querySelector('input[name="materials"]').value = product.attributes.materials.join(', ');
+            }
+            
+            if (product.attributes && product.attributes.sizes) {
+                const sizeCheckboxes = document.querySelectorAll('input[name="sizes"]');
+                sizeCheckboxes.forEach(checkbox => {
+                    checkbox.checked = product.attributes.sizes.includes(checkbox.value);
                 });
             }
             
-            // Optionally uncomment this to debug product responses
-            // inspectProductResponse(1); // Use a real product ID from your database
+            // Show existing images
+            if (product.image_url) {
+                // For editing, we'll just show the main image as reference
+                // User can upload new images which will replace the old ones
+                imagePreviewContainer.innerHTML = `
+                    <div style="text-align: center; padding: 10px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;">
+                        <p style="margin: 0 0 10px 0; color: #666; font-size: 12px;">Current main image:</p>
+                        <img src="${product.image_url}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;">
+                        <p style="margin: 10px 0 0 0; color: #888; font-size: 11px;">Upload new images to replace existing ones</p>
+                    </div>
+                `;
+            }
+            
+            document.querySelector('#product-modal .modal-title').textContent = 'Edit Product';
+            
+            if (productModal) {
+                productModal.classList.add('show');
+            }
+            
+        } catch (error) {
+            console.error('Error in editProduct:', error);
+            showNotification('Failed to load product: ' + error.message, 'error');
+        }
+    }
+
+    // View product function
+    async function viewProduct(productId) {
+        try {
+            console.log('Loading product for viewing, ID:', productId);
+            showNotification('Loading product details...', 'info');
+            
+            const response = await fetch(`/admin/api/products/${productId}`);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`Error fetching product (${response.status}):`, errorText);
+                throw new Error(`Error fetching product: ${response.status}`);
+            }
+            
+            let product = await response.json();
+            console.log('Raw product data loaded for viewing:', product);
+            
+            product = parseProductAttributes(product);
+            console.log('Parsed product data for viewing:', product);
+            
+            if (!viewProductModal) {
+                console.error('View product modal not found!');
+                return;
+            }
+            
+            document.getElementById('view-product-name').textContent = product.name;
+            document.getElementById('view-product-image').src = product.image_url || '/static/images/products/placeholder.jpg';
+            document.getElementById('view-product-category').textContent = product.category_name || 'Uncategorized';
+            document.getElementById('view-product-sku').textContent = product.sku || 'N/A';
+            document.getElementById('view-product-price').textContent = 
+                `₹${product.price}${product.sale_price ? ' (Sale: ₹' + product.sale_price + ')' : ''}`;
+            document.getElementById('view-product-status').textContent = product.in_stock ? 'In Stock' : 'Out of Stock';
+            document.getElementById('view-product-description').textContent = product.description || 'No description available';
+            
+            const materialsElement = document.getElementById('view-product-materials');
+            if (materialsElement) {
+                if (product.attributes && product.attributes.materials && product.attributes.materials.length) {
+                    materialsElement.textContent = product.attributes.materials.join(', ');
+                } else {
+                    materialsElement.textContent = 'N/A';
+                }
+            }
+            
+            const sizesElement = document.getElementById('view-product-sizes');
+            if (sizesElement) {
+                if (product.attributes && product.attributes.sizes && product.attributes.sizes.length) {
+                    sizesElement.textContent = product.attributes.sizes.join(', ');
+                } else {
+                    sizesElement.textContent = 'N/A';
+                }
+            }
+            
+            const tagsElement = document.getElementById('view-product-tags');
+            if (tagsElement) {
+                if (product.tags && product.tags.length) {
+                    tagsElement.textContent = product.tags.join(', ');
+                } else {
+                    tagsElement.textContent = 'N/A';
+                }
+            }
+            
+            const editFromViewBtn = document.getElementById('edit-from-view-btn');
+            if (editFromViewBtn) {
+                const newBtn = editFromViewBtn.cloneNode(true);
+                editFromViewBtn.parentNode.replaceChild(newBtn, editFromViewBtn);
+                
+                newBtn.addEventListener('click', function() {
+                    viewProductModal.classList.remove('show');
+                    editProduct(productId);
+                });
+            }
+            
+            viewProductModal.classList.add('show');
+            
+        } catch (error) {
+            console.error('Error in viewProduct:', error);
+            showNotification('Failed to load product details: ' + error.message, 'error');
+        }
+    }
+
+    // ========= EVENT LISTENERS FOR CRUD OPERATIONS =========
+    
+    // Edit product buttons
+    const editButtons = document.querySelectorAll('.action-btn.edit');
+    if (editButtons.length) {
+        console.log('Found', editButtons.length, 'edit product buttons');
+        editButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const productId = this.getAttribute('data-id');
+                console.log('Edit button clicked for product ID:', productId);
+                editProduct(productId);
+            });
         });
+    }
+
+    // View product buttons
+    const viewButtons = document.querySelectorAll('.action-btn.view');
+    if (viewButtons.length) {
+        console.log('Found', viewButtons.length, 'view product buttons');
+        viewButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const productId = this.getAttribute('data-id');
+                console.log('View button clicked for product ID:', productId);
+                viewProduct(productId);
+            });
+        });
+    }
+
+    // Delete product buttons
+    const deleteButtons = document.querySelectorAll('.action-btn.delete');
+    const productToDeleteElement = document.querySelector('.product-to-delete');
+    
+    if (deleteButtons.length && deleteModal && confirmDeleteBtn) {
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                productToDelete = this.getAttribute('data-id');
+                const productName = this.closest('tr').querySelector('.product-name').textContent;
+                if (productToDeleteElement) {
+                    productToDeleteElement.textContent = `Product: "${productName}"`;
+                }
+                deleteModal.classList.add('show');
+            });
+        });
+        
+        confirmDeleteBtn.addEventListener('click', async function() {
+            if (productToDelete) {
+                try {
+                    const response = await fetch(`/admin/api/products/${productToDelete}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error: ${response.status}`);
+                    }
+                    
+                    showNotification('Product deleted successfully!', 'success');
+                    
+                    const row = document.querySelector(`.action-btn.delete[data-id="${productToDelete}"]`).closest('tr');
+                    if (row) {
+                        row.remove();
+                    }
+                    
+                    deleteModal.classList.remove('show');
+                    productToDelete = null;
+                    
+                } catch (error) {
+                    console.error('Error deleting product:', error);
+                    showNotification('Failed to delete product: ' + error.message, 'error');
+                }
+            }
+        });
+    }
+
+    // ========= FORM SUBMISSION WITH MULTIPLE IMAGES =========
+// REPLACE the form submission section in your JavaScript with this fixed version
+
+// ========= FORM SUBMISSION WITH BETTER ERROR HANDLING =========
+if (saveProductBtn && productForm) {
+    saveProductBtn.addEventListener('click', async function() {
+        console.log('💾 SAVE PRODUCT - MULTIPLE IMAGE VERSION');
+        
+        if (!validateProductForm()) {
+            showNotification('Please fill in all required fields correctly', 'error');
+            return;
+        }
+
+        try {
+            showNotification('Saving product...', 'info');
+            
+            const productId = document.getElementById('product-id').value;
+            const method = productId ? 'PUT' : 'POST';
+            const url = productId ? `/admin/api/products/${productId}` : '/admin/api/products';
+            
+            console.log(`🔄 ${productId ? 'Updating' : 'Creating'} product using ${method} to ${url}`);
+            
+            // Collect product data
+            const productData = {
+    name: document.getElementById('product-name').value.trim(),
+    description: document.getElementById('product-description').value.trim(),
+    price: parseFloat(document.getElementById('product-price').value),
+    sale_price: document.getElementById('product-sale-price').value ? 
+               parseFloat(document.getElementById('product-sale-price').value) : null,
+    category_id: parseInt(document.getElementById('product-category').value),
+    in_stock: document.getElementById('product-status').value === 'true',
+    inventory_count: parseInt(document.getElementById('product-inventory').value) || 0,
+    sku: document.getElementById('product-sku').value?.trim() || null,
+    tags: [],
+    attributes: {}
+};
+
+            // Handle tags
+            const tagsInput = document.querySelector('input[name="tags"]');
+if (tagsInput && tagsInput.value.trim()) {
+    productData.tags = tagsInput.value.split(',').map(tag => tag.trim()).filter(tag => tag);
+}
+
+            // Handle materials
+            const materialsInput = document.querySelector('input[name="materials"]');
+if (materialsInput && materialsInput.value.trim()) {
+    productData.attributes.materials = materialsInput.value.split(',').map(m => m.trim()).filter(m => m);
+}
+
+
+// Handle sizes
+const selectedSizes = [];
+document.querySelectorAll('input[name="sizes"]:checked').forEach(checkbox => {
+    selectedSizes.push(checkbox.value);
+});
+if (selectedSizes.length > 0) {
+    productData.attributes.sizes = selectedSizes;
+}
+
+console.log('📤 Product data being sent (without ID):', productData);
+console.log('📸 Images to upload:', selectedFiles.length);
+const validationErrors = [];
+if (!productData.name) validationErrors.push('Name is required');
+if (!productData.description) validationErrors.push('Description is required');
+if (isNaN(productData.price) || productData.price <= 0) validationErrors.push('Valid price is required');
+if (isNaN(productData.category_id)) validationErrors.push('Category is required');
+if (isNaN(productData.inventory_count) || productData.inventory_count < 0) validationErrors.push('Valid inventory count is required');
+
+if (validationErrors.length > 0) {
+    console.error('❌ Validation errors:', validationErrors);
+    showNotification('Validation errors: ' + validationErrors.join(', '), 'error');
+    return;
+}
+
+console.log('✅ Client-side validation passed');
+            // Step 1: Save product
+            const response = await fetch(url, {
+    method: method,
+    headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    },
+    body: JSON.stringify(productData)  // This now doesn't include the ID
+});
+
+            console.log('📥 Product save response status:', response.status);
+            console.log('📥 Product save response headers:', response.headers);
+
+            // Enhanced error handling
+            if (!response.ok) {
+                let errorMessage = `HTTP ${response.status}`;
+                
+                try {
+                    const errorData = await response.json();
+                    console.error('❌ Product save error data:', errorData);
+                    
+                    if (errorData.detail) {
+                        errorMessage = errorData.detail;
+                    } else if (errorData.message) {
+                        errorMessage = errorData.message;
+                    } else if (typeof errorData === 'string') {
+                        errorMessage = errorData;
+                    } else {
+                        errorMessage = `Server error: ${response.status} ${response.statusText}`;
+                    }
+                } catch (parseError) {
+                    console.error('❌ Could not parse error response:', parseError);
+                    const errorText = await response.text();
+                    console.error('❌ Raw error response:', errorText);
+                    errorMessage = `Server error: ${response.status} - ${errorText.substring(0, 100)}`;
+                }
+                
+                throw new Error(errorMessage);
+            }
+
+            const result = await response.json();
+            console.log('✅ Product saved successfully:', result);
+
+            // Step 2: Upload images if any (only for new products or if user selected new images)
+            if (selectedFiles.length > 0) {
+                console.log('🔥 UPLOADING MULTIPLE IMAGES');
+                showNotification(`Uploading ${selectedFiles.length} images...`, 'info');
+                
+                const imageFormData = new FormData();
+                imageFormData.append('product_id', result.id);
+                
+                // Add ALL selected files
+                selectedFiles.forEach((file, index) => {
+                    imageFormData.append('files', file);
+                    console.log(`📎 Added file ${index + 1}: ${file.name} (${file.size} bytes)`);
+                });
+                
+                console.log('📤 Sending upload request with', selectedFiles.length, 'files...');
+                
+                try {
+                    const uploadResponse = await fetch('/admin/api/upload/product-images', {
+                        method: 'POST',
+                        body: imageFormData
+                    });
+                    
+                    console.log('📥 Upload response status:', uploadResponse.status);
+                    
+                    if (!uploadResponse.ok) {
+                        let uploadErrorMessage = `Upload failed: HTTP ${uploadResponse.status}`;
+                        
+                        try {
+                            const uploadError = await uploadResponse.json();
+                            console.error('❌ Upload error:', uploadError);
+                            
+                            if (uploadError.detail) {
+                                uploadErrorMessage = uploadError.detail;
+                            } else if (uploadError.message) {
+                                uploadErrorMessage = uploadError.message;
+                            }
+                        } catch (parseError) {
+                            const uploadErrorText = await uploadResponse.text();
+                            console.error('❌ Raw upload error:', uploadErrorText);
+                            uploadErrorMessage = `Upload failed: ${uploadResponse.status} - ${uploadErrorText.substring(0, 100)}`;
+                        }
+                        
+                        throw new Error(uploadErrorMessage);
+                    }
+                    
+                    const uploadResult = await uploadResponse.json();
+                    console.log('🎉 UPLOAD SUCCESS:', uploadResult);
+                    
+                    const successMessage = uploadResult.failed_count > 0 
+                        ? `Product saved! ${uploadResult.uploaded_count} images uploaded, ${uploadResult.failed_count} failed.`
+                        : `Product saved with ${uploadResult.uploaded_count} images!`;
+                        
+                    showNotification(successMessage, 'success');
+                    
+                    if (uploadResult.failed_uploads && uploadResult.failed_uploads.length > 0) {
+                        console.warn('⚠️ Some uploads failed:', uploadResult.failed_uploads);
+                        uploadResult.failed_uploads.forEach(failure => {
+                            showNotification(`Upload failed: ${failure}`, 'warning');
+                        });
+                    }
+                    
+                } catch (uploadError) {
+                    console.error('❌ Image upload failed:', uploadError);
+                    showNotification(
+                        `Product saved but image upload failed: ${uploadError.message}`, 
+                        'warning'
+                    );
+                }
+            } else {
+                console.log('ℹ️ No images to upload');
+                showNotification(
+                    productId ? 'Product updated successfully!' : 'Product created successfully!', 
+                    'success'
+                );
+            }
+
+            // Handle UI updates or reload
+            if (productId) {
+                // If editing an existing product, update the table row
+                updateProductRowInTable(result);
+                
+                // Close the modal
+                if (productModal) {
+                    productModal.classList.remove('show');
+                }
+            } else {
+                // If creating a new product, reload the page to show it
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            }
+
+        } catch (error) {
+            console.error('💥 Error saving product:', error);
+            
+            // Enhanced error message handling
+            let errorMessage = 'Unknown error occurred';
+            
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            } else if (typeof error === 'string') {
+                errorMessage = error;
+            } else if (error && error.toString) {
+                errorMessage = error.toString();
+            } else {
+                errorMessage = 'An unexpected error occurred. Check the console for details.';
+                console.error('Raw error object:', error);
+            }
+            
+            showNotification(`Failed to save product: ${errorMessage}`, 'error');
+        }
+    });
+}
+    // ========= SEARCH AND FILTER FUNCTIONALITY =========
+    
+    // Product search functionality
+    const productSearch = document.getElementById('product-search');
+    if (productSearch) {
+        const productRows = document.querySelectorAll('#products-tbody tr');
+        
+        productSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            productRows.forEach(row => {
+                const productName = row.querySelector('.product-name')?.textContent.toLowerCase() || '';
+                const productCategory = row.querySelector('.product-category')?.textContent.toLowerCase() || '';
+                const productSku = row.querySelector('.product-sku')?.textContent.toLowerCase() || '';
+                
+                if (productName.includes(searchTerm) || 
+                    productCategory.includes(searchTerm) || 
+                    productSku.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Filter by category and status
+    const categoryFilter = document.getElementById('category-filter');
+    const statusFilter = document.getElementById('status-filter');
+    
+    if (categoryFilter && statusFilter) {
+        const productRows = document.querySelectorAll('#products-tbody tr');
+        
+        categoryFilter.addEventListener('change', filterProducts);
+        statusFilter.addEventListener('change', filterProducts);
+        
+        function filterProducts() {
+            const selectedCategory = categoryFilter.value;
+            const selectedStatus = statusFilter.value;
+            
+            productRows.forEach(row => {
+                const rowCategory = row.getAttribute('data-category');
+                const rowStatus = row.getAttribute('data-status');
+                
+                let showByCategory = true;
+                let showByStatus = true;
+                
+                if (selectedCategory && rowCategory !== selectedCategory) {
+                    showByCategory = false;
+                }
+                
+                if (selectedStatus && rowStatus !== selectedStatus) {
+                    showByStatus = false;
+                }
+                
+                row.style.display = (showByCategory && showByStatus) ? '' : 'none';
+            });
+        }
+    }
+
+    // ========= PAGINATION FUNCTIONALITY =========
+    const paginationItems = document.querySelectorAll('.pagination-item');
+    if (paginationItems.length) {
+        paginationItems.forEach(item => {
+            item.addEventListener('click', function() {
+                if (!this.classList.contains('active') && !this.querySelector('i')) {
+                    document.querySelector('.pagination-item.active')?.classList.remove('active');
+                    this.classList.add('active');
+                    showNotification(`Switched to page ${this.textContent}`, 'info');
+                }
+            });
+        });
+    }
+
+    // ========= KEYBOARD SHORTCUTS =========
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+N or Cmd+N to add new product
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n' && !e.shiftKey) {
+            e.preventDefault();
+            if (addProductBtn && !productModal?.classList.contains('show')) {
+                addProductBtn.click();
+            }
+        }
+        
+        // Escape key to close modals
+        if (e.key === 'Escape') {
+            const activeModal = document.querySelector('.modal-backdrop.show');
+            if (activeModal) {
+                activeModal.classList.remove('show');
+            }
+        }
+        
+        // Ctrl+S or Cmd+S to save product (when modal is open)
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            if (productModal && productModal.classList.contains('show')) {
+                e.preventDefault();
+                if (saveProductBtn) {
+                    saveProductBtn.click();
+                }
+            }
+        }
+    });
+
+    // ========= DRAG AND DROP FUNCTIONALITY (OPTIONAL) =========
+    if (fileInput && imagePreviewContainer) {
+        // Add drag and drop to file input
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileInput.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileInput.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileInput.addEventListener(eventName, unhighlight, false);
+        });
+
+        fileInput.addEventListener('drop', handleDrop, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            fileInput.style.borderColor = '#e25822';
+            fileInput.style.backgroundColor = '#fff5f2';
+        }
+
+        function unhighlight(e) {
+            fileInput.style.borderColor = '#ddd';
+            fileInput.style.backgroundColor = '#fff';
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            fileInput.files = files;
+            const event = new Event('change', { bubbles: true });
+            fileInput.dispatchEvent(event);
+        }
+    }
+
+    // ========= BULK OPERATIONS (OPTIONAL) =========
+    
+    // Add bulk selection functionality
+    const selectAllCheckbox = document.getElementById('select-all-products');
+    const productCheckboxes = document.querySelectorAll('.product-checkbox');
+    const bulkActionsBtn = document.getElementById('bulk-actions-btn');
+    
+    if (selectAllCheckbox && productCheckboxes.length) {
+        selectAllCheckbox.addEventListener('change', function() {
+            productCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkActionsVisibility();
+        });
+        
+        productCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const allChecked = Array.from(productCheckboxes).every(cb => cb.checked);
+                const noneChecked = Array.from(productCheckboxes).every(cb => !cb.checked);
+                
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = !allChecked && !noneChecked;
+                
+                updateBulkActionsVisibility();
+            });
+        });
+        
+        function updateBulkActionsVisibility() {
+            const selectedCount = Array.from(productCheckboxes).filter(cb => cb.checked).length;
+            if (bulkActionsBtn) {
+                bulkActionsBtn.style.display = selectedCount > 0 ? 'block' : 'none';
+                bulkActionsBtn.textContent = `Bulk Actions (${selectedCount})`;
+            }
+        }
+    }
+
+    // ========= ACCESSIBILITY IMPROVEMENTS =========
+    
+    // Add ARIA labels and improve keyboard navigation
+    const actionButtons = document.querySelectorAll('.action-btn');
+    actionButtons.forEach(btn => {
+        const action = btn.classList.contains('view') ? 'View' : 
+                     btn.classList.contains('edit') ? 'Edit' : 'Delete';
+        const productId = btn.getAttribute('data-id');
+        btn.setAttribute('aria-label', `${action} product ${productId}`);
+        
+        // Add keyboard support
+        btn.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.click();
+            }
+        });
+    });
+
+    // ========= PERFORMANCE OPTIMIZATIONS =========
+    
+    // Lazy load product images
+    const productImages = document.querySelectorAll('.product-image');
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                        observer.unobserve(img);
+                    }
+                }
+            });
+        });
+        
+        productImages.forEach(img => {
+            if (img.dataset.src) {
+                imageObserver.observe(img);
+            }
+        });
+    }
+
+    // ========= TOOLTIPS =========
+    
+    // Add tooltips to action buttons
+    const tooltipElements = document.querySelectorAll('[title]');
+    tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', function() {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = this.title;
+            tooltip.style.cssText = `
+                position: absolute;
+                background: #333;
+                color: white;
+                padding: 5px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                z-index: 1000;
+                pointer-events: none;
+                white-space: nowrap;
+            `;
+            document.body.appendChild(tooltip);
+            
+            const rect = this.getBoundingClientRect();
+            tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+            tooltip.style.top = rect.top - tooltip.offsetHeight - 5 + 'px';
+            
+            this.addEventListener('mouseleave', function() {
+                tooltip.remove();
+            }, { once: true });
+        });
+    });
+
+    // ========= AUTO-SAVE FUNCTIONALITY =========
+    
+    // Auto-save form data to localStorage
+    if (productForm) {
+        const formFields = productForm.querySelectorAll('input, textarea, select');
+        
+        formFields.forEach(field => {
+            // Load saved data on page load (only for new products)
+            const savedValue = localStorage.getItem(`product_form_${field.name}`);
+            if (savedValue && !field.value && !document.getElementById('product-id').value) {
+                field.value = savedValue;
+            }
+            
+            // Save data on change
+            field.addEventListener('input', function() {
+                // Only save for new products, not when editing
+                if (!document.getElementById('product-id').value) {
+                    localStorage.setItem(`product_form_${field.name}`, this.value);
+                }
+            });
+        });
+        
+        // Clear saved data when form is submitted successfully
+        productForm.addEventListener('submit', function() {
+            formFields.forEach(field => {
+                localStorage.removeItem(`product_form_${field.name}`);
+            });
+        });
+    }
+
+    // ========= FINAL INITIALIZATION =========
+    console.log('✅ Products page JavaScript fully initialized with multiple image support');
+    
+    // Debug information
+    console.log('🔍 Debug information:');
+    console.log('- File input element:', !!fileInput);
+    console.log('- Image preview container:', !!imagePreviewContainer);
+    console.log('- Clear button:', !!clearImagesBtn);
+    console.log('- Product form:', !!productForm);
+    console.log('- Save button:', !!saveProductBtn);
+    console.log('- Selected files array initialized:', selectedFiles.length);
+    
+    // Show initialization complete notification
+    setTimeout(() => {
+        showNotification('Products page loaded with multiple image support!', 'success');
+    }, 500);
+});
     </script>
     
     <style>
@@ -1521,6 +1875,656 @@ if (productId) {
             font-weight: 600;
             color: var(--secondary-color);
         }
+
+        /* Enhanced file input styles - Add this to your CSS */
+
+#fileInput {
+    display: block;
+    margin-bottom: 15px;
+    padding: 12px;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    width: 100%;
+    background-color: #fafafa;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+#fileInput:hover {
+    border-color: #e25822;
+    background-color: #fff5f2;
+}
+
+#fileInput:focus {
+    outline: none;
+    border-color: #e25822;
+    box-shadow: 0 0 0 3px rgba(226, 88, 34, 0.1);
+}
+
+.image-preview-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+    min-height: 60px;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background-color: #fafafa;
+}
+
+.image-preview-container:empty::before {
+    content: "No images selected. Choose files above to see previews here.";
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #777;
+    font-style: italic;
+    padding: 20px;
+}
+
+.image-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.image-preview:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    border-color: #e25822;
+}
+
+.image-file-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+    color: white;
+    font-size: 10px;
+    padding: 8px 4px 4px;
+    border-radius: 0 0 6px 6px;
+    text-align: center;
+    word-break: break-word;
+}
+
+.remove-image {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #dc3545;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    transition: all 0.2s ease;
+    border: 2px solid white;
+}
+
+.remove-image:hover {
+    background-color: #c82333;
+    transform: scale(1.1);
+    box-shadow: 0 3px 12px rgba(220, 53, 69, 0.4);
+}
+
+#clearImagesBtn {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    color: #6c757d;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#clearImagesBtn:hover {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+#clearImagesBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Loading state for save button */
+#save-product-btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+#save-product-btn.loading::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid #fff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Progress indicator */
+.upload-progress {
+    width: 100%;
+    height: 4px;
+    background-color: #e9ecef;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 10px;
+    display: none;
+}
+
+.upload-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #e25822, #ff7043);
+    width: 0%;
+    transition: width 0.3s ease;
+    animation: progress-shimmer 2s infinite;
+}
+
+@keyframes progress-shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: 200px 0; }
+}
+
+/* Enhanced notification styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #fff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 16px 20px;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    max-width: 400px;
+    border-left: 4px solid;
+}
+
+.notification.success {
+    border-left-color: #28a745;
+}
+
+.notification.error {
+    border-left-color: #dc3545;
+}
+
+.notification.warning {
+    border-left-color: #ffc107;
+}
+
+.notification.info {
+    border-left-color: #17a2b8;
+}
+
+.notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notification-content i {
+    font-size: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.notification-content p {
+    margin: 0;
+    flex: 1;
+    line-height: 1.4;
+    font-size: 14px;
+}
+
+.close-notification {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    color: #6c757d;
+    flex-shrink: 0;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+.close-notification:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: #333;
+}
+
+/* Enhanced file input label */
+.file-input-label {
+    display: block;
+    padding: 30px 20px;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    background-color: #fafafa;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+}
+
+.file-input-label:hover {
+    border-color: #e25822;
+    background-color: #fff5f2;
+}
+
+.file-input-label.dragover {
+    border-color: #e25822;
+    background-color: #fff5f2;
+    border-style: solid;
+    transform: scale(1.02);
+}
+
+.file-input-label i {
+    font-size: 32px;
+    color: #e25822;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.file-input-label span {
+    display: block;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.file-input-label small {
+    display: block;
+    font-size: 12px;
+    color: #777;
+}
+
+/* File drag and drop styling */
+#fileInput.dragover {
+    border-color: #e25822;
+    background-color: #fff5f2;
+    border-style: solid;
+}
+
+/* Image placeholder */
+.image-placeholder {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: #777;
+    background-color: #f8f9fa;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+}
+
+.image-placeholder i {
+    font-size: 48px;
+    color: #ccc;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.image-placeholder p {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.image-placeholder small {
+    font-size: 12px;
+    color: #999;
+}
+
+/* Enhanced image preview */
+.image-number {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background-color: rgba(226, 88, 34, 0.9);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.image-file-size {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 9px;
+}
+
+.image-preview {
+    cursor: pointer;
+}
+
+.image-preview:hover .image-file-name {
+    background: linear-gradient(transparent, rgba(226, 88, 34, 0.8));
+}
+
+/* Image preview modal */
+.image-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.image-preview-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.image-preview-modal-content {
+    background: white;
+    border-radius: 8px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.image-preview-modal.show .image-preview-modal-content {
+    transform: scale(1);
+}
+
+.image-preview-modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f8f9fa;
+}
+
+.image-preview-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.image-preview-modal-header .file-size {
+    font-size: 12px;
+    color: #777;
+    margin: 0 15px;
+}
+
+.close-preview-modal {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px;
+    color: #777;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.close-preview-modal:hover {
+    background-color: #e9ecef;
+    color: #333;
+}
+
+.image-preview-modal-body {
+    padding: 20px;
+    text-align: center;
+}
+
+.image-preview-modal-body img {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced clear button */
+#clearImagesBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .image-preview-container {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+        padding: 10px;
+    }
+    
+    .image-preview {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .notification {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        transform: translateY(-100%);
+    }
+    
+    .notification.show {
+        transform: translateY(0);
+    }
+}
+/* Add this CSS to your admin.css file for multiple image previews */
+
+#image-preview-container {
+    min-height: 100px;
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+    background-color: #fafafa;
+    text-align: center;
+    transition: border-color 0.3s ease;
+}
+
+#image-preview-container:empty::before {
+    content: "No images selected. Choose files above to see previews here.";
+    color: #777;
+    font-style: italic;
+}
+
+.image-preview-item {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.image-preview-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+/* File input styling */
+#fileInput {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+#fileInput:hover {
+    border-color: #e25822;
+}
+
+#fileInput:focus {
+    outline: none;
+    border-color: #e25822;
+    box-shadow: 0 0 0 3px rgba(226, 88, 34, 0.1);
+}
+
+/* Clear button styling */
+#clearImagesBtn {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    color: #6c757d;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#clearImagesBtn:hover {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+#clearImagesBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Notification styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #fff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 16px 20px;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    max-width: 400px;
+    border-left: 4px solid;
+}
+
+.notification.success { border-left-color: #28a745; }
+.notification.error { border-left-color: #dc3545; }
+.notification.warning { border-left-color: #ffc107; }
+.notification.info { border-left-color: #17a2b8; }
+
+.notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notification-content i {
+    font-size: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.notification-content p {
+    margin: 0;
+    flex: 1;
+    line-height: 1.4;
+    font-size: 14px;
+}
+
+.close-notification {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    color: #6c757d;
+    flex-shrink: 0;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+}
+
+.close-notification:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: #333;
+}
+
+/* Remove button hover effect */
+.image-preview-item [onclick] {
+    transition: all 0.2s ease;
+}
+
+.image-preview-item [onclick]:hover {
+    background-color: #c82333 !important;
+    transform: scale(1.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .image-preview-item {
+        margin: 5px !important;
+        padding: 8px !important;
+    }
+    
+    .image-preview-item img {
+        width: 80px !important;
+        height: 80px !important;
+    }
+    
+    .notification {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+}
     </style>
 </body>
 </html>

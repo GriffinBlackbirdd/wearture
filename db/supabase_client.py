@@ -391,41 +391,67 @@ def update_product(product_id: int, product_data: Dict[str, Any]) -> Optional[Di
 
 def update_product_images(product_id: int, image_urls: List[str]) -> Optional[Dict[str, Any]]:
     """
-    Update product with multiple images
+    Update product with multiple images - FIXED VERSION
     First image becomes the main image, rest are stored as additional images
     """
     try:
+        print(f"🔄 Updating product {product_id} with {len(image_urls)} images")
+        print(f"   URLs: {image_urls}")
+        
         # Get existing product
         product = get_product(product_id)
         if not product:
+            print(f"❌ Product {product_id} not found")
             return None
         
         # Parse existing attributes
         attributes = {}
         if 'attributes' in product and product['attributes']:
             try:
-                attributes = json.loads(product['attributes']) if isinstance(product['attributes'], str) else product['attributes']
+                if isinstance(product['attributes'], str):
+                    attributes = json.loads(product['attributes'])
+                else:
+                    attributes = product['attributes']
             except:
+                print(f"⚠️ Could not parse existing attributes, starting fresh")
                 attributes = {}
         
-        # Update images
+        # Prepare update data
         update_data = {}
+        
         if image_urls:
             # First image is the main image
             update_data['image_url'] = image_urls[0]
+            print(f"   📸 Main image: {image_urls[0]}")
             
             # Rest are additional images
             if len(image_urls) > 1:
                 attributes['additional_images'] = image_urls[1:]
+                print(f"   📸 Additional images: {len(image_urls[1:])} items")
             else:
                 attributes['additional_images'] = []
+                print(f"   📸 No additional images")
             
+            # Store attributes as JSON string
             update_data['attributes'] = json.dumps(attributes)
+            update_data['updated_at'] = datetime.now().isoformat()
         
-        # Update product
-        return update_product(product_id, update_data)
+        print(f"   💾 Update data prepared: {list(update_data.keys())}")
+        
+        # Update product in database
+        response = supabase.table('products').update(update_data).eq('id', product_id).execute()
+        
+        if response.data and len(response.data) > 0:
+            print(f"   ✅ Product updated successfully")
+            return response.data[0]
+        else:
+            print(f"   ❌ No data returned from update")
+            return None
+            
     except Exception as e:
-        print(f"Error updating product images for {product_id}: {e}")
+        print(f"❌ Error updating product images for {product_id}: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 def delete_product(product_id: int) -> bool:
