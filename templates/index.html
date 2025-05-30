@@ -819,6 +819,48 @@
     }
 }
 
+/* Category Card Link Styles */
+.category-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: var(--transition);
+}
+
+.category-card-link:hover,
+.category-card-link:focus,
+.category-card-link:active,
+.category-card-link:visited {
+    text-decoration: none !important;
+    color: inherit;
+}
+
+/* Update category-btn to be a span instead of link */
+.category-btn {
+    color: var(--white);
+    font-size: 18px;
+    font-weight: 600;
+    font-family: var(--font-heading);
+    position: relative;
+    display: inline-block;
+    pointer-events: none; /* Prevent double-click handling */
+}
+
+.category-btn::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--white);
+    transition: var(--transition);
+}
+
+.category-card-link:hover .category-btn::after {
+    width: 100%;
+}
+
     </style>
 </head>
 <body>
@@ -942,53 +984,64 @@
             <h2>Explore Our Collections</h2>
             <p>Handcrafted with love, designed for elegance</p>
         </div>
-        <div class="category-grid">
-            {% if categories %}
-                {% for category in categories[:4] %}
-                    <div class="category-card">
-                        <div class="category-img">
-                            <img src="{{ category.image_url }}" alt="{{ category.name }}">
-                            <div class="category-overlay">
-                                <a href="/category/{{ category.id }}" class="category-btn">{{ category.name }}</a>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <!-- Default categories if none in database -->
+<!-- Replace the existing category grid section with this updated version -->
+<div class="category-grid">
+    {% if categories %}
+        {% for category in categories[:4] %}
+            <a href="/category/{{ category.id }}" class="category-card-link">
                 <div class="category-card">
                     <div class="category-img">
-                        <img src="{{ url_for('static', path='/images/categories/anarkali.jpg') }}" alt="Anarkali Suits">
+                        <img src="{{ category.image_url }}" alt="{{ category.name }}">
                         <div class="category-overlay">
-                            <a href="#" class="category-btn">Anarkali Suits</a>
+                            <span class="category-btn">{{ category.name }}</span>
                         </div>
                     </div>
                 </div>
-                <div class="category-card">
-                    <div class="category-img">
-                        <img src="{{ url_for('static', path='/images/categories/sarees.jpg') }}" alt="Sarees">
-                        <div class="category-overlay">
-                            <a href="#" class="category-btn">Sarees</a>
-                        </div>
+            </a>
+        {% endfor %}
+    {% else %}
+        <!-- Default categories if none in database -->
+        <a href="#" class="category-card-link">
+            <div class="category-card">
+                <div class="category-img">
+                    <img src="{{ url_for('static', path='/images/categories/anarkali.jpg') }}" alt="Anarkali Suits">
+                    <div class="category-overlay">
+                        <span class="category-btn">Anarkali Suits</span>
                     </div>
                 </div>
-                <div class="category-card">
-                    <div class="category-img">
-                        <img src="{{ url_for('static', path='/images/categories/lehengas.jpg') }}" alt="Lehengas">
-                        <div class="category-overlay">
-                            <a href="#" class="category-btn">Lehengas</a>
-                        </div>
+            </div>
+        </a>
+        <a href="#" class="category-card-link">
+            <div class="category-card">
+                <div class="category-img">
+                    <img src="{{ url_for('static', path='/images/categories/sarees.jpg') }}" alt="Sarees">
+                    <div class="category-overlay">
+                        <span class="category-btn">Sarees</span>
                     </div>
                 </div>
-                <div class="category-card">
-                    <div class="category-img">
-                        <img src="{{ url_for('static', path='/images/categories/kurtis.jpg') }}" alt="Kurtis">
-                        <div class="category-overlay">
-                            <a href="#" class="category-btn">Kurtis</a>
-                        </div>
+            </div>
+        </a>
+        <a href="#" class="category-card-link">
+            <div class="category-card">
+                <div class="category-img">
+                    <img src="{{ url_for('static', path='/images/categories/lehengas.jpg') }}" alt="Lehengas">
+                    <div class="category-overlay">
+                        <span class="category-btn">Lehengas</span>
                     </div>
                 </div>
-            {% endif %}
+            </div>
+        </a>
+        <a href="#" class="category-card-link">
+            <div class="category-card">
+                <div class="category-img">
+                    <img src="{{ url_for('static', path='/images/categories/kurtis.jpg') }}" alt="Kurtis">
+                    <div class="category-overlay">
+                        <span class="category-btn">Kurtis</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+    {% endif %}
         </div>
     </section>
 
@@ -1367,7 +1420,7 @@
                 </div>
                 <p>Discover the perfect blend of tradition and modernity with our exclusive ethnic wear collection.</p>
                 <div class="social-icons">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.facebook.com/share/1EuMXzNjwk/?mibextid=wwXIfr"><i class="fab fa-facebook-f"></i></a>
                     <a href="https://www.instagram.com/wearxture/"><i class="fab fa-instagram"></i></a>
 
          

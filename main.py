@@ -233,8 +233,9 @@ class WishlistResponse(BaseModel):
     product_id: int
     product: Optional[ProductResponse]
     created_at: datetime
-GOOGLE_CLIENT_ID = "252502634910-mabht4no8p9fvpl49c6vbg4d7b1ddj7k.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET = "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"
+
+GOOGLE_CLIENT_ID = "46842260254-itj8edrkh8hf8qqj0fcbvmi3kcd17isn.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "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"
 
 class SimpleOAuthService:
     @staticmethod
