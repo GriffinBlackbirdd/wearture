@@ -54,7 +54,7 @@ load_dotenv()
 
 # JWT Settings
 JWT_SECRET = os.getenv("JWT_SECRET")
-ACCESS_TOKEN_EXPIRE_MINUTES = 1 #60 * 8  # 8 hours
+ACCESS_TOKEN_EXPIRE_MINUTES =  60 * 8  # 8 hours
 
 # Initialize FastAPI app
 app = FastAPI(

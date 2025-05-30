@@ -1021,6 +1021,332 @@
     }
 }
 
+/* BETTER SOLUTION: Consistent aspect ratio with smart image handling */
+
+@media (max-width: 767px) {
+    .category-grid {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 15px !important;
+        padding: 10px 5px !important;
+        margin: 0 -20px !important;
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        scroll-behavior: smooth !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* Hide scrollbar but keep functionality */
+    .category-grid::-webkit-scrollbar {
+        display: none !important;
+    }
+    
+    .category-grid {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+    
+    .category-card-link {
+        flex: 0 0 auto !important;
+        width: 260px !important;
+        min-width: 260px !important;
+    }
+    
+    .category-card {
+        width: 100% !important;
+        aspect-ratio: 3/4 !important; /* Consistent ratio for all cards */
+        position: relative !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .category-card:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    .category-img {
+        width: 100% !important;
+        height: 100% !important;
+        position: relative !important;
+        overflow: hidden !important;
+        background-color: #f5f5f5 !important; /* Fallback background */
+    }
+    
+    .category-img img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center !important;
+        transition: transform 0.4s ease !important;
+    }
+    
+    .category-card:hover .category-img img {
+        transform: scale(1.05) !important;
+    }
+    
+    /* Enhanced overlay with better positioning */
+    .category-overlay {
+        position: absolute !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        padding: 16px !important;
+        background: linear-gradient(
+            to top, 
+            rgba(0, 0, 0, 0.85) 0%, 
+            rgba(0, 0, 0, 0.5) 50%, 
+            transparent 100%
+        ) !important;
+        transition: background 0.3s ease !important;
+    }
+    
+    .category-card:hover .category-overlay {
+        background: linear-gradient(
+            to top, 
+            rgba(0, 0, 0, 0.9) 0%, 
+            rgba(0, 0, 0, 0.6) 50%, 
+            transparent 100%
+        ) !important;
+    }
+    
+    .category-btn {
+        color: white !important;
+        font-size: 17px !important;
+        font-weight: 600 !important;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7) !important;
+        letter-spacing: 0.5px !important;
+        position: relative !important;
+        display: inline-block !important;
+    }
+    
+    .category-btn::after {
+        content: '' !important;
+        position: absolute !important;
+        bottom: -3px !important;
+        left: 0 !important;
+        width: 0 !important;
+        height: 2px !important;
+        background: white !important;
+        transition: width 0.3s ease !important;
+    }
+    
+    .category-card:hover .category-btn::after {
+        width: 100% !important;
+    }
+    
+    /* Add a subtle loading state for images */
+    .category-img::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 40px !important;
+        height: 40px !important;
+        border: 3px solid #f3f3f3 !important;
+        border-top: 3px solid var(--primary-color) !important;
+        border-radius: 50% !important;
+        animation: spin 1s linear infinite !important;
+        opacity: 0 !important;
+        z-index: 1 !important;
+    }
+    
+    @keyframes spin {
+        0% { transform: translate(-50%, -50%) rotate(0deg); }
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    
+    /* Add scroll indicator */
+    .featured-categories::after {
+        content: '← Swipe to see more →';
+        display: block;
+        text-align: center;
+        color: var(--light-text);
+        font-size: 14px;
+        margin-top: 20px;
+        padding: 10px;
+        font-style: italic;
+        opacity: 0.8;
+    }
+}
+
+/* Tablet landscape adjustments */
+@media (max-width: 640px) {
+    .category-card-link {
+        width: 240px !important;
+        min-width: 240px !important;
+    }
+    
+    .category-card {
+        aspect-ratio: 4/5 !important; /* Slightly wider for smaller screens */
+    }
+}
+
+/* Mobile portrait */
+@media (max-width: 480px) {
+    .category-card-link {
+        width: 220px !important;
+        min-width: 220px !important;
+    }
+    
+    .category-card {
+        aspect-ratio: 4/5 !important;
+    }
+    
+    .category-grid {
+        gap: 12px !important;
+    }
+    
+    .category-overlay {
+        padding: 14px !important;
+    }
+    
+    .category-btn {
+        font-size: 16px !important;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 375px) {
+    .category-card-link {
+        width: 200px !important;
+        min-width: 200px !important;
+    }
+    
+    .category-card {
+        aspect-ratio: 1/1 !important; /* Square for very small screens */
+    }
+    
+    .featured-categories::after {
+        font-size: 13px;
+        margin-top: 15px;
+        padding: 8px;
+    }
+    
+    .category-overlay {
+        padding: 12px !important;
+    }
+    
+    .category-btn {
+        font-size: 15px !important;
+    }
+}
+
+/* Extra enhancement - Add a subtle border to make cards pop */
+@media (max-width: 767px) {
+    .category-card::after {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px !important;
+        pointer-events: none !important;
+        transition: border-color 0.3s ease !important;
+    }
+    
+    .category-card:hover::after {
+        border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+}
+/* Add this CSS to move the category text up in the overlay */
+
+@media (max-width: 767px) {
+    /* Enhanced overlay with text positioned higher */
+    .category-overlay {
+        position: absolute !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        padding: 40px 16px 16px 16px !important; /* Even more top padding */
+        background: linear-gradient(
+            to top, 
+            rgba(0, 0, 0, 0.85) 0%, 
+            rgba(0, 0, 0, 0.5) 60%, /* Extended gradient coverage */
+            transparent 100%
+        ) !important;
+        transition: background 0.3s ease !important;
+        min-height: 95px !important; /* Even more space for higher positioned text */
+        display: flex !important;
+        align-items: center !important; /* Center the text vertically in overlay */
+    }
+    
+    .category-card:hover .category-overlay {
+        background: linear-gradient(
+            to top, 
+            rgba(0, 0, 0, 0.9) 0%, 
+            rgba(0, 0, 0, 0.6) 60%, /* Extended gradient coverage */
+            transparent 100%
+        ) !important;
+        padding: 35px 16px 16px 16px !important; /* Even more top padding on hover */
+    }
+    
+    .category-btn {
+        color: white !important;
+        font-size: 17px !important;
+        font-weight: 600 !important;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7) !important;
+        letter-spacing: 0.5px !important;
+        position: relative !important;
+        display: inline-block !important;
+        margin: 0 !important; /* Remove any default margins */
+        transform: translateY(-25px) !important; /* Move text up by 25px */
+    }
+    
+    .category-btn::after {
+        content: '' !important;
+        position: absolute !important;
+        bottom: -3px !important;
+        left: 0 !important;
+        width: 0 !important;
+        height: 2px !important;
+        background: white !important;
+        transition: width 0.3s ease !important;
+    }
+    
+    .category-card:hover .category-btn::after {
+        width: 100% !important;
+    }
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 480px) {
+    .category-overlay {
+        padding: 18px 14px 14px 14px !important;
+        min-height: 65px !important;
+    }
+    
+    .category-card:hover .category-overlay {
+        padding: 22px 14px 14px 14px !important;
+    }
+    
+    .category-btn {
+        font-size: 16px !important;
+        transform: translateY(-20px) !important; /* More movement on small screens */
+    }
+}
+
+@media (max-width: 375px) {
+    .category-overlay {
+        padding: 16px 12px 12px 12px !important;
+        min-height: 60px !important;
+    }
+    
+    .category-card:hover .category-overlay {
+        padding: 20px 12px 12px 12px !important;
+    }
+    
+    .category-btn {
+        font-size: 15px !important;
+        transform: translateY(-18px) !important;
+    }
+}
     </style>
 </head>
 <body>
