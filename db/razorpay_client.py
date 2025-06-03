@@ -12,11 +12,11 @@ from typing import Dict, Any, Optional
 load_dotenv()
 
 # Razorpay configuration
-# RAZORPAY_KEY_ID="rzp_live_TWSHolf7gZYlpR"
-# RAZORPAY_SECRET_KEY="sNPEE3PDRLnICSNSgeiPqzOW"
-RAZORPAY_KEY_ID="rzp_test_kuFBWGnWltF0jo"
-RAZORPAY_SECRET_KEY="8WrBj49808XbknAwLGqYFi6N"
-RAZORPAY_TEST_MODE = os.getenv("RAZORPAY_TEST_MODE", "true").lower() == "true"
+RAZORPAY_KEY_ID="rzp_live_TWSHolf7gZYlpR"
+RAZORPAY_SECRET_KEY="sNPEE3PDRLnICSNSgeiPqzOW"
+# RAZORPAY_KEY_ID="rzp_test_kuFBWGnWltF0jo"
+# RAZORPAY_SECRET_KEY="8WrBj49808XbknAwLGqYFi6N"
+RAZORPAY_TEST_MODE = os.getenv("RAZORPAY_TEST_MODE", "false").lower() == "false"
 
 # Initialize Razorpay client only if credentials are available
 razorpay_client = None

@@ -2550,7 +2550,7 @@
                 {% for related in related_products %}
                 <div class="related-product-card" data-id="{{ related.id }}">
                     {% if related.sale_price %}
-                        <div class="related-badge">Sale</div>
+                        <!-- <div class="related-badge">Sale</div> -->
                     {% endif %}
                     <div class="related-product-image">
                         <img src="{{ related.image_url }}" alt="{{ related.name }}">
