@@ -6,26 +6,24 @@
     <title>Collections - WEARXTURE</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='/css/profile-view.css') }}">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Modern aesthetic variables */
         :root {
-    --primary-color: #e25822;
-    --secondary-color: #9b4dca;
-    --accent-color: #f8b400;
-    --text-color: #333;
-    --light-text: #777;
-    --white: #fff;
-    --light-bg: #f9f9f9;
-    --border-color: #eee;
-    --success-color: #28a745;
-    --error-color: #dc3545;
-    --font-heading: 'Playfair Display', serif;
-    --font-body: 'Poppins', sans-serif;
-    --transition: all 0.3s ease;
-    --cubic-ease: cubic-bezier(0.68, -0.55, 0.265, 1.55);
- --cubic-ease: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --primary-color: #e25822;
+            --secondary-color: #9b4dca;
+            --accent-color: #f8b400;
+            --text-color: #333;
+            --light-text: #777;
+            --white: #fff;
+            --light-bg: #f9f9f9;
+            --border-color: #eee;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --font-heading: 'Playfair Display', serif;
+            --font-body: 'Poppins', sans-serif;
+            --transition: all 0.3s ease;
+            --cubic-ease: cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
         /* Remove underlines from all links and buttons */
@@ -44,27 +42,22 @@
         button:hover {
             text-decoration: none !important;
         }
-        
-        /* Specific rule for category buttons */
-        .category-btn {
-            text-decoration: none !important;
-        }
-        
-        .category-btn:hover {
-            text-decoration: none !important;
-        }
-        
-        .category-btn:focus {
-            text-decoration: none !important;
-        }
-        
-        .category-btn:active {
-            text-decoration: none !important;
-        }
 
         /* Collections Hero Section */
         .collections-hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+                        url('{{ url_for("static", path="/images/productsBg.jpg") }}') center center/cover no-repeat;
+            min-height: 350px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background-attachment: fixed; /* Creates parallax effect on desktop */
+        }
+        .collections-hero-no-parallax {
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+                        url('{{ url_for("static", path="/images/productsBg.jpg") }}') center center/cover no-repeat;
             min-height: 350px;
             display: flex;
             align-items: center;
@@ -72,46 +65,111 @@
             position: relative;
             overflow: hidden;
         }
-
         .collections-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 0%, transparent 70%);
+            opacity: 0;
+            animation: subtleGlow 4s ease-in-out infinite alternate;
+            z-index: 1;
+        }
+
+        @keyframes subtleGlow {
+            0% { opacity: 0; }
+            100% { opacity: 0.3; }
+        }
+
+        /* Keep the floating grid animation but make it more subtle */
+        .collections-hero::after {
             content: '';
             position: absolute;
             width: 300%;
             height: 300%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
             background-size: 30px 30px;
             top: -100%;
             left: -100%;
             animation: floatGrid 20s linear infinite;
+            z-index: 1;
         }
 
         @keyframes floatGrid {
             0% { transform: translate(0, 0); }
             100% { transform: translate(-30px, -30px); }
         }
-
-        .hero-content {
-            text-align: center;
-            color: white;
+                .floating-shape {
+            position: absolute;
+            opacity: 0.08;
+            animation: float 20s ease-in-out infinite;
             z-index: 1;
-            padding: 40px 20px;
         }
 
+        .shape-1 {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 150px;
+            height: 150px;
+            background: white;
+            border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%;
+            bottom: 10%;
+            right: 10%;
+            animation-delay: 5s;
+        }
+
+        .shape-3 {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 41% 59% 41% 59% / 41% 59% 41% 59%;
+            top: 50%;
+            right: 20%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            33% { transform: translateY(-20px) rotate(120deg); }
+            66% { transform: translateY(20px) rotate(240deg); }
+        }
+
+
+       .hero-content {
+            text-align: center;
+            color: white;
+            z-index: 2;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        /* Enhance text readability with text shadow */
         .hero-content h1 {
             font-family: var(--font-heading);
             font-size: 56px;
             font-weight: 700;
             margin-bottom: 15px;
             animation: slideInDown 0.8s ease;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
         }
 
         .hero-content p {
             font-size: 20px;
             max-width: 600px;
             margin: 0 auto;
-            opacity: 0.9;
+            opacity: 0.95;
             animation: slideInUp 0.8s ease 0.2s both;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.7);
         }
 
         /* Container */
@@ -155,136 +213,6 @@
             margin-top: 20px;
         }
 
-        /* Category Grid - Same as index page */
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 30px;
-            margin-bottom: 60px;
-            transition: opacity 0.3s ease;
-        }
-
-        .category-card {
-            position: relative;
-            overflow: hidden;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            transition: all 0.5s var(--cubic-ease);
-            cursor: pointer;
-        }
-
-        .category-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        }
-
-        .category-img {
-    position: relative;
-    height: 400px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.category-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center center; /* This centers the image */
-    transition: transform 0.8s ease;
-}
-
-        .category-card:hover .category-img img {
-            transform: scale(1.15);
-        }
-
-        .category-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.8) 100%);
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            padding: 30px;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-
-        .category-card:hover .category-overlay {
-            opacity: 1;
-        }
-
-        .category-btn {
-            background: rgba(255,255,255,0.9);
-            color: var(--text-color);
-            padding: 14px 40px;
-            border: none;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            border-bottom: none !important;
-            outline: none;
-        }
-
-        .category-btn:hover {
-            background: var(--primary-color);
-            color: white;
-            transform: scale(1.05);
-            text-decoration: none;
-            border-bottom: none !important;
-        }
-        
-        .category-btn:focus {
-            outline: none;
-            text-decoration: none;
-            border-bottom: none !important;
-        }
-        
-        .category-btn:active {
-            text-decoration: none;
-            border-bottom: none !important;
-        }
-        
-        /* Remove any border or underline from the link */
-        .category-overlay a {
-            border: none !important;
-            border-bottom: none !important;
-            text-decoration: none !important;
-        }
-        
-        .category-overlay a:hover {
-            border: none !important;
-            border-bottom: none !important;
-            text-decoration: none !important;
-        }
-
-        /* Category name badge */
-        .category-badge {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: white;
-            color: var(--text-color);
-            padding: 5px 10px;
-            border-radius: 50px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            z-index: 10;
-        }
-
         /* Filter Container */
         .filter-container {
             text-align: center;
@@ -325,31 +253,133 @@
             box-shadow: 0 5px 15px rgba(226, 88, 34, 0.3);
         }
 
-        /* Hide categories when filtered */
+        /* Category Grid */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            margin-bottom: 60px;
+            transition: opacity 0.3s ease;
+        }
+
         .category-card {
-            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: all 0.5s var(--cubic-ease);
+            cursor: pointer;
             opacity: 1;
             transform: scale(1);
         }
 
-        .category-card.hide {
+        .category-card.filtered-out {
             display: none;
         }
 
-        /* Fade in animation for showing cards */
-        .category-card.show {
-            animation: fadeInScale 0.4s ease forwards;
+        .category-card.filtering {
+            opacity: 0.3;
+            transform: scale(0.95);
         }
 
-        @keyframes fadeInScale {
+        .category-card.show-animation {
+            animation: showCard 0.4s ease forwards;
+        }
+
+        @keyframes showCard {
             from {
                 opacity: 0;
-                transform: scale(0.9);
+                transform: translateY(20px) scale(0.9);
             }
             to {
                 opacity: 1;
-                transform: scale(1);
+                transform: translateY(0) scale(1);
             }
+        }
+
+        .category-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .category-img {
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .category-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center center;
+            transition: transform 0.8s ease;
+        }
+
+        .category-card:hover .category-img img {
+            transform: scale(1.15);
+        }
+
+        .category-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.8) 100%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 30px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .category-card:hover .category-overlay {
+            opacity: 1;
+        }
+
+        .category-btn {
+            background: rgba(255,255,255,0.9);
+            color: var(--text-color);
+            padding: 14px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none !important;
+            display: inline-block;
+        }
+
+        .category-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: scale(1.05);
+            text-decoration: none !important;
+        }
+
+        /* Category name badge */
+        .category-badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            color: var(--text-color);
+            padding: 5px 10px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 10;
         }
 
         /* Animations */
@@ -372,15 +402,6 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
             }
         }
 
@@ -415,8 +436,16 @@
                 grid-template-columns: repeat(3, 1fr);
             }
         }
+        @media (max-width: 480px) {
+            .collections-hero {
+                min-height: 250px;
+            }
+        }
 
         @media (max-width: 992px) {
+            .hero-content h1 {
+                font-size: 42px;
+            }
             .category-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 25px;
@@ -432,6 +461,11 @@
         }
 
         @media (max-width: 768px) {
+                        .collections-hero {
+                background-attachment: scroll; /* Remove parallax on mobile for better performance */
+                min-height: 280px;
+                background-position: center center;
+            }
             .collections-hero {
                 min-height: 300px;
             }
@@ -443,20 +477,20 @@
             .hero-content p {
                 font-size: 16px;
             }
-
             .category-img {
                 height: 300px;
             }
-            .nav-icons {
-        margin-left: 20vh;
-        padding-right: 25px;
-        display: flex;
-        gap: 15px;
-    }
-    
-    .icon-link {
-        margin: 0; /* Remove any default margins that might cause overlapping */
-    }
+
+            .filter-buttons {
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 8px 12px;
+            }
+
+            .filter-btn {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
         }
 
         @media (max-width: 576px) {
@@ -472,11 +506,24 @@
             .collections-title h2 {
                 font-size: 30px;
             }
+
+            .filter-buttons {
+                width: 100%;
+                overflow-x: auto;
+                white-space: nowrap;
+                display: flex;
+                flex-wrap: nowrap;
+                justify-content: flex-start;
+                padding: 8px;
+            }
+
+            .filter-btn {
+                flex: 0 0 auto;
+                padding: 10px 18px;
+                font-size: 12px;
+            }
         }
-
-        /* Add this CSS to completely remove any underlines from category buttons */
-
-/* Target all possible selectors for the category button */
+        /* Target all possible selectors for the category button */
 .category-btn,
 .category-btn:link,
 .category-btn:visited,
@@ -576,944 +623,27 @@ body .category-overlay a.category-btn:hover {
     text-decoration: none !important;
 }
 
-/* Enhanced Responsive Styles for Collections Page */
-
-/* Larger Tablets (992px - 1199px) */
-@media (max-width: 1199px) {
-    /* Adjust category grid */
-    .category-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 25px;
-    }
-    
-    /* Filter buttons adjustments */
-    .filter-buttons {
-        gap: 12px;
-        padding: 6px;
-    }
-    
-    .filter-btn {
-        padding: 10px 25px;
-        font-size: 14px;
-    }
-    
-    /* Card refinements */
-    .category-card {
-        transition: all 0.4s ease;
-    }
-    
-    .category-img {
-        height: 380px;
-    }
-    
-    /* Container padding */
-    .collections-container {
-        padding: 70px 20px;
-    }
-    
-    /* Hero section adjustments */
-    .collections-hero h1 {
-        font-size: 50px;
-    }
-    
-    .collections-hero p {
-        font-size: 18px;
-    }
-}
-
-/* Medium Tablets (768px - 991px) */
-@media (max-width: 991px) {
-    /* Hero section adjustments */
-    .collections-hero {
-        min-height: 300px;
-    }
-    
-    .collections-hero h1 {
-        font-size: 42px;
-    }
-    
-    .collections-hero p {
-        font-size: 16px;
-        max-width: 500px;
-    }
-    
-    /* Collections container padding */
-    .collections-container {
-        padding: 60px 15px;
-    }
-    
-    /* Filter button refinements */
-    .filter-buttons {
-        flex-wrap: wrap;
-        justify-content: center;
-        padding: 8px 12px;
-    }
-    
-    .filter-btn {
-        padding: 10px 20px;
-        font-size: 13px;
-        flex: 0 0 auto;
-    }
-    
-    /* Category grid */
-    .category-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-    }
-    
-    .category-img {
-        height: 350px;
-    }
-    
-    /* Title scaling */
-    .collections-title h2 {
-        font-size: 36px;
-    }
-    
-    .collections-subtitle {
-        font-size: 16px;
-    }
-    
-    /* Floating shapes adjustments */
-    .floating-shape {
-        opacity: 0.07;
-    }
-    
-    .shape-1 {
-        width: 80px;
-        height: 80px;
-    }
-    
-    .shape-2 {
-        width: 120px;
-        height: 120px;
-    }
-    
-    .shape-3 {
-        width: 60px;
-        height: 60px;
-    }
-}
-
-/* Mobile Landscape (576px - 767px) */
-@media (max-width: 767px) {
-    /* Hero section adjustments */
-    .collections-hero {
-        min-height: 250px;
-    }
-    
-    .collections-hero h1 {
-        font-size: 36px;
-    }
-    
-    .collections-hero p {
-        font-size: 15px;
-        max-width: 100%;
-        padding: 0 15px;
-    }
-    
-    /* Collections container */
-    .collections-container {
-        padding: 50px 15px;
-    }
-    
-    /* Title scaling */
-    .collections-title {
-        margin-bottom: 40px;
-    }
-    
-    .collections-title h2 {
-        font-size: 30px;
-    }
-    
-    .collections-title h2::after {
-        width: 60px;
-        bottom: -8px;
-    }
-    
-    .collections-subtitle {
-        font-size: 15px;
-        margin-top: 15px;
-    }
-    
-    /* Filter container */
-    .filter-container {
-        margin: 40px 0;
-    }
-    
-    .filter-buttons {
-        width: 100%;
-        overflow-x: auto;
-        overflow-y: hidden;
-        white-space: nowrap;
-        display: flex;
-        flex-wrap: nowrap;
-        justify-content: flex-start;
-        padding: 8px;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    .filter-btn {
-        display: inline-block;
-        flex: 0 0 auto;
-        padding: 10px 18px;
-        font-size: 12px;
-    }
-    
-    /* Category grid */
-    .category-grid {
-        gap: 15px;
-    }
-    
-    .category-img {
-        height: 300px;
-    }
-    
-    /* Category overlay button */
-    .category-btn {
-        padding: 12px 25px;
-        font-size: 14px;
-    }
-    
-    /* Category badges */
-    .category-badge {
-        font-size: 11px;
-        padding: 4px 12px;
-    }
-    
-    /* Shape adjustments */
-    .shape-3 {
-        display: none; /* Hide third shape on mobile */
-    }
-}
-
-/* Mobile Portrait (Below 576px) */
-@media (max-width: 575px) {
-    /* Hero section compact */
-    .collections-hero {
-        min-height: 220px;
-    }
-    
-    .collections-hero h1 {
-        font-size: 28px;
-        margin-bottom: 10px;
-    }
-    
-    .collections-hero p {
-        font-size: 14px;
-    }
-    
-    /* Container minimal padding */
-    .collections-container {
-        padding: 40px 15px;
-    }
-    
-    /* Title scaling */
-    .collections-title h2 {
-        font-size: 26px;
-    }
-    
-    .collections-title h2::after {
-        width: 50px;
-        height: 2px;
-    }
-    
-    .collections-subtitle {
-        font-size: 14px;
-    }
-    
-    /* Single column grid */
-    .category-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    
-    /* Ensure cards aren't too tall */
-    .category-img {
-        height: 280px;
-    }
-    
-    /* Filter buttons */
-    .filter-container {
-        margin: 30px 0;
-    }
-    
-    .filter-buttons {
-        border-radius: 30px;
-    }
-    
-    .filter-btn {
-        padding: 8px 16px;
-        min-width: 100px;
-    }
-    
-    /* Floating shapes adjustments */
-    .shape-1, .shape-2 {
-        opacity: 0.05;
-    }
-    
-    .shape-2 {
-        width: 80px;
-        height: 80px;
-    }
-}
-
-/* Very Small Screens (375px and below) */
-@media (max-width: 375px) {
-    /* Super compact hero */
-    .collections-hero {
-        min-height: 180px;
-    }
-    
-    .collections-hero h1 {
-        font-size: 24px;
-    }
-    
-    .collections-hero p {
-        font-size: 13px;
-    }
-    
-    /* Minimal container padding */
-    .collections-container {
-        padding: 30px 10px;
-    }
-    
-    /* Title smallest size */
-    .collections-title h2 {
-        font-size: 24px;
-    }
-    
-    .collections-subtitle {
-        font-size: 13px;
-        margin-top: 12px;
-    }
-    
-    /* Compact category card */
-    .category-img {
-        height: 250px;
-    }
-    
-    .category-btn {
-        padding: 10px 20px;
-        font-size: 12px;
-    }
-    
-    /* Filter buttons extremely compact */
-    .filter-btn {
-        padding: 8px 14px;
-        font-size: 11px;
-        min-width: 90px;
-    }
-}
-
-/* Optimize for Touch Devices */
-@media (max-width: 991px) {
-    /* Larger touch targets */
-    .filter-btn,
-    .category-btn {
-        min-height: 44px;
-    }
-    
-    /* Fix category button text decoration bug */
-    .category-btn,
-    .category-btn:hover,
-    .category-btn:focus,
-    .category-btn:active,
-    .category-btn:visited,
-    a.category-btn,
-    a.category-btn:hover,
-    a.category-btn:focus,
-    a.category-btn:active,
-    a.category-btn:visited {
-        text-decoration: none !important;
-        -webkit-tap-highlight-color: transparent; /* Remove tap highlight on iOS */
-    }
-    
-    /* Better tap feedback */
-    .category-btn:active {
-        transform: scale(0.97);
-    }
-    
-    /* Remove :hover effects that could be sticky on mobile */
-    .category-card:hover {
-        transform: translateY(-5px); /* Reduced from -10px */
-    }
-    
-    .category-card:active {
-        transform: translateY(-5px);
-    }
-}
-
-/* Fix for category hover on touch devices */
-@media (hover: none) {
-    .category-card:hover {
-        transform: none;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-    }
-    
-    .category-card:active {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(0,0,0,0.1);
-    }
-    
-    .category-card:hover .category-img img {
-        transform: none;
-    }
-    
-    .category-card:active .category-img img {
-        transform: scale(1.05);
-    }
-    
-    /* Category overlay should be tappable */
-    .category-overlay {
-        opacity: 0;
-    }
-    
-    .category-card:active .category-overlay {
-        opacity: 1;
-    }
-}
-
-/* Horizontal scrolling for filter buttons */
-@media (max-width: 767px) {
-    .filter-container {
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .filter-buttons {
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
-        position: relative;
-    }
-    
-    .filter-buttons::-webkit-scrollbar {
-        display: none; /* Hide scrollbar for Chrome/Safari/Opera */
-    }
-    
-    /* Add subtle fade on edges to indicate scrollability */
-    .filter-container::before,
-    .filter-container::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 30px;
-        z-index: 1;
-        pointer-events: none;
-    }
-    
-    .filter-container::before {
-        left: 0;
-        background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0));
-    }
-    
-    .filter-container::after {
-        right: 0;
-        background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0));
-    }
-}
-
-/* Fix 100vh issue on mobile browsers */
-@media (max-width: 767px) {
-    .search-overlay {
-        height: 100%;
-        min-height: -webkit-fill-available;
-    }
-}
-
-/* Fix for notch phones and safe areas */
-@supports (padding: max(0px)) {
-    .collections-container {
-        padding-left: max(15px, env(safe-area-inset-left));
-        padding-right: max(15px, env(safe-area-inset-right));
-    }
-    
-    .search-container {
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
-    }
-}
-
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-    .category-card {
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    }
-    
-    .category-card:hover {
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    
-    .filter-buttons {
-        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-    }
-}
-
-/* Reduced Motion Preferences */
-@media (prefers-reduced-motion: reduce) {
-    .collections-hero::before,
-    .floating-shape,
-    .category-card,
-    .category-img img,
-    .category-overlay,
-    .category-btn {
-        animation: none !important;
-        transition: none !important;
-    }
-    
-    .filter-btn {
-        transition: background 0.3s ease !important;
-    }
-}
-
-/* Improved Animation Performance */
-@media (max-width: 767px) {
-    .category-card {
-        will-change: transform;
-    }
-    
-    .category-img img {
-        will-change: transform;
-    }
-}
-
-/* Improved Accessibility */
-.filter-btn:focus,
-.category-btn:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
-}
-
-/* Remove text decoration from category overlay - extra important specificity */
-html body .category-overlay a.category-btn,
-html body .category-overlay a.category-btn:hover,
-html body .category-overlay a.category-btn:focus,
-html body .category-overlay a.category-btn:active {
-    text-decoration: none !important;
-    border: none !important;
-    border-bottom: none !important;
-}
-
-/* Make .no-underline stronger */
-.category-btn.no-underline,
-a.category-btn.no-underline,
-.category-btn.no-underline:hover,
-a.category-btn.no-underline:hover {
-    text-decoration: none !important;
-    border-bottom: none !important;
-}
-
-/* Fix for Firefox */
-@-moz-document url-prefix() {
-    .filter-btn {
-        padding-top: 9px;
-        padding-bottom: 11px;
-    }
-}
-
-/* Add responsive adjustments for smaller screens */
-@media (max-width: 767px) {
-    .category-img {
-        height: 300px;
-    }
-    
-    /* Adjust object position on mobile for better framing */
-    .category-img img {
-        object-position: center 25%; /* Slightly favor the top portion of images */
-    }
-}
-
-/* Extra small devices */
-@media (max-width: 575px) {
-    .category-img {
-        height: 280px;
-    }
-}
-
-/* Add this for a fallback approach for problematic images */
-.category-card {
-    background-color: #f8f8f8; /* Light background as fallback */
-}
-
-/* For images that are too wide/short */
-.category-img.portrait-image img {
-    object-position: center top;
-}
-
-/* For images that are too tall/narrow */
-.category-img.landscape-image img {
-    object-position: center center;
-}
-
-/* Add JS class for better image handling on load */
-.category-img.image-loaded img {
-    animation: subtle-zoom 0.3s ease forwards;
-}
-
-@keyframes subtle-zoom {
-    from {
-        transform: scale(1.05);
-        opacity: 0.8;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-/* Shopping Cart Styles */
-.cart-sidebar {
-    position: fixed;
-    top: 0;
-    right: -400px;
-    width: 400px;
-    height: 100vh;
-    background: white;
-    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-    transition: right 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    z-index: 1001;
-    display: flex;
-    flex-direction: column;
-}
-
-.cart-sidebar.active {
-    right: 0;
-}
-
-.cart-header {
-    padding: 20px;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--light-bg);
-}
-
-.cart-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--text-color);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.cart-count-badge {
-    background: var(--primary-color);
-    color: white;
-    font-size: 14px;
-    padding: 2px 8px;
-    border-radius: 50px;
-    font-weight: 500;
-}
-
-.close-cart {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--light-text);
-    transition: color 0.3s ease;
-}
-
-.close-cart:hover {
-    color: var(--text-color);
-}
-
-.cart-items {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-}
-
-.cart-empty {
-    text-align: center;
-    padding: 60px 20px;
-}
-
-.cart-empty i {
-    font-size: 80px;
-    color: var(--light-text);
-    margin-bottom: 20px;
-}
-
-.cart-empty p {
-    font-size: 18px;
-    color: var(--light-text);
-    margin-bottom: 30px;
-}
-
-.cart-item {
-    display: flex;
-    padding: 15px 0;
-    border-bottom: 1px solid var(--border-color);
-    animation: slideInRight 0.3s ease;
-}
-
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.cart-item-image {
-    width: 80px;
-    height: 100px;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-right: 15px;
-    background: var(--light-bg);
-}
-
-.cart-item-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.cart-item-details {
-    flex: 1;
-}
-
-.cart-item-name {
-    font-size: 16px;
-    font-weight: 500;
-    margin-bottom: 5px;
-    color: var(--text-color);
-}
-
-.cart-item-price {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--primary-color);
-    margin-bottom: 10px;
-}
-
-.cart-item-quantity {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.quantity-btn {
-    width: 28px;
-    height: 28px;
-    border: 1px solid var(--border-color);
-    background: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 14px;
-}
-
-.quantity-btn:hover {
-    background: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
-}
-
-.quantity-value {
-    font-size: 16px;
-    font-weight: 500;
-    min-width: 30px;
-    text-align: center;
-}
-
-.remove-item {
-    background: none;
-    border: none;
-    color: var(--light-text);
-    cursor: pointer;
-    padding: 5px;
-    transition: color 0.3s ease;
-}
-
-.remove-item:hover {
-    color: var(--error-color);
-}
-
-.cart-footer {
-    padding: 20px;
-    border-top: 2px solid var(--border-color);
-    background: var(--light-bg);
-}
-
-.cart-subtotal {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.subtotal-label {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--text-color);
-}
-
-.subtotal-amount {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--primary-color);
-}
-
-.tax-info {
-    font-size: 14px;
-    color: var(--light-text);
-    text-align: center;
-    margin-bottom: 20px;
-    font-style: italic;
-}
-
-.checkout-btn {
-    width: 100%;
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 15px;
-    border-radius: 50px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.checkout-btn:hover {
-    background: #c24d1e;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(226, 88, 34, 0.3);
-}
-
-.continue-shopping {
-    width: 100%;
-    background: white;
-    color: var(--text-color);
-    border: 2px solid var(--border-color);
-    padding: 12px;
-    border-radius: 50px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: all 0.3s ease;
-}
-
-.continue-shopping:hover {
-    background: var(--light-bg);
-}
-
-/* Cart Overlay */
-.cart-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    z-index: 1000;
-}
-
-.cart-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* Cart bounce animation */
-.cart-bounce {
-    animation: cartBounce 0.6s ease;
-}
-
-@keyframes cartBounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-}
-
-/* Add to cart button animation */
-.added-to-cart {
-    animation: addedPulse 0.6s ease;
-}
-
-@keyframes addedPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-/* Notification styles */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-    transform: translateX(400px);
-    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    z-index: 1000;
-    max-width: 350px;
-}
-
-.notification.show {
-    transform: translateX(0);
-}
-
-.notification-content {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.notification i {
-    font-size: 20px;
-    color: var(--success-color);
-}
-
-.close-notification {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px;
-    color: var(--light-text);
-    transition: color 0.3s ease;
-}
-
-.close-notification:hover {
-    color: var(--text-color);
-}
-
-/* Responsive Cart */
-@media (max-width: 480px) {
-    .cart-sidebar {
-        width: 100%;
-        right: -100%;
-    }
-
-    .cart-header {
-        padding: 15px;
-    }
-
-    .cart-items {
-        padding: 15px;
-    }
-
-    .cart-footer {
-        padding: 15px;
-    }
-}
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -1580,11 +710,13 @@ a.category-btn.no-underline:hover {
             </div>
         </div>
 
-        <!-- Category Grid - Same structure as index page -->
+        <!-- Category Grid -->
         <div class="category-grid">
             {% if categories %}
                 {% for category in categories %}
-                    <div class="category-card" data-category="{{ category.name.lower() }}">
+                    <div class="category-card"
+                         data-category="{{ category.name.lower() }}"
+                         data-filter="{{ category.filter if category.filter else 'all' }}">
                         <div class="category-badge">{{ category.name }}</div>
                         <div class="category-img">
                             <img src="{{ category.image_url }}" alt="{{ category.name }}">
@@ -1596,7 +728,7 @@ a.category-btn.no-underline:hover {
                 {% endfor %}
             {% else %}
                 <!-- Default categories if none in database -->
-                <div class="category-card" data-category="anarkali suits">
+                <div class="category-card" data-category="anarkali suits" data-filter="women">
                     <div class="category-badge">Anarkali Suits</div>
                     <div class="category-img">
                         <img src="{{ url_for('static', path='/images/categories/anarkali.jpg') }}" alt="Anarkali Suits">
@@ -1605,7 +737,7 @@ a.category-btn.no-underline:hover {
                         </div>
                     </div>
                 </div>
-                <div class="category-card" data-category="sarees">
+                <div class="category-card" data-category="sarees" data-filter="women">
                     <div class="category-badge">Sarees</div>
                     <div class="category-img">
                         <img src="{{ url_for('static', path='/images/categories/sarees.jpg') }}" alt="Sarees">
@@ -1614,7 +746,7 @@ a.category-btn.no-underline:hover {
                         </div>
                     </div>
                 </div>
-                <div class="category-card" data-category="lehengas">
+                <div class="category-card" data-category="lehengas" data-filter="women">
                     <div class="category-badge">Lehengas</div>
                     <div class="category-img">
                         <img src="{{ url_for('static', path='/images/categories/lehengas.jpg') }}" alt="Lehengas">
@@ -1623,7 +755,7 @@ a.category-btn.no-underline:hover {
                         </div>
                     </div>
                 </div>
-                <div class="category-card" data-category="kurtis">
+                <div class="category-card" data-category="kurtis" data-filter="women">
                     <div class="category-badge">Kurtis</div>
                     <div class="category-img">
                         <img src="{{ url_for('static', path='/images/categories/kurtis.jpg') }}" alt="Kurtis">
@@ -1658,8 +790,6 @@ a.category-btn.no-underline:hover {
                 <div class="social-icons">
                     <a href="https://www.facebook.com/share/1EuMXzNjwk/?mibextid=wwXIfr"><i class="fab fa-facebook-f"></i></a>
                     <a href="https://www.instagram.com/wearxture/"><i class="fab fa-instagram"></i></a>
-
-         
                 </div>
             </div>
             <div class="footer-column">
@@ -1698,6 +828,7 @@ a.category-btn.no-underline:hover {
         </div>
     </footer>
 
+    <!-- Profile Dropdown -->
     <div class="profile-dropdown" id="profile-dropdown">
         <div class="profile-dropdown-content">
             <div class="profile-header" id="profile-header">
@@ -1710,9 +841,8 @@ a.category-btn.no-underline:hover {
                     <p id="user-email">user@example.com</p>
                 </div>
             </div>
-            
+
             <div class="profile-menu" id="profile-menu">
-                <!-- Guest options (not logged in) -->
                 <div class="guest-options">
                     <a href="/login" class="profile-btn primary-btn">
                         <i class="fas fa-sign-in-alt"></i>
@@ -1723,8 +853,7 @@ a.category-btn.no-underline:hover {
                         <span>Create Account</span>
                     </a>
                 </div>
-                
-                <!-- User options (logged in) -->
+
                 <div class="user-options" style="display: none;">
                     <a href="/orders" class="profile-menu-item">
                         <i class="fas fa-box"></i>
@@ -1747,6 +876,7 @@ a.category-btn.no-underline:hover {
         </div>
     </div>
 
+    <!-- Search Overlay -->
     <div class="search-overlay" id="search-overlay">
         <div class="search-container">
             <div class="search-header">
@@ -1762,520 +892,350 @@ a.category-btn.no-underline:hover {
                 </button>
             </div>
             <div class="search-results" id="search-results">
-                <!-- Search results will be displayed here -->
                 <div class="no-results">
                     <p>Start typing to search for products</p>
                 </div>
             </div>
         </div>
     </div>
-<!-- Cart Sidebar -->
-<div class="cart-overlay" id="cart-overlay"></div>
-<div class="cart-sidebar" id="cart-sidebar">
-    <div class="cart-header">
-        <h3 class="cart-title">
-            Shopping Cart
-            <span class="cart-count-badge">0</span>
-        </h3>
-        <button class="close-cart" id="close-cart">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-    
-    <div class="cart-items" id="cart-items">
-        <div class="cart-empty">
-            <i class="fas fa-shopping-bag"></i>
-            <p>Your cart is empty</p>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h3 class="cart-title">
+                Shopping Cart
+                <span class="cart-count-badge">0</span>
+            </h3>
+            <button class="close-cart" id="close-cart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="cart-items" id="cart-items">
+            <div class="cart-empty">
+                <i class="fas fa-shopping-bag"></i>
+                <p>Your cart is empty</p>
+                <button class="continue-shopping" onclick="closeCart()">Continue Shopping</button>
+            </div>
+        </div>
+
+        <div class="cart-footer">
+            <div class="cart-subtotal">
+                <span class="subtotal-label">Subtotal:</span>
+                <span class="subtotal-amount">₹0</span>
+            </div>
+            <p class="tax-info">Taxes will be calculated at checkout</p>
+            <button class="checkout-btn">Proceed to Checkout</button>
             <button class="continue-shopping" onclick="closeCart()">Continue Shopping</button>
         </div>
     </div>
-    
-    <div class="cart-footer">
-        <div class="cart-subtotal">
-            <span class="subtotal-label">Subtotal:</span>
-            <span class="subtotal-amount">₹0</span>
-        </div>
-        <p class="tax-info">Taxes will be calculated at checkout</p>
-        <button class="checkout-btn">Proceed to Checkout</button>
-        <button class="continue-shopping" onclick="closeCart()">Continue Shopping</button>
-    </div>
-</div>
+
     <script src="{{ url_for('static', path='/js/script.js') }}"></script>
     <script src="{{ url_for('static', path='/js/profile-view.js') }}"></script>
     <script src="{{ url_for('static', path='/js/profile-navigation.js') }}"></script>
+
     <script>
-        // Handle profile icon click with authentication check
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Collections filter system initializing...');
+
+            // Get all filter buttons and category cards
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const categoryCards = document.querySelectorAll('.category-card');
+            const categoryGrid = document.querySelector('.category-grid');
+
+            console.log(`Found ${filterButtons.length} filter buttons and ${categoryCards.length} category cards`);
+
+            // Debug: Log all categories and their data attributes
+            categoryCards.forEach((card, index) => {
+                const categoryName = card.getAttribute('data-category');
+                const filterValue = card.getAttribute('data-filter');
+                const badgeText = card.querySelector('.category-badge')?.textContent || '';
+                console.log(`Category ${index + 1}: name="${categoryName}", filter="${filterValue}", badge="${badgeText}"`);
+            });
+
+            // Filter functionality - IMPROVED VERSION
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    console.log(`🔍 Filter clicked: ${this.getAttribute('data-filter')}`);
+
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+
+                    // Add active class to clicked button
+                    this.classList.add('active');
+
+                    const filterValue = this.getAttribute('data-filter');
+
+                    // Add filtering animation to all cards
+                    categoryGrid.style.opacity = '0.7';
+
+                    setTimeout(() => {
+                        let visibleCount = 0;
+
+                        categoryCards.forEach(card => {
+                            // Remove all animation classes first
+                            card.classList.remove('filtered-out', 'show-animation', 'filtering');
+
+                            // Get category data
+                            const categoryName = card.getAttribute('data-category')?.toLowerCase() || '';
+                            const filterAttr = card.getAttribute('data-filter')?.toLowerCase() || 'all';
+                            const badgeText = card.querySelector('.category-badge')?.textContent?.toLowerCase() || '';
+
+                            let shouldShow = false;
+
+                            if (filterValue === 'all') {
+                                shouldShow = true;
+                            } else {
+                                // Method 1: Check the data-filter attribute directly (most reliable)
+                                if (filterAttr === filterValue) {
+                                    shouldShow = true;
+                                }
+
+                                // Method 2: Fallback - check category name and badge text
+                                if (!shouldShow) {
+                                    const textToCheck = `${categoryName} ${badgeText}`;
+
+                                    if (filterValue === 'women') {
+                                        const womenKeywords = ['anarkali', 'saree', 'sarees', 'lehenga', 'kurti', 'kurtis', 'gown', 'palazzo', 'salwar', 'churidar', 'women', 'ladies', 'woman'];
+                                        shouldShow = womenKeywords.some(keyword => textToCheck.includes(keyword));
+                                    } else if (filterValue === 'men') {
+                                        const menKeywords = ['sherwani', 'kurta', 'nehru', 'dhoti', 'jodhpuri', 'modi', 'men', 'mens', "men's", 'man'];
+                                        shouldShow = menKeywords.some(keyword => textToCheck.includes(keyword));
+
+                                        // Exclude if it also contains women keywords
+                                        if (shouldShow) {
+                                            const womenKeywords = ['anarkali', 'saree', 'sarees', 'lehenga', 'kurti', 'kurtis', 'women', 'ladies'];
+                                            const hasWomenKeyword = womenKeywords.some(keyword => textToCheck.includes(keyword));
+                                            if (hasWomenKeyword) {
+                                                shouldShow = false;
+                                            }
+                                        }
+                                    } else if (filterValue === 'accessories') {
+                                        const accessoryKeywords = ['jewelry', 'jewellery', 'clutch', 'bag', 'footwear', 'shoe', 'dupatta', 'stole', 'turban', 'safa', 'belt', 'watch', 'bangle', 'necklace', 'earring', 'purse', 'accessory', 'accessories'];
+                                        shouldShow = accessoryKeywords.some(keyword => textToCheck.includes(keyword));
+                                    }
+                                }
+                            }
+
+                            console.log(`  Card: "${badgeText}" | Filter: "${filterAttr}" | Show: ${shouldShow}`);
+
+                            if (shouldShow) {
+                                card.classList.remove('filtered-out');
+                                visibleCount++;
+                                // Add a slight delay for staggered animation
+                                setTimeout(() => {
+                                    card.classList.add('show-animation');
+                                }, visibleCount * 50);
+                            } else {
+                                card.classList.add('filtered-out');
+                            }
+                        });
+
+                        console.log(`✅ Filter applied: ${visibleCount} categories visible`);
+
+                        // Fade the grid back in
+                        setTimeout(() => {
+                            categoryGrid.style.opacity = '1';
+                        }, 100);
+
+                        // Clean up animation classes after animation completes
+                        setTimeout(() => {
+                            categoryCards.forEach(card => {
+                                card.classList.remove('show-animation');
+                            });
+                        }, 1000);
+                    }, 200);
+                });
+            });
+
+            // Smooth scroll animation for category cards
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            // Observe all category cards
+            categoryCards.forEach(card => {
+                observer.observe(card);
+            });
+
+            // Mobile menu toggle
+            const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+            const navLinks = document.querySelector('.nav-links');
+
+            if (mobileMenuToggle && navLinks) {
+                mobileMenuToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                });
+            }
+
+            // Handle profile icon click with authentication check
             const profileIcon = document.getElementById('profile-icon');
-            
+
             if (profileIcon) {
                 profileIcon.addEventListener('click', async function(e) {
                     e.preventDefault();
-                    
+
                     try {
-                        // Check if user is authenticated
                         const response = await fetch('/api/auth/me');
                         const result = await response.json();
-                        
+
                         if (result.success && result.user) {
-                            // User is authenticated, go to profile
                             window.location.href = '/profile';
                         } else {
-                            // User is not authenticated, go to login with redirect
                             window.location.href = '/login?redirect=profile';
                         }
                     } catch (error) {
-                        // On error, redirect to login
                         window.location.href = '/login?redirect=profile';
                     }
                 });
             }
         });
-        </script>
-    <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Smooth scroll animation for category cards
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.style.opacity = '1';
-                entry.target.style.transform = 'translateY(0)';
-            }
-        });
-    }, {
-        threshold: 0.1
-    });
 
-    // Observe all category cards
-    document.querySelectorAll('.category-card').forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        observer.observe(card);
-    });
+        // Cart management - Initialize everything after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            let cart = [];
+            const cartSidebar = document.getElementById('cart-sidebar');
+            const cartOverlay = document.getElementById('cart-overlay');
+            const cartToggle = document.getElementById('cart-toggle');
+            const closeCartBtn = document.getElementById('close-cart');
+            const cartItems = document.getElementById('cart-items');
+            const cartCounts = document.querySelectorAll('.cart-count, .cart-count-badge');
+            const subtotalElement = document.querySelector('.subtotal-amount');
 
-    // Mobile menu toggle
-    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-    const navLinks = document.querySelector('.nav-links');
-    
-    if (mobileMenuToggle && navLinks) {
-        mobileMenuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-        });
-    }
-
-    // Filter functionality
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    const categoryCards = document.querySelectorAll('.category-card');
-    const categoryGrid = document.querySelector('.category-grid');
-
-    // Define category mappings - using lowercase and more specific keywords
-    const categoryMappings = {
-        'women': [
-            'anarkali', 'saree', 'sarees', 'lehenga', 'kurti', 'kurtis', 'gown', 
-            'palazzo', 'salwar', 'churidar', 'dress', 'women', 'ladies', 'woman'
-        ],
-        'men': [
-            'sherwani', 'kurta', 'nehru', 'dhoti', 'jodhpuri', 
-            'modi', 'men', 'mens', "men's", 'man', 'gentleman', 'male'
-        ],
-        'accessories': [
-            'jewelry', 'jewellery', 'clutch', 'bag', 'footwear', 'shoe',
-            'dupatta', 'stole', 'turban', 'safa', 'belt', 'watch',
-            'bangle', 'necklace', 'earring', 'purse', 'accessory', 'accessories'
-        ]
-    };
-
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // Remove active class from all buttons
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            
-            // Add active class to clicked button
-            this.classList.add('active');
-            
-            const filterValue = this.getAttribute('data-filter');
-            
-            // Add fade-out effect to the grid
-            categoryGrid.style.opacity = '0.3';
-            
-            setTimeout(() => {
-                // Filter categories
-                categoryCards.forEach(card => {
-                    // Get category name and badge text
-                    const categoryName = card.getAttribute('data-category').toLowerCase();
-                    const categoryBadge = card.querySelector('.category-badge');
-                    const badgeText = categoryBadge ? categoryBadge.textContent.toLowerCase() : '';
-                    
-                    // First remove all animation classes
-                    card.classList.remove('hide', 'show');
-                    
-                    if (filterValue === 'all') {
-                        card.classList.add('show');
-                        card.style.display = 'block';
-                    } else {
-                        // Check if the category belongs to the selected filter using both attribute and badge
-                        let shouldShow = false;
-                        
-                        if (categoryMappings[filterValue]) {
-                            // Check if any keyword matches the category name or badge text
-                            shouldShow = categoryMappings[filterValue].some(keyword => 
-                                categoryName.includes(keyword) || badgeText.includes(keyword)
-                            );
-                            
-                            // For men's category, explicitly exclude women's keywords
-                            if (filterValue === 'men' && shouldShow) {
-                                // If it contains a men's keyword but also contains a women's keyword, don't show it
-                                const hasWomensKeyword = categoryMappings['women'].some(keyword =>
-                                    categoryName.includes(keyword) || badgeText.includes(keyword)
-                                );
-                                
-                                if (hasWomensKeyword) {
-                                    shouldShow = false;
-                                }
-                            }
-                        }
-                        
-                        if (shouldShow) {
-                            card.classList.add('show');
-                            card.style.display = 'block';
-                        } else {
-                            card.classList.add('hide');
-                            // Delay the display:none to allow fade out
-                            setTimeout(() => {
-                                if (card.classList.contains('hide')) {
-                                    card.style.display = 'none';
-                                }
-                            }, 400);
-                        }
+            // Initialize cart from localStorage
+            function initializeCart() {
+                const savedCart = localStorage.getItem('wearxture_cart');
+                if (savedCart) {
+                    try {
+                        cart = JSON.parse(savedCart);
+                        updateCart();
+                    } catch (e) {
+                        console.error('Error loading cart:', e);
+                        cart = [];
                     }
+                }
+            }
+
+            // Open cart
+            window.openCart = function() {
+                cartSidebar.classList.add('active');
+                cartOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            // Close cart
+            window.closeCart = function() {
+                cartSidebar.classList.remove('active');
+                cartOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            // Cart toggle event
+            if (cartToggle) {
+                cartToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openCart();
                 });
-                
-                // Fade the grid back in
-                categoryGrid.style.opacity = '1';
-            }, 300);
-        });
-    });
-    
-    // Debug: Log all category names to see what we're working with
-    console.log('Categories found:');
-    categoryCards.forEach(card => {
-        const categoryName = card.getAttribute('data-category');
-        const categoryBadge = card.querySelector('.category-badge');
-        const badgeText = categoryBadge ? categoryBadge.textContent : '';
-        console.log(`Category: ${categoryName}, Badge: ${badgeText}`);
-    });
-});
-    </script>
-    <script>
-
-        // Image optimization for category cards
-document.addEventListener('DOMContentLoaded', function() {
-    // Get all category images
-    const categoryImages = document.querySelectorAll('.category-img img');
-    
-    // Process each image
-    categoryImages.forEach(img => {
-        // If image is already loaded
-        if (img.complete) {
-            optimizeImageDisplay(img);
-        } else {
-            // If not loaded yet, wait for it
-            img.addEventListener('load', function() {
-                optimizeImageDisplay(img);
-            });
-        }
-        
-        // Add error handling
-        img.addEventListener('error', function() {
-            // Add a class to parent for styling fallback
-            img.parentElement.classList.add('image-error');
-        });
-    });
-    
-    // Function to optimize how images display based on aspect ratio
-    function optimizeImageDisplay(img) {
-        const imgContainer = img.parentElement;
-        
-        // Get the natural aspect ratio of the image
-        const imgRatio = img.naturalWidth / img.naturalHeight;
-        
-        // Add appropriate class based on aspect ratio
-        if (imgRatio < 0.8) {
-            // Tall/narrow image (portrait)
-            imgContainer.classList.add('portrait-image');
-        } else if (imgRatio > 1.5) {
-            // Wide/short image (landscape)
-            imgContainer.classList.add('landscape-image');
-        }
-        
-        // Add loaded class for animation
-        imgContainer.classList.add('image-loaded');
-    }
-    
-    // Handle window resize to dynamically adjust for mobile
-    let isMobile = window.innerWidth < 768;
-    
-    window.addEventListener('resize', function() {
-        const newIsMobile = window.innerWidth < 768;
-        
-        // Only make changes if mobile state has changed
-        if (newIsMobile !== isMobile) {
-            isMobile = newIsMobile;
-            
-            // Re-optimize images for the new viewport size
-            categoryImages.forEach(img => {
-                if (img.complete) {
-                    // Use different object-position based on viewport
-                    if (isMobile) {
-                        img.style.objectPosition = 'center 25%';
-                    } else {
-                        img.style.objectPosition = 'center center';
-                    }
-                }
-            });
-        }
-    });
-});
-    </script>
-
-<script>
-    // Cart management - Initialize everything after DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        let cart = [];
-        const cartSidebar = document.getElementById('cart-sidebar');
-        const cartOverlay = document.getElementById('cart-overlay');
-        const cartToggle = document.getElementById('cart-toggle');
-        const closeCartBtn = document.getElementById('close-cart');
-        const cartItems = document.getElementById('cart-items');
-        const cartCounts = document.querySelectorAll('.cart-count, .cart-count-badge');
-        const subtotalElement = document.querySelector('.subtotal-amount');
-
-        // Initialize cart from localStorage
-        function initializeCart() {
-            const savedCart = localStorage.getItem('wearxture_cart');
-            if (savedCart) {
-                try {
-                    cart = JSON.parse(savedCart);
-                    console.log('Cart loaded from localStorage:', cart);
-                    updateCart();
-                } catch (e) {
-                    console.error('Error loading cart:', e);
-                    cart = [];
-                }
             }
-        }
 
-        // Open cart
-        window.openCart = function() {
-            cartSidebar.classList.add('active');
-            cartOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        // Close cart
-        window.closeCart = function() {
-            cartSidebar.classList.remove('active');
-            cartOverlay.classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        // Cart toggle event
-        cartToggle.addEventListener('click', function(e) {
-            e.preventDefault();
-            openCart();
-        });
-
-        // Close cart events
-        closeCartBtn.addEventListener('click', closeCart);
-        cartOverlay.addEventListener('click', closeCart);
-
-        // Add product to cart
-        function addToCart(product) {
-            console.log('Current cart:', cart);
-            const existingItem = cart.find(item => item.id === product.id);
-            
-            if (existingItem) {
-                existingItem.quantity++;
-                console.log('Updated existing item:', existingItem);
-            } else {
-                cart.push(product);
-                console.log('Added new item:', product);
+            // Close cart events
+            if (closeCartBtn) {
+                closeCartBtn.addEventListener('click', closeCart);
             }
-            
-            console.log('Cart after adding:', cart);
-            updateCart();
-            saveCart();
-            showNotification(`${product.name} added to cart!`);
-        }
+            if (cartOverlay) {
+                cartOverlay.addEventListener('click', closeCart);
+            }
 
-        // Update cart display
-        function updateCart() {
-            if (cart.length === 0) {
-                cartItems.innerHTML = `
-                    <div class="cart-empty">
-                        <i class="fas fa-shopping-bag"></i>
-                        <p>Your cart is empty</p>
-                        <button class="continue-shopping" onclick="closeCart()">Continue Shopping</button>
-                    </div>
-                `;
-            } else {
-                cartItems.innerHTML = cart.map(item => `
-                    <div class="cart-item">
-                        <div class="cart-item-image">
-                            <img src="${item.image}" alt="${item.name}">
+            // Update cart display
+            function updateCart() {
+                if (!cartItems) return;
+
+                if (cart.length === 0) {
+                    cartItems.innerHTML = `
+                        <div class="cart-empty">
+                            <i class="fas fa-shopping-bag"></i>
+                            <p>Your cart is empty</p>
+                            <button class="continue-shopping" onclick="closeCart()">Continue Shopping</button>
                         </div>
-                        <div class="cart-item-details">
-                            <h4 class="cart-item-name">${item.name}</h4>
-                            <div class="cart-item-price">₹${item.price}</div>
-                            <div class="cart-item-quantity">
-                                <button class="quantity-btn" onclick="updateQuantity('${item.id}', -1)">−</button>
-                                <span class="quantity-value">${item.quantity}</span>
-                                <button class="quantity-btn" onclick="updateQuantity('${item.id}', 1)">+</button>
-                                <button class="remove-item" onclick="removeFromCart('${item.id}')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                    `;
+                } else {
+                    cartItems.innerHTML = cart.map(item => `
+                        <div class="cart-item">
+                            <div class="cart-item-image">
+                                <img src="${item.image}" alt="${item.name}">
+                            </div>
+                            <div class="cart-item-details">
+                                <h4 class="cart-item-name">${item.name}</h4>
+                                <div class="cart-item-price">₹${item.price}</div>
+                                <div class="cart-item-quantity">
+                                    <button class="quantity-btn" onclick="updateQuantity('${item.id}', -1)">−</button>
+                                    <span class="quantity-value">${item.quantity}</span>
+                                    <button class="quantity-btn" onclick="updateQuantity('${item.id}', 1)">+</button>
+                                    <button class="remove-item" onclick="removeFromCart('${item.id}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
+
+                updateCartCount();
+                updateSubtotal();
             }
-            
-            updateCartCount();
-            updateSubtotal();
-        }
 
-        // Update cart count
-        function updateCartCount() {
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            cartCounts.forEach(count => count.textContent = totalItems);
-        }
+            // Update cart count
+            function updateCartCount() {
+                const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+                cartCounts.forEach(count => {
+                    if (count) count.textContent = totalItems;
+                });
+            }
 
-        // Update subtotal
-        function updateSubtotal() {
-            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            subtotalElement.textContent = `₹${subtotal.toFixed(0)}`;
-        }
+            // Update subtotal
+            function updateSubtotal() {
+                if (!subtotalElement) return;
+                const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                subtotalElement.textContent = `₹${subtotal.toFixed(0)}`;
+            }
 
-        // Update item quantity
-        window.updateQuantity = function(productId, change) {
-            const item = cart.find(item => item.id === productId);
-            if (item) {
-                item.quantity += change;
-                if (item.quantity <= 0) {
-                    removeFromCart(productId);
-                } else {
-                    updateCart();
-                    saveCart();
+            // Save cart to localStorage
+            function saveCart() {
+                localStorage.setItem('wearxture_cart', JSON.stringify(cart));
+            }
+
+            // Update item quantity
+            window.updateQuantity = function(productId, change) {
+                const item = cart.find(item => item.id === productId);
+                if (item) {
+                    item.quantity += change;
+                    if (item.quantity <= 0) {
+                        removeFromCart(productId);
+                    } else {
+                        updateCart();
+                        saveCart();
+                    }
                 }
             }
-        }
 
-        // Remove item from cart
-        window.removeFromCart = function(productId) {
-            cart = cart.filter(item => item.id !== productId);
-            updateCart();
-            saveCart();
-            showNotification('Item removed from cart');
-        }
-
-        // Save cart to localStorage
-        function saveCart() {
-            localStorage.setItem('wearxture_cart', JSON.stringify(cart));
-        }
-
-        // Notification function
-        function showNotification(message) {
-            const existingNotification = document.querySelector('.notification');
-            if (existingNotification) {
-                existingNotification.remove();
+            // Remove item from cart
+            window.removeFromCart = function(productId) {
+                cart = cart.filter(item => item.id !== productId);
+                updateCart();
+                saveCart();
             }
-            
-            const notification = document.createElement('div');
-            notification.className = 'notification';
-            notification.innerHTML = `
-                <div class="notification-content">
-                    <i class="fas fa-check-circle"></i>
-                    <p>${message}</p>
-                    <button class="close-notification"><i class="fas fa-times"></i></button>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => notification.classList.add('show'), 10);
-            
-            const closeButton = notification.querySelector('.close-notification');
-            closeButton.addEventListener('click', () => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            });
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
 
-        // Add to cart button event listeners for any add-to-cart buttons in categories
-        const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
-        
-        addToCartButtons.forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const product = {
-                    id: this.dataset.id,
-                    name: this.dataset.name,
-                    price: parseFloat(this.dataset.price),
-                    image: this.dataset.image,
-                    quantity: 1
-                };
-
-                console.log('Button clicked, adding product:', product);
-
-                addToCart(product);
-                
-                // Animation
-                this.classList.add('added-to-cart');
-                setTimeout(() => this.classList.remove('added-to-cart'), 600);
-                
-                // Cart bounce
-                cartToggle.classList.add('cart-bounce');
-                setTimeout(() => cartToggle.classList.remove('cart-bounce'), 600);
-            });
+            // Initialize cart on load
+            initializeCart();
         });
-
-        // Checkout button
-        document.querySelector('.checkout-btn').addEventListener('click', async function() {
-            if (cart.length === 0) {
-                showNotification('Your cart is empty');
-                return;
-            }
-            
-            // Check if user is authenticated
-            try {
-                const response = await fetch('/api/auth/status');
-                const result = await response.json();
-                
-                if (result.authenticated) {
-                    // User is logged in, proceed to checkout
-                    showNotification('Redirecting to checkout...');
-                    window.location.href = '/checkout';
-                } else {
-                    // User is not logged in, redirect to login with checkout redirect
-                    showNotification('Please login to checkout');
-                    window.location.href = '/login?redirect=checkout';
-                }
-            } catch (error) {
-                showNotification('Error checking authentication. Please try again.');
-            }
-        });
-
-        // Initialize cart on load
-        initializeCart();
-    });
-</script>
+    </script>
 </body>
 </html>
