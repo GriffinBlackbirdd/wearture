@@ -43,6 +43,283 @@
             text-decoration: none !important;
         }
 
+        /* Shopping Cart Styles */
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            transition: right 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cart-sidebar.active {
+            right: 0;
+        }
+
+        .cart-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--light-bg);
+        }
+
+        .cart-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cart-count-badge {
+            background: var(--primary-color);
+            color: white;
+            font-size: 14px;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-weight: 500;
+        }
+
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--light-text);
+            transition: color 0.3s ease;
+        }
+
+        .close-cart:hover {
+            color: var(--text-color);
+        }
+
+        .cart-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .cart-empty i {
+            font-size: 80px;
+            color: var(--light-text);
+            margin-bottom: 20px;
+        }
+
+        .cart-empty p {
+            font-size: 18px;
+            color: var(--light-text);
+            margin-bottom: 30px;
+        }
+
+        .cart-item {
+            display: flex;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .cart-item-image {
+            width: 80px;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-right: 15px;
+            background: var(--light-bg);
+        }
+
+        .cart-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cart-item-details {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: var(--text-color);
+        }
+
+        .cart-item-price {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .cart-item-quantity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quantity-btn {
+            width: 28px;
+            height: 28px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .quantity-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .quantity-value {
+            font-size: 16px;
+            font-weight: 500;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .remove-item {
+            background: none;
+            border: none;
+            color: var(--light-text);
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .remove-item:hover {
+            color: var(--error-color);
+        }
+
+        .cart-footer {
+            padding: 20px;
+            border-top: 2px solid var(--border-color);
+            background: var(--light-bg);
+        }
+
+        .cart-subtotal {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .subtotal-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .subtotal-amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .tax-info {
+            font-size: 14px;
+            color: var(--light-text);
+            text-align: center;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .checkout-btn:hover {
+            background: #c24d1e;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(226, 88, 34, 0.3);
+        }
+
+        .checkout-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .continue-shopping {
+            width: 100%;
+            background: white;
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            padding: 12px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .continue-shopping:hover {
+            background: var(--light-bg);
+        }
+
+        /* Cart Overlay */
+        .cart-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .cart-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
         /* Collections Hero Section */
         .collections-hero {
             background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
@@ -55,6 +332,7 @@
             overflow: hidden;
             background-attachment: fixed; /* Creates parallax effect on desktop */
         }
+        
         .collections-hero-no-parallax {
             background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
                         url('{{ url_for("static", path="/images/productsBg.jpg") }}') center center/cover no-repeat;
@@ -65,6 +343,7 @@
             position: relative;
             overflow: hidden;
         }
+        
         .collections-hero::before {
             content: '';
             position: absolute;
@@ -101,7 +380,8 @@
             0% { transform: translate(0, 0); }
             100% { transform: translate(-30px, -30px); }
         }
-                .floating-shape {
+        
+        .floating-shape {
             position: absolute;
             opacity: 0.08;
             animation: float 20s ease-in-out infinite;
@@ -144,8 +424,7 @@
             66% { transform: translateY(20px) rotate(240deg); }
         }
 
-
-       .hero-content {
+        .hero-content {
             text-align: center;
             color: white;
             z-index: 2;
@@ -302,25 +581,28 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.15);
         }
 
+        /* FIXED: Enhanced category image container - NO CROPPING */
         .category-img {
             position: relative;
-            height: 400px;
+            height: 400px; /* Desktop height */
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #f8f9fa;
         }
 
         .category-img img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain; /* CHANGED: Use contain to show full image without cropping */
             object-position: center center;
             transition: transform 0.8s ease;
+            background: #f8f9fa; /* Background color for letterboxing */
         }
 
         .category-card:hover .category-img img {
-            transform: scale(1.15);
+            transform: scale(1.05); /* Reduced scale to prevent overflow */
         }
 
         .category-overlay {
@@ -382,6 +664,51 @@
             z-index: 10;
         }
 
+        /* Target all possible selectors for the category button */
+        .category-btn,
+        .category-btn:link,
+        .category-btn:visited,
+        .category-btn:hover,
+        .category-btn:active,
+        .category-btn:focus,
+        a.category-btn,
+        a.category-btn:link,
+        a.category-btn:visited,
+        a.category-btn:hover,
+        a.category-btn:active,
+        a.category-btn:focus,
+        .category-overlay a,
+        .category-overlay a:link,
+        .category-overlay a:visited,
+        .category-overlay a:hover,
+        .category-overlay a:active,
+        .category-overlay a:focus {
+            text-decoration: none !important;
+            text-decoration-line: none !important;
+            text-underline-offset: 0 !important;
+            text-decoration-thickness: 0 !important;
+            border: none !important;
+            border-bottom: none !important;
+            border-top: none !important;
+            border-left: none !important;
+            border-right: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
+        /* Remove any pseudo-elements that might create underlines */
+        .category-btn::before,
+        .category-btn::after,
+        a.category-btn::before,
+        a.category-btn::after,
+        .category-overlay a::before,
+        .category-overlay a::after {
+            display: none !important;
+            content: none !important;
+            border: none !important;
+            text-decoration: none !important;
+        }
+
         /* Animations */
         @keyframes slideInDown {
             from {
@@ -436,11 +763,6 @@
                 grid-template-columns: repeat(3, 1fr);
             }
         }
-        @media (max-width: 480px) {
-            .collections-hero {
-                min-height: 250px;
-            }
-        }
 
         @media (max-width: 992px) {
             .hero-content h1 {
@@ -455,19 +777,21 @@
                 font-size: 36px;
             }
 
-            .hero-content h1 {
-                font-size: 42px;
+            /* FIXED: Responsive category image heights - NO CROPPING */
+            .category-img {
+                height: 280px; /* Reduced for tablets */
+            }
+
+            .category-img img {
+                object-fit: contain; /* Ensure no cropping on tablets */
             }
         }
 
         @media (max-width: 768px) {
-                        .collections-hero {
+            .collections-hero {
                 background-attachment: scroll; /* Remove parallax on mobile for better performance */
                 min-height: 280px;
                 background-position: center center;
-            }
-            .collections-hero {
-                min-height: 300px;
             }
 
             .hero-content h1 {
@@ -477,8 +801,14 @@
             .hero-content p {
                 font-size: 16px;
             }
+
+            /* FIXED: Further reduced height for mobile - NO CROPPING */
             .category-img {
-                height: 300px;
+                height: 250px; /* Slightly taller for mobile to accommodate contain */
+            }
+
+            .category-img img {
+                object-fit: contain; /* Ensure full image is visible */
             }
 
             .filter-buttons {
@@ -491,9 +821,28 @@
                 padding: 10px 20px;
                 font-size: 13px;
             }
+
+            .category-overlay {
+                padding: 20px;
+            }
+
+            .category-btn {
+                padding: 10px 30px;
+                font-size: 14px;
+            }
+
+            /* Mobile cart adjustments */
+            .cart-sidebar {
+                width: 100%;
+                right: -100%;
+            }
         }
 
         @media (max-width: 576px) {
+            .collections-hero {
+                min-height: 250px;
+            }
+
             .category-grid {
                 grid-template-columns: 1fr;
                 gap: 20px;
@@ -505,6 +854,32 @@
 
             .collections-title h2 {
                 font-size: 30px;
+            }
+
+            /* FIXED: Mobile-specific image styling - NO CROPPING */
+            .category-img {
+                height: 220px; /* Adequate height for mobile */
+            }
+
+            .category-img img {
+                object-fit: contain; /* Show full image without cropping */
+                background: #f8f9fa; /* Background for letterboxing */
+            }
+
+            .category-overlay {
+                padding: 15px;
+            }
+
+            .category-btn {
+                padding: 8px 25px;
+                font-size: 13px;
+            }
+
+            .category-badge {
+                top: 15px;
+                left: 15px;
+                padding: 4px 8px;
+                font-size: 11px;
             }
 
             .filter-buttons {
@@ -522,126 +897,30 @@
                 padding: 10px 18px;
                 font-size: 12px;
             }
-        }
-        /* Target all possible selectors for the category button */
-.category-btn,
-.category-btn:link,
-.category-btn:visited,
-.category-btn:hover,
-.category-btn:active,
-.category-btn:focus,
-a.category-btn,
-a.category-btn:link,
-a.category-btn:visited,
-a.category-btn:hover,
-a.category-btn:active,
-a.category-btn:focus,
-.category-overlay a,
-.category-overlay a:link,
-.category-overlay a:visited,
-.category-overlay a:hover,
-.category-overlay a:active,
-.category-overlay a:focus {
-    text-decoration: none !important;
-    text-decoration-line: none !important;
-    text-underline-offset: 0 !important;
-    text-decoration-thickness: 0 !important;
-    border: none !important;
-    border-bottom: none !important;
-    border-top: none !important;
-    border-left: none !important;
-    border-right: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
 
-/* Remove any pseudo-elements that might create underlines */
-.category-btn::before,
-.category-btn::after,
-a.category-btn::before,
-a.category-btn::after,
-.category-overlay a::before,
-.category-overlay a::after {
-    display: none !important;
-    content: none !important;
-    border: none !important;
-    text-decoration: none !important;
-}
-
-/* Target the specific container and all children */
-.category-overlay *,
-.category-overlay a * {
-    text-decoration: none !important;
-    border: none !important;
-    border-bottom: none !important;
-}
-
-/* Override any inherited styles from parent elements */
-.category-card a,
-.category-card a:hover {
-    text-decoration: none !important;
-    border: none !important;
-    border-bottom: none !important;
-}
-
-/* If using Font Awesome or other icon fonts that might add underlines */
-.category-btn i,
-.category-btn span,
-a.category-btn i,
-a.category-btn span {
-    text-decoration: none !important;
-    border: none !important;
-}
-
-/* Nuclear option - remove ALL underlines from ANY link in the category section */
-.category-grid a,
-.category-grid a:hover,
-.category-grid a:focus,
-.category-grid a:active,
-.category-grid a:visited {
-    text-decoration: none !important;
-    text-decoration-line: none !important;
-    border: none !important;
-    border-bottom: none !important;
-}
-
-/* Additional specificity with parent selectors */
-body .category-overlay a.category-btn,
-body .category-overlay a.category-btn:hover {
-    text-decoration: none !important;
-    border: none !important;
-    border-bottom: none !important;
-}
-
-/* Remove webkit specific styling */
-.category-btn::-webkit-any-link {
-    text-decoration: none !important;
-}
-
-/* Remove moz specific styling */
-.category-btn::-moz-any-link {
-    text-decoration: none !important;
-}
-
-        @keyframes slideInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-50px);
+            /* Mobile cart */
+            .cart-header {
+                padding: 15px;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+
+            .cart-items {
+                padding: 15px;
+            }
+
+            .cart-footer {
+                padding: 15px;
             }
         }
 
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
+        /* FIXED: Show full image without any cropping on very small screens */
+        @media (max-width: 400px) {
+            .category-img {
+                height: 200px; /* Compact but adequate height */
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+
+            .category-img img {
+                object-fit: contain; /* Always show full image */
+                background: #f8f9fa; /* Background color for letterboxing */
             }
         }
     </style>
@@ -684,6 +963,38 @@ body .category-overlay a.category-btn:hover {
             </div>
         </div>
     </header>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h3 class="cart-title">
+                Shopping Cart
+                <span class="cart-count-badge">0</span>
+            </h3>
+            <button class="close-cart" id="close-cart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="cart-items" id="cart-items">
+            <div class="cart-empty">
+                <i class="fas fa-shopping-bag"></i>
+                <p>Your cart is empty</p>
+                <button class="continue-shopping" onclick="closeCart()">Continue Shopping</button>
+            </div>
+        </div>
+
+        <div class="cart-footer">
+            <div class="cart-subtotal">
+                <span class="subtotal-label">Subtotal:</span>
+                <span class="subtotal-amount">₹0</span>
+            </div>
+            <p class="tax-info">Taxes will be calculated at checkout</p>
+            <button class="checkout-btn">Proceed to Checkout</button>
+            <button class="continue-shopping" onclick="closeCart()">Continue Shopping</button>
+        </div>
+    </div>
 
     <!-- Hero Section -->
     <section class="collections-hero">
@@ -899,38 +1210,6 @@ body .category-overlay a.category-btn:hover {
         </div>
     </div>
 
-    <!-- Cart Sidebar -->
-    <div class="cart-overlay" id="cart-overlay"></div>
-    <div class="cart-sidebar" id="cart-sidebar">
-        <div class="cart-header">
-            <h3 class="cart-title">
-                Shopping Cart
-                <span class="cart-count-badge">0</span>
-            </h3>
-            <button class="close-cart" id="close-cart">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <div class="cart-items" id="cart-items">
-            <div class="cart-empty">
-                <i class="fas fa-shopping-bag"></i>
-                <p>Your cart is empty</p>
-                <button class="continue-shopping" onclick="closeCart()">Continue Shopping</button>
-            </div>
-        </div>
-
-        <div class="cart-footer">
-            <div class="cart-subtotal">
-                <span class="subtotal-label">Subtotal:</span>
-                <span class="subtotal-amount">₹0</span>
-            </div>
-            <p class="tax-info">Taxes will be calculated at checkout</p>
-            <button class="checkout-btn">Proceed to Checkout</button>
-            <button class="continue-shopping" onclick="closeCart()">Continue Shopping</button>
-        </div>
-    </div>
-
     <script src="{{ url_for('static', path='/js/script.js') }}"></script>
     <script src="{{ url_for('static', path='/js/profile-view.js') }}"></script>
     <script src="{{ url_for('static', path='/js/profile-navigation.js') }}"></script>
@@ -1097,10 +1376,8 @@ body .category-overlay a.category-btn:hover {
                     }
                 });
             }
-        });
 
-        // Cart management - Initialize everything after DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
+            // Cart management - Initialize everything after DOM is loaded
             let cart = [];
             const cartSidebar = document.getElementById('cart-sidebar');
             const cartOverlay = document.getElementById('cart-overlay');
@@ -1126,6 +1403,7 @@ body .category-overlay a.category-btn:hover {
 
             // Open cart
             window.openCart = function() {
+                console.log('Opening cart...');
                 cartSidebar.classList.add('active');
                 cartOverlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
@@ -1133,6 +1411,7 @@ body .category-overlay a.category-btn:hover {
 
             // Close cart
             window.closeCart = function() {
+                console.log('Closing cart...');
                 cartSidebar.classList.remove('active');
                 cartOverlay.classList.remove('active');
                 document.body.style.overflow = '';
@@ -1142,16 +1421,23 @@ body .category-overlay a.category-btn:hover {
             if (cartToggle) {
                 cartToggle.addEventListener('click', function(e) {
                     e.preventDefault();
+                    console.log('Cart toggle clicked');
                     openCart();
                 });
             }
 
             // Close cart events
             if (closeCartBtn) {
-                closeCartBtn.addEventListener('click', closeCart);
+                closeCartBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    closeCart();
+                });
             }
             if (cartOverlay) {
-                cartOverlay.addEventListener('click', closeCart);
+                cartOverlay.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    closeCart();
+                });
             }
 
             // Update cart display
@@ -1231,6 +1517,33 @@ body .category-overlay a.category-btn:hover {
                 cart = cart.filter(item => item.id !== productId);
                 updateCart();
                 saveCart();
+            }
+
+            // Checkout button
+            const checkoutBtn = document.querySelector('.checkout-btn');
+            if (checkoutBtn) {
+                checkoutBtn.addEventListener('click', async function() {
+                    if (cart.length === 0) {
+                        alert('Your cart is empty');
+                        return;
+                    }
+                    
+                    // Check if user is authenticated
+                    try {
+                        const response = await fetch('/api/auth/status');
+                        const result = await response.json();
+                        
+                        if (result.authenticated) {
+                            // User is logged in, proceed to checkout
+                            window.location.href = '/checkout';
+                        } else {
+                            // User is not logged in, redirect to login with checkout redirect
+                            window.location.href = '/login?redirect=checkout';
+                        }
+                    } catch (error) {
+                        alert('Error checking authentication. Please try again.');
+                    }
+                });
             }
 
             // Initialize cart on load
