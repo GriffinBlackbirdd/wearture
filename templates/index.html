@@ -1,1 +1,202 @@
-PAYMENT PENDING
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Notice - Outstanding Balance</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+          sans-serif;
+        background: #f8fafc;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        color: #1a202c;
+      }
+
+      .notice-container {
+        background: white;
+        border-radius: 8px;
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+      }
+
+      h1 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #1a202c;
+      }
+
+      .subtitle {
+        font-size: 16px;
+        color: #718096;
+        margin-bottom: 32px;
+      }
+
+      .amount-section {
+        background: #f7fafc;
+        border-radius: 6px;
+        padding: 24px;
+        margin: 24px 0;
+        border-left: 4px solid #e53e3e;
+      }
+
+      .amount-label {
+        font-size: 12px;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .amount-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: #e53e3e;
+      }
+
+      .deadline-section {
+        background: #f7fafc;
+        border-radius: 6px;
+        padding: 20px;
+        margin: 24px 0;
+        text-align: center;
+      }
+
+      .deadline-label {
+        font-size: 14px;
+        color: #4a5568;
+        margin-bottom: 12px;
+        font-weight: 600;
+      }
+
+      .countdown-display {
+        font-size: 20px;
+        font-weight: 600;
+        color: #2d3748;
+        font-family: monospace;
+      }
+
+      .warning-text {
+        background: #fef5e7;
+        border-radius: 6px;
+        padding: 20px;
+        margin: 24px 0;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #744210;
+        border-left: 4px solid #f6ad55;
+      }
+
+      .hindi-section {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid #e2e8f0;
+      }
+
+      .hindi-text {
+        font-size: 15px;
+        color: #4a5568;
+        line-height: 1.7;
+      }
+
+      .hindi-amount {
+        font-weight: 600;
+        color: #e53e3e;
+      }
+
+      @media (max-width: 480px) {
+        .notice-container {
+          padding: 24px;
+        }
+
+        h1 {
+          font-size: 20px;
+        }
+
+        .amount-value {
+          font-size: 28px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="notice-container">
+      <h1>Payment Notice</h1>
+      <p class="subtitle">Outstanding Balance</p>
+
+      <div class="amount-section">
+        <div class="amount-label">Amount Due</div>
+        <div class="amount-value">₹3,200</div>
+      </div>
+
+      <div class="deadline-section">
+        <div class="deadline-label">Payment Deadline</div>
+        <div class="countdown-display" id="countdown-timer">
+          <span id="timer-display"></span>
+        </div>
+      </div>
+
+      <div class="warning-text">
+        <strong>Important:</strong> Your payment of ₹3,200 is outstanding.
+        Payment must be completed before <strong>August 5th, 2025</strong>. If
+        payment is not received by the deadline, all website services will be
+        suspended and deleted.
+      </div>
+
+      <div class="hindi-section">
+        <div class="hindi-text">
+          <strong>महत्वपूर्ण सूचना:</strong> आपका
+          <span class="hindi-amount">₹3,200</span> का भुगतान बकाया है।
+          <strong>5 अगस्त 2025</strong> से पहले भुगतान पूरा करना आवश्यक है। यदि
+          निर्धारित समय तक भुगतान नहीं मिलता है, तो सभी वेबसाइट सेवाएं बंद कर दी
+          जाएंगी और डिलीट कर दी जाएंगी।
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function updateCountdown() {
+        const deadline = new Date("August 5, 2025 23:59:59").getTime();
+        const now = new Date().getTime();
+        const timeLeft = deadline - now;
+
+        const timerElement = document.getElementById("timer-display");
+
+        if (timeLeft > 0) {
+          const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+          const hours = Math.floor(
+            (timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+          );
+          const minutes = Math.floor(
+            (timeLeft % (1000 * 60 * 60)) / (1000 * 60)
+          );
+          const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+          timerElement.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+        } else {
+          timerElement.innerHTML = "DEADLINE EXPIRED";
+          timerElement.style.color = "#e53e3e";
+        }
+      }
+
+      // Initialize and update countdown
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    </script>
+  </body>
+</html>
