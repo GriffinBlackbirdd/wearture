@@ -1110,7 +1110,10 @@ async def get_authenticated_user(request: Request) -> Dict[str, Any]:
     
     return user
 
-
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy | fine"}
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
