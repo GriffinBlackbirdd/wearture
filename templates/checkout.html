@@ -1274,7 +1274,14 @@
                     const actualDeliveryCharge = document.querySelector('input[name="delivery"]:checked').value === 'express' ? 299 : 0;
                     
                     // Calculate discount
-                    const discountAmount = currentDiscount.code ? cartSubtotal * currentDiscount.percentage : 0;
+                    let discountAmount = 0;
+                    if (currentDiscount.code) {
+                        if (currentDiscount.type === 'percentage') {
+                            discountAmount = cartSubtotal * currentDiscount.percentage;
+                        } else if (currentDiscount.type === 'fixed') {
+                            discountAmount = Math.min(currentDiscount.amount, cartSubtotal); // Don't discount more than subtotal
+                        }
+                    }
                     const discountedSubtotal = cartSubtotal - discountAmount;
                     const actualOrderTotal = discountedSubtotal + actualDeliveryCharge;
                     
