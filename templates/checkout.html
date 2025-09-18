@@ -1050,7 +1050,14 @@
                 const isCOD = paymentMethod === 'cod';
                 
                 // Calculate discount
-                const discountAmount = currentDiscount.code ? subtotal * currentDiscount.percentage : 0;
+                let discountAmount = 0;
+                if (currentDiscount.code) {
+                    if (currentDiscount.type === 'percentage') {
+                        discountAmount = subtotal * currentDiscount.percentage;
+                    } else if (currentDiscount.type === 'fixed') {
+                        discountAmount = Math.min(currentDiscount.amount, subtotal); // Don't discount more than subtotal
+                    }
+                }
                 
                 // For COD, only charge the handling fee
                 if (isCOD) {
@@ -1509,20 +1516,23 @@
                 
                 // Simple promo code validation (in real app, this would be server-side)
                 const validCodes = {
-                    'SAVE10': 0.10,
-                    'SAVE20': 0.20,
-                    'FIRST50': 0.50,
-                    'MUSKAN': 1,
-                    'SAMRIDDHI': 1,
-                    'SAVE100': 1
+                    'SAVE10': { type: 'percentage', value: 0.10 },
+                    'SAVE20': { type: 'percentage', value: 0.20 },
+                    'FIRST50': { type: 'percentage', value: 0.50 },
+                    'MUSKAN': { type: 'percentage', value: 1 },
+                    'SAMRIDDHI': { type: 'percentage', value: 1 },
+                    'SAVE100': { type: 'percentage', value: 1 },
+                    'FIRST100': { type: 'fixed', value: 100 }
                 };
                 
                 if (validCodes[promoCode]) {
                     // Update the discount object
+                    const couponInfo = validCodes[promoCode];
                     currentDiscount = {
                         code: promoCode,
-                        percentage: validCodes[promoCode],
-                        amount: 0 // Will be calculated in calculateTotals
+                        type: couponInfo.type,
+                        percentage: couponInfo.type === 'percentage' ? couponInfo.value : 0,
+                        amount: couponInfo.type === 'fixed' ? couponInfo.value : 0 // Will be calculated for percentage
                     };
                     
                     promoInput.value = '';

@@ -3,6 +3,7 @@ Order management functions for WEARXTURE
 """
 from typing import Dict, List, Optional, Any
 import json
+import os
 from datetime import datetime
 from db.supabase_client import supabase, deduct_inventory, restore_inventory, get_product
 
@@ -593,6 +594,61 @@ def generate_invoice_pdf(order_data: Dict[str, Any]) -> bytes:
         raise
     finally:
         pdf_buffer.close()
+
+def check_and_use_coupon(coupon_code: str) -> Dict[str, Any]:
+    """
+    Check if coupon is valid and update usage count
+    Returns dict with valid status and discount info
+    """
+    try:
+        # Path to coupon usage file
+        coupon_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'coupon_usage.json')
+
+        # Read current usage
+        with open(coupon_file, 'r') as f:
+            coupon_data = json.load(f)
+
+        # Check coupon
+        if coupon_code == "FIRST100":
+            current_usage = coupon_data.get("FIRST100", 0)
+
+            if current_usage >= 20:
+                return {
+                    "valid": False,
+                    "message": "Coupon limit reached. Only first 20 users can use this coupon.",
+                    "discount_type": None,
+                    "discount_value": 0
+                }
+            else:
+                # Increment usage
+                coupon_data["FIRST100"] = current_usage + 1
+
+                # Save back to file
+                with open(coupon_file, 'w') as f:
+                    json.dump(coupon_data, f, indent=2)
+
+                return {
+                    "valid": True,
+                    "message": "Coupon applied successfully!",
+                    "discount_type": "fixed",
+                    "discount_value": 100
+                }
+        else:
+            return {
+                "valid": False,
+                "message": "Invalid coupon code",
+                "discount_type": None,
+                "discount_value": 0
+            }
+
+    except Exception as e:
+        print(f"Error checking coupon: {e}")
+        return {
+            "valid": False,
+            "message": "Error validating coupon",
+            "discount_type": None,
+            "discount_value": 0
+        }
 
 def update_shiprocket_info(order_id: str, shiprocket_data: Dict[str, Any]) -> bool:
     """Update order with enhanced Shiprocket information"""

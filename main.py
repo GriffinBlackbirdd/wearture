@@ -43,7 +43,8 @@ from db.supabase_client import (
 )
 from db.order_management import (
     create_order, get_order, update_order_payment_status,
-    get_user_orders, get_pending_orders, update_order_status, get_all_orders, update_shiprocket_info 
+    get_user_orders, get_pending_orders, update_order_status, get_all_orders, update_shiprocket_info,
+    check_and_use_coupon
 )
 from urllib.parse import urlparse, parse_qs
 
@@ -1219,7 +1220,22 @@ async def create_order_endpoint(order_data: dict, request: Request):
             )
         
         print(f"✅ Inventory validation passed")
-        
+
+        # Handle coupon validation
+        coupon_code = order_data.get("discountCode")
+        discount_amount = order_data.get("discountAmount", 0)
+
+        # Validate FIRST100 coupon if used
+        if coupon_code == "FIRST100":
+            coupon_result = check_and_use_coupon(coupon_code)
+            if not coupon_result["valid"]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=coupon_result["message"]
+                )
+            # Ensure discount amount is correct
+            discount_amount = coupon_result["discount_value"]
+
         # Get the actual order total and the amount to charge on Razorpay
         actual_order_total = order_data.get("actualOrderTotal", 0)
         razorpay_amount = order_data.get("razorpayAmount", 0)  # This is 80 for COD, full amount otherwise
