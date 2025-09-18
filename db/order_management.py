@@ -595,7 +595,7 @@ def generate_invoice_pdf(order_data: Dict[str, Any]) -> bytes:
     finally:
         pdf_buffer.close()
 
-def check_and_use_coupon(coupon_code: str) -> Dict[str, Any]:
+def check_and_use_coupon(coupon_code: str, user_email: str, order_id: str) -> Dict[str, Any]:
     """
     Check if coupon is valid and update usage count in Supabase
     Returns dict with valid status and discount info
@@ -604,43 +604,75 @@ def check_and_use_coupon(coupon_code: str) -> Dict[str, Any]:
         # Check if coupon exists and is valid
         coupon_response = supabase.table('coupon_usage').select('*').eq('coupon_code', coupon_code).eq('is_active', True).single().execute()
 
-        if coupon_response.data:
-            coupon = coupon_response.data
-            current_usage = coupon.get('usage_count', 0)
-            max_usage = coupon.get('max_usage', 0)
-
-            if current_usage >= max_usage:
-                return {
-                    "valid": False,
-                    "message": "Coupon limit reached. This coupon has been used up.",
-                    "discount_type": None,
-                    "discount_value": 0
-                }
-            else:
-                # Update usage count
-                update_response = supabase.table('coupon_usage').update({
-                    'usage_count': current_usage + 1,
-                    'updated_at': datetime.now().isoformat()
-                }).eq('coupon_code', coupon_code).execute()
-
-                if update_response.data:
-                    return {
-                        "valid": True,
-                        "message": "Coupon applied successfully!",
-                        "discount_type": coupon.get('discount_type'),
-                        "discount_value": coupon.get('discount_value')
-                    }
-                else:
-                    return {
-                        "valid": False,
-                        "message": "Error updating coupon usage",
-                        "discount_type": None,
-                        "discount_value": 0
-                    }
-        else:
+        if not coupon_response.data:
             return {
                 "valid": False,
                 "message": "Invalid coupon code",
+                "discount_type": None,
+                "discount_value": 0
+            }
+
+        coupon = coupon_response.data
+        current_usage = coupon.get('usage_count', 0)
+        max_usage = coupon.get('max_usage', 0)
+
+        # Check global usage limit
+        if current_usage >= max_usage:
+            return {
+                "valid": False,
+                "message": "Coupon limit reached. This coupon has been used up.",
+                "discount_type": None,
+                "discount_value": 0
+            }
+
+        # Check if user has already used this coupon
+        redemption_response = supabase.table('coupon_redemptions').select('*').eq('coupon_code', coupon_code).eq('user_email', user_email).execute()
+
+        if redemption_response.data and len(redemption_response.data) > 0:
+            return {
+                "valid": False,
+                "message": "You have already used this coupon. Coupons can only be used once per user.",
+                "discount_type": None,
+                "discount_value": 0
+            }
+
+        # All checks passed - record the redemption
+        discount_value = coupon.get('discount_value')
+        redemption_data = {
+            'coupon_code': coupon_code,
+            'user_email': user_email,
+            'order_id': order_id,
+            'discount_amount': discount_value
+        }
+
+        # Record redemption
+        redemption_insert = supabase.table('coupon_redemptions').insert(redemption_data).execute()
+
+        if not redemption_insert.data:
+            return {
+                "valid": False,
+                "message": "Error recording coupon usage",
+                "discount_type": None,
+                "discount_value": 0
+            }
+
+        # Update usage count
+        update_response = supabase.table('coupon_usage').update({
+            'usage_count': current_usage + 1,
+            'updated_at': datetime.now().isoformat()
+        }).eq('coupon_code', coupon_code).execute()
+
+        if update_response.data:
+            return {
+                "valid": True,
+                "message": "Coupon applied successfully!",
+                "discount_type": coupon.get('discount_type'),
+                "discount_value": coupon.get('discount_value')
+            }
+        else:
+            return {
+                "valid": False,
+                "message": "Error updating coupon usage",
                 "discount_type": None,
                 "discount_value": 0
             }

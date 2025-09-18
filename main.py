@@ -1225,15 +1225,15 @@ async def create_order_endpoint(order_data: dict, request: Request):
         coupon_code = order_data.get("discountCode")
         discount_amount = order_data.get("discountAmount", 0)
 
-        # Validate FIRST100 coupon if used
-        if coupon_code == "FIRST100":
-            coupon_result = check_and_use_coupon(coupon_code)
+        # Validate coupon if used
+        if coupon_code:
+            coupon_result = check_and_use_coupon(coupon_code, email, order_id)
             if not coupon_result["valid"]:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=coupon_result["message"]
                 )
-            # Ensure discount amount is correct
+            # Use the discount amount from validation
             discount_amount = coupon_result["discount_value"]
 
         # Get the actual order total and the amount to charge on Razorpay
