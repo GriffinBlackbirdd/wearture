@@ -597,42 +597,46 @@ def generate_invoice_pdf(order_data: Dict[str, Any]) -> bytes:
 
 def check_and_use_coupon(coupon_code: str) -> Dict[str, Any]:
     """
-    Check if coupon is valid and update usage count
+    Check if coupon is valid and update usage count in Supabase
     Returns dict with valid status and discount info
     """
     try:
-        # Path to coupon usage file
-        coupon_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'coupon_usage.json')
+        # Check if coupon exists and is valid
+        coupon_response = supabase.table('coupon_usage').select('*').eq('coupon_code', coupon_code).eq('is_active', True).single().execute()
 
-        # Read current usage
-        with open(coupon_file, 'r') as f:
-            coupon_data = json.load(f)
+        if coupon_response.data:
+            coupon = coupon_response.data
+            current_usage = coupon.get('usage_count', 0)
+            max_usage = coupon.get('max_usage', 0)
 
-        # Check coupon
-        if coupon_code == "FIRST100":
-            current_usage = coupon_data.get("FIRST100", 0)
-
-            if current_usage >= 20:
+            if current_usage >= max_usage:
                 return {
                     "valid": False,
-                    "message": "Coupon limit reached. Only first 20 users can use this coupon.",
+                    "message": "Coupon limit reached. This coupon has been used up.",
                     "discount_type": None,
                     "discount_value": 0
                 }
             else:
-                # Increment usage
-                coupon_data["FIRST100"] = current_usage + 1
+                # Update usage count
+                update_response = supabase.table('coupon_usage').update({
+                    'usage_count': current_usage + 1,
+                    'updated_at': datetime.now().isoformat()
+                }).eq('coupon_code', coupon_code).execute()
 
-                # Save back to file
-                with open(coupon_file, 'w') as f:
-                    json.dump(coupon_data, f, indent=2)
-
-                return {
-                    "valid": True,
-                    "message": "Coupon applied successfully!",
-                    "discount_type": "fixed",
-                    "discount_value": 100
-                }
+                if update_response.data:
+                    return {
+                        "valid": True,
+                        "message": "Coupon applied successfully!",
+                        "discount_type": coupon.get('discount_type'),
+                        "discount_value": coupon.get('discount_value')
+                    }
+                else:
+                    return {
+                        "valid": False,
+                        "message": "Error updating coupon usage",
+                        "discount_type": None,
+                        "discount_value": 0
+                    }
         else:
             return {
                 "valid": False,
