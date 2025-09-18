@@ -1221,6 +1221,16 @@ async def create_order_endpoint(order_data: dict, request: Request):
         
         print(f"✅ Inventory validation passed")
 
+        # Get the actual order total and the amount to charge on Razorpay
+        actual_order_total = order_data.get("actualOrderTotal", 0)
+        razorpay_amount = order_data.get("razorpayAmount", 0)  # This is 80 for COD, full amount otherwise
+        remaining_amount = order_data.get("remainingAmount", 0)  # For COD only
+
+        # Generate order ID
+        order_id = "ORD" + datetime.now().strftime("%Y%m%d%H%M%S")
+
+        print(f"🆔 Generated Order ID: {order_id}")
+
         # Handle coupon validation
         coupon_code = order_data.get("discountCode")
         discount_amount = order_data.get("discountAmount", 0)
@@ -1235,16 +1245,6 @@ async def create_order_endpoint(order_data: dict, request: Request):
                 )
             # Use the discount amount from validation
             discount_amount = coupon_result["discount_value"]
-
-        # Get the actual order total and the amount to charge on Razorpay
-        actual_order_total = order_data.get("actualOrderTotal", 0)
-        razorpay_amount = order_data.get("razorpayAmount", 0)  # This is 80 for COD, full amount otherwise
-        remaining_amount = order_data.get("remainingAmount", 0)  # For COD only
-        
-        # Generate order ID
-        order_id = "ORD" + datetime.now().strftime("%Y%m%d%H%M%S")
-        
-        print(f"🆔 Generated Order ID: {order_id}")
         
         # Prepare cart items with product IDs for inventory management
         cart_with_ids = []
