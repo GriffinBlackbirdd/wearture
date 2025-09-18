@@ -645,10 +645,36 @@ def check_and_use_coupon(coupon_code: str, user_email: str, order_id: str) -> Di
             'discount_amount': discount_value
         }
 
-        # Record redemption
-        redemption_insert = supabase.table('coupon_redemptions').insert(redemption_data).execute()
+        try:
+            # Try to insert the redemption
+            redemption_insert = supabase.table('coupon_redemptions').insert(redemption_data).execute()
 
-        if not redemption_insert.data:
+            if not redemption_insert.data:
+                # Check if it's a duplicate entry error
+                error = redemption_insert.get('error')
+                if error and 'duplicate' in str(error).lower():
+                    return {
+                        "valid": False,
+                        "message": "You have already used this coupon. Coupons can only be used once per user.",
+                        "discount_type": None,
+                        "discount_value": 0
+                    }
+                return {
+                    "valid": False,
+                    "message": "Error recording coupon usage",
+                    "discount_type": None,
+                    "discount_value": 0
+                }
+        except Exception as insert_error:
+            # Handle any insertion errors
+            error_msg = str(insert_error).lower()
+            if 'duplicate' in error_msg or 'unique' in error_msg:
+                return {
+                    "valid": False,
+                    "message": "You have already used this coupon. Coupons can only be used once per user.",
+                    "discount_type": None,
+                    "discount_value": 0
+                }
             return {
                 "valid": False,
                 "message": "Error recording coupon usage",
