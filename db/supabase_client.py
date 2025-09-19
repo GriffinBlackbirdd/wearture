@@ -1160,4 +1160,131 @@ def sync_guest_wishlist_to_user(user_id: int, guest_wishlist_ids: List[int]) -> 
         print(f"Error syncing guest wishlist: {e}")
         return False
 
+# ========== PRODUCT REVIEWS FUNCTIONS ==========
+
+def create_product_review(product_id: int, user_account: str, review_text: str, rating: int) -> Optional[Dict[str, Any]]:
+    """
+    Create a new product review
+    """
+    try:
+        review_data = {
+            'product_id': product_id,
+            'user_account': user_account,
+            'review_text': review_text,
+            'rating': rating
+        }
+
+        response = supabase.table('product_reviews').insert(review_data).execute()
+
+        if response.data and len(response.data) > 0:
+            print(f"✅ Product review created with ID: {response.data[0].get('id')}")
+            return response.data[0]
+
+        print("❌ Failed to create product review")
+        return None
+
+    except Exception as e:
+        print(f"❌ Error creating product review: {e}")
+        return None
+
+def get_product_reviews(product_id: int) -> List[Dict[str, Any]]:
+    """
+    Get all reviews for a specific product, ordered by creation date (newest first)
+    """
+    try:
+        response = supabase.table('product_reviews').select('*').eq('product_id', product_id).order('created_at', desc=True).execute()
+        return response.data if response.data else []
+    except Exception as e:
+        print(f"Error getting product reviews: {e}")
+        return []
+
+def get_user_reviews(user_account: str) -> List[Dict[str, Any]]:
+    """
+    Get all reviews by a specific user
+    """
+    try:
+        response = supabase.table('product_reviews').select('*').eq('user_account', user_account).order('created_at', desc=True).execute()
+        return response.data if response.data else []
+    except Exception as e:
+        print(f"Error getting user reviews: {e}")
+        return []
+
+def update_product_review(review_id: int, user_account: str, review_text: Optional[str] = None, rating: Optional[int] = None) -> Optional[Dict[str, Any]]:
+    """
+    Update a product review (only the review owner can update)
+    """
+    try:
+        # First verify the review belongs to the user
+        existing_review = supabase.table('product_reviews').select('*').eq('id', review_id).eq('user_account', user_account).execute()
+
+        if not existing_review.data:
+            print("❌ Review not found or user doesn't have permission")
+            return None
+
+        update_data = {}
+        if review_text is not None:
+            update_data['review_text'] = review_text
+        if rating is not None:
+            update_data['rating'] = rating
+
+        response = supabase.table('product_reviews').update(update_data).eq('id', review_id).execute()
+
+        if response.data and len(response.data) > 0:
+            print(f"✅ Product review updated: {response.data[0].get('id')}")
+            return response.data[0]
+
+        print("❌ Failed to update product review")
+        return None
+
+    except Exception as e:
+        print(f"❌ Error updating product review: {e}")
+        return None
+
+def delete_product_review(review_id: int, user_account: str) -> bool:
+    """
+    Delete a product review (only the review owner can delete)
+    """
+    try:
+        # First verify the review belongs to the user
+        existing_review = supabase.table('product_reviews').select('*').eq('id', review_id).eq('user_account', user_account).execute()
+
+        if not existing_review.data:
+            print("❌ Review not found or user doesn't have permission")
+            return False
+
+        response = supabase.table('product_reviews').delete().eq('id', review_id).execute()
+
+        if response.data:
+            print(f"✅ Product review deleted: {review_id}")
+            return True
+
+        print("❌ Failed to delete product review")
+        return False
+
+    except Exception as e:
+        print(f"❌ Error deleting product review: {e}")
+        return False
+
+def get_product_average_rating(product_id: int) -> Dict[str, Any]:
+    """
+    Get average rating and review count for a product
+    """
+    try:
+        response = supabase.table('product_reviews').select('rating').eq('product_id', product_id).execute()
+
+        if not response.data:
+            return {'average_rating': 0, 'total_reviews': 0}
+
+        ratings = [review['rating'] for review in response.data]
+        average_rating = sum(ratings) / len(ratings)
+
+        return {
+            'average_rating': round(average_rating, 1),
+            'total_reviews': len(ratings)
+        }
+
+    except Exception as e:
+        print(f"Error getting product average rating: {e}")
+        return {'average_rating': 0, 'total_reviews': 0}
+
         

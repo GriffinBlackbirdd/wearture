@@ -35,11 +35,12 @@ import httpx
 from db.supabase_client import (
     get_all_products, get_product, create_product, update_product, delete_product,
     get_all_categories, get_category, create_category, update_category, delete_category,
-    upload_product_image, upload_category_image, verify_admin_credentials, supabase, 
+    upload_product_image, upload_category_image, verify_admin_credentials, supabase,
     get_products_by_category, get_subcategories, update_product_images, get_related_products,
     get_all_reels, get_active_reels, get_reel, create_reel, update_reel, delete_reel, upload_reel_video, upload_category_cover_image,
-    create_support_query, get_all_support_queries, get_support_query, 
-    update_support_query_status, get_support_queries_by_status, get_customer_support_queries
+    create_support_query, get_all_support_queries, get_support_query,
+    update_support_query_status, get_support_queries_by_status, get_customer_support_queries,
+    create_product_review, get_product_reviews, get_user_reviews, update_product_review, delete_product_review, get_product_average_rating
 )
 from db.order_management import (
     create_order, get_order, update_order_payment_status,
@@ -2171,6 +2172,187 @@ async def get_product_by_id(product_id: int):
         raise HTTPException(status_code=404, detail="Product not found")
     return product_from_db(db_product)
 
+# ========= Product Reviews API Endpoints =========
+
+# Pydantic models for reviews
+class ReviewCreate(BaseModel):
+    product_id: int
+    review_text: str
+    rating: int = Field(..., ge=1, le=5)
+
+class ReviewUpdate(BaseModel):
+    review_text: Optional[str] = None
+    rating: Optional[int] = Field(None, ge=1, le=5)
+
+# Get reviews for a product
+@app.get("/api/products/{product_id}/reviews", tags=["API"])
+async def get_product_reviews_api(product_id: int):
+    """Get all reviews for a specific product"""
+    try:
+        reviews = get_product_reviews(product_id)
+        avg_rating = get_product_average_rating(product_id)
+
+        return {
+            "reviews": reviews,
+            "average_rating": avg_rating["average_rating"],
+            "total_reviews": avg_rating["total_reviews"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Create a new review
+@app.post("/api/products/{product_id}/reviews", tags=["API"])
+async def create_review_api(
+    product_id: int,
+    review: ReviewCreate,
+    request: Request
+):
+    """Create a new product review"""
+    try:
+        # Get user from session (you'll need to adapt this based on your auth system)
+        user_email = request.session.get("user_email")
+        if not user_email:
+            raise HTTPException(status_code=401, detail="Authentication required")
+
+        # Verify product exists
+        product = get_product(product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        # Create review
+        new_review = create_product_review(
+            product_id=product_id,
+            user_account=user_email,
+            review_text=review.review_text,
+            rating=review.rating
+        )
+
+        if new_review:
+            return {"message": "Review created successfully", "review": new_review}
+        else:
+            raise HTTPException(status_code=400, detail="Failed to create review")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Update a review
+@app.put("/api/reviews/{review_id}", tags=["API"])
+async def update_review_api(
+    review_id: int,
+    review: ReviewUpdate,
+    request: Request
+):
+    """Update an existing review"""
+    try:
+        # Get user from session
+        user_email = request.session.get("user_email")
+        if not user_email:
+            raise HTTPException(status_code=401, detail="Authentication required")
+
+        # Update review
+        updated_review = update_product_review(
+            review_id=review_id,
+            user_account=user_email,
+            review_text=review.review_text,
+            rating=review.rating
+        )
+
+        if updated_review:
+            return {"message": "Review updated successfully", "review": updated_review}
+        else:
+            raise HTTPException(status_code=400, detail="Failed to update review")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Delete a review
+@app.delete("/api/reviews/{review_id}", tags=["API"])
+async def delete_review_api(
+    review_id: int,
+    request: Request
+):
+    """Delete a review"""
+    try:
+        # Get user from session
+        user_email = request.session.get("user_email")
+        if not user_email:
+            raise HTTPException(status_code=401, detail="Authentication required")
+
+        # Delete review
+        success = delete_product_review(review_id=review_id, user_account=user_email)
+
+        if success:
+            return {"message": "Review deleted successfully"}
+        else:
+            raise HTTPException(status_code=400, detail="Failed to delete review")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Get user's reviews
+@app.get("/api/user/reviews", tags=["API"])
+async def get_user_reviews_api(request: Request):
+    """Get all reviews by the current user"""
+    try:
+        # Get user from session
+        user_email = request.session.get("user_email")
+        if not user_email:
+            raise HTTPException(status_code=401, detail="Authentication required")
+
+        reviews = get_user_reviews(user_email)
+        return {"reviews": reviews}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Review submission form endpoint
+@app.post("/product/{product_id}/review", response_class=RedirectResponse)
+async def submit_review(
+    product_id: int,
+    request: Request,
+    review_text: str = Form(...),
+    rating: int = Form(..., ge=1, le=5)
+):
+    """Handle review submission from form"""
+    try:
+        # Get user from session
+        user_email = request.session.get("user_email")
+        if not user_email:
+            # Redirect to login with return URL
+            return RedirectResponse(url=f"/login?return_url=/product/{product_id}", status_code=303)
+
+        # Verify product exists
+        product = get_product(product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        # Create review
+        new_review = create_product_review(
+            product_id=product_id,
+            user_account=user_email,
+            review_text=review_text,
+            rating=rating
+        )
+
+        if new_review:
+            # Redirect back to product page with success message
+            return RedirectResponse(url=f"/product/{product_id}?review_success=true", status_code=303)
+        else:
+            # Redirect back with error message
+            return RedirectResponse(url=f"/product/{product_id}?review_error=true", status_code=303)
+
+    except Exception as e:
+        print(f"Error submitting review: {e}")
+        return RedirectResponse(url=f"/product/{product_id}?review_error=true", status_code=303)
+
 # Get all categories
 @app.get("/api/categories", response_model=List[CategoryResponse], tags=["API"])
 async def get_categories():
@@ -3542,7 +3724,11 @@ async def product_detail_page(request: Request, product_id: int):
     # Get related products
     db_related = get_related_products(product_id, product.category_id)
     related_products = [product_from_db(p) for p in db_related]
-    
+
+    # Get product reviews and rating info
+    product_reviews = get_product_reviews(product_id)
+    rating_info = get_product_average_rating(product_id)
+
     # Extract additional images from attributes if they exist
     additional_images = []
     if hasattr(product, 'additional_images') and product.additional_images:
@@ -3595,7 +3781,9 @@ async def product_detail_page(request: Request, product_id: int):
         "category": category,
         "related_products": related_products,
         "additional_images": additional_images,
-        "colors": colors
+        "colors": colors,
+        "reviews": product_reviews,
+        "rating_info": rating_info
     }
     
     return templates.TemplateResponse("product_detail.html", context)
