@@ -2323,9 +2323,11 @@ async def submit_review(
 ):
     """Handle review submission from form"""
     try:
-        # Get user from session
-        user_email = request.session.get("user_email")
-        if not user_email:
+        # Get user from cookie token
+        token = request.cookies.get("user_access_token")
+        current_user = get_current_user_simple(token) if token else None
+
+        if not current_user:
             # Redirect to login with return URL
             return RedirectResponse(url=f"/login?return_url=/product/{product_id}", status_code=303)
 
@@ -2337,7 +2339,7 @@ async def submit_review(
         # Create review
         new_review = create_product_review(
             product_id=product_id,
-            user_account=user_email,
+            user_account=current_user["email"],
             review_text=review_text,
             rating=rating
         )
@@ -3774,6 +3776,12 @@ async def product_detail_page(request: Request, product_id: int):
                     {"name": "Olive Green", "code": "#556b2f"}
                 ]
     
+    # Get current user info
+    current_user = None
+    token = request.cookies.get("user_access_token")
+    if token:
+        current_user = get_current_user_simple(token)
+
     # Create context with all template variables
     context = {
         "request": request,
@@ -3783,7 +3791,8 @@ async def product_detail_page(request: Request, product_id: int):
         "additional_images": additional_images,
         "colors": colors,
         "reviews": product_reviews,
-        "rating_info": rating_info
+        "rating_info": rating_info,
+        "current_user": current_user
     }
     
     return templates.TemplateResponse("product_detail.html", context)
